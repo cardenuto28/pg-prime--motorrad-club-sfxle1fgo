@@ -61,37 +61,15 @@ export const AdminLayout: React.FC = () => {
             >
               <Menu className="w-6 h-6" />
             </button>
-            <Link to="/" className="flex items-center gap-2 group">
-              <svg
-                width="34"
-                height="26"
-                viewBox="0 0 100 70"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white group-hover:text-blue-500 transition-colors"
-              >
-                <path
-                  d="M10 20 L40 20 L25 50 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                />
-                <path
-                  d="M35 10 L85 10 L60 60 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                />
-                <path d="M45 25 L95 25 L80 45 Z" fill="currentColor" opacity="0.8" />
-              </svg>
-              <div className="flex flex-col leading-none">
-                <span className="font-bold tracking-[0.2em] text-sm text-white font-montserrat">
-                  EUROMOTORS
-                </span>
-                <span className="text-[9px] tracking-[0.25em] text-blue-400 font-semibold mt-0.5">
-                  PAINEL ADMIN
-                </span>
-              </div>
+            <Link to="/" className="flex items-center gap-3 group shrink-0">
+              <img
+                src="/src/assets/logo-e67e1.jpeg"
+                alt="EUROMOTORS MOTORRAD CLUB"
+                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
+              />
+              <span className="text-[10px] tracking-[0.2em] text-blue-400 font-bold uppercase font-montserrat border-l border-slate-700 pl-3">
+                ADMIN
+              </span>
             </Link>
           </div>
 

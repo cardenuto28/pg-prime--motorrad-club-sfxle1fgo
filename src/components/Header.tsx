@@ -73,40 +73,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
       <header className="sticky top-0 z-50 bg-[#07090e]/95 backdrop-blur border-b border-[#181f2f]">
         <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="relative flex items-center justify-center">
-              <svg
-                width="42"
-                height="32"
-                viewBox="0 0 100 70"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white group-hover:text-blue-500 transition-colors"
-              >
-                {/* Custom Emblem / Winged Logo similar to Motorrad */}
-                <path
-                  d="M10 20 L40 20 L25 50 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                />
-                <path
-                  d="M35 10 L85 10 L60 60 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                />
-                <path d="M45 25 L95 25 L80 45 Z" fill="currentColor" opacity="0.8" />
-              </svg>
-            </div>
-            <div className="flex flex-col">
-              <span className="font-bold tracking-[0.2em] text-lg text-white leading-none font-montserrat">
-                EUROMOTORS
-              </span>
-              <span className="text-[10px] tracking-[0.25em] text-slate-400 font-semibold mt-1">
-                MOTORRAD CLUB
-              </span>
-            </div>
+          <Link to="/" className="flex items-center group shrink-0">
+            <img
+              src="/src/assets/logo-e67e1.jpeg"
+              alt="EUROMOTORS MOTORRAD CLUB - BMW MOTORRAD JUNDIAÍ"
+              className="h-12 sm:h-14 w-auto object-contain max-w-[280px] sm:max-w-[360px] md:max-w-none transition-opacity group-hover:opacity-90"
+            />
           </Link>
 
           {/* Nav Links - Desktop */}

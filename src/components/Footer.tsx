@@ -9,37 +9,12 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 pb-10 border-b border-[#141a26]">
           {/* Coluna 1: Logo */}
           <div className="lg:col-span-1 space-y-3">
-            <Link to="/" className="flex items-center gap-2 group">
-              <svg
-                width="36"
-                height="28"
-                viewBox="0 0 100 70"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-                className="text-white"
-              >
-                <path
-                  d="M10 20 L40 20 L25 50 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                />
-                <path
-                  d="M35 10 L85 10 L60 60 Z"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="6"
-                />
-                <path d="M45 25 L95 25 L80 45 Z" fill="currentColor" opacity="0.8" />
-              </svg>
-              <div className="flex flex-col">
-                <span className="font-bold tracking-[0.2em] text-sm text-white font-montserrat">
-                  EUROMOTORS
-                </span>
-                <span className="text-[9px] tracking-[0.2em] text-slate-400 font-semibold">
-                  MOTORRAD CLUB
-                </span>
-              </div>
+            <Link to="/" className="flex items-center group">
+              <img
+                src="/src/assets/logo-e67e1.jpeg"
+                alt="EUROMOTORS MOTORRAD CLUB"
+                className="h-12 w-auto object-contain transition-opacity group-hover:opacity-90"
+              />
             </Link>
           </div>
 
