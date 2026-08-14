@@ -82,6 +82,93 @@ export function statusLabel(status: UserProfile['status']): string {
   return (STATUS_META[status] || STATUS_META.pendente).label
 }
 
+/* ---------- Partner category helpers ---------- */
+
+export type PartnerCategory =
+  | 'hoteis'
+  | 'restaurantes'
+  | 'equipamentos'
+  | 'vestuario'
+  | 'turismo'
+  | 'seguros'
+  | 'servicos'
+  | 'outros'
+
+export const PARTNER_CATEGORIES: PartnerCategory[] = [
+  'hoteis',
+  'restaurantes',
+  'equipamentos',
+  'vestuario',
+  'turismo',
+  'seguros',
+  'servicos',
+  'outros',
+]
+
+const PARTNER_CATEGORY_META: Record<
+  PartnerCategory,
+  { label: string; className: string; dot: string }
+> = {
+  hoteis: {
+    label: 'Hotéis',
+    className: 'bg-blue-950/70 text-blue-300 border-blue-700/50',
+    dot: 'bg-blue-400',
+  },
+  restaurantes: {
+    label: 'Restaurantes',
+    className: 'bg-amber-950/70 text-amber-300 border-amber-700/50',
+    dot: 'bg-amber-400',
+  },
+  equipamentos: {
+    label: 'Equipamentos',
+    className: 'bg-emerald-950/70 text-emerald-300 border-emerald-700/50',
+    dot: 'bg-emerald-400',
+  },
+  vestuario: {
+    label: 'Vestuário',
+    className: 'bg-purple-950/70 text-purple-300 border-purple-700/50',
+    dot: 'bg-purple-400',
+  },
+  turismo: {
+    label: 'Turismo',
+    className: 'bg-cyan-950/70 text-cyan-300 border-cyan-700/50',
+    dot: 'bg-cyan-400',
+  },
+  seguros: {
+    label: 'Seguros',
+    className: 'bg-red-950/70 text-red-300 border-red-700/50',
+    dot: 'bg-red-400',
+  },
+  servicos: {
+    label: 'Serviços',
+    className: 'bg-indigo-950/70 text-indigo-300 border-indigo-700/50',
+    dot: 'bg-indigo-400',
+  },
+  outros: {
+    label: 'Outros',
+    className: 'bg-slate-800/70 text-slate-300 border-slate-600/50',
+    dot: 'bg-slate-400',
+  },
+}
+
+export function partnerCategoryLabel(cat?: string): string {
+  if (!cat) return 'Outros'
+  return (PARTNER_CATEGORY_META[cat as PartnerCategory] || PARTNER_CATEGORY_META.outros).label
+}
+
+export const PartnerCategoryBadge: React.FC<{ category?: string }> = ({ category }) => {
+  const meta =
+    PARTNER_CATEGORY_META[(category as PartnerCategory) || 'outros'] || PARTNER_CATEGORY_META.outros
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded uppercase border ${meta.className}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+      {meta.label}
+    </span>
+  )
+}
+
 /** Formats a ride.date which is stored as text (e.g. "07/06/2025" or ISO). */
 export function formatDate(value?: string): string {
   if (!value) return 'A definir'

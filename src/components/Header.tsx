@@ -110,42 +110,48 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           </Link>
 
           {/* Nav Links - Desktop */}
-          <nav className="hidden lg:flex items-center gap-8">
-            <a
-              href="#inicio"
-              className="text-xs font-semibold tracking-wider text-white border-b-2 border-blue-600 pb-1"
+          <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+            <Link
+              to="/"
+              className="text-xs font-semibold tracking-wider text-white border-b-2 border-blue-600 pb-1 hover:text-white transition-colors"
             >
               INÍCIO
-            </a>
-            <a
-              href="#como-funciona"
+            </Link>
+            <Link
+              to="/club"
               className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
             >
-              SOBRE O CLUBE
-            </a>
+              O CLUB
+            </Link>
+            <Link
+              to="/beneficios"
+              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
+            >
+              BENEFÍCIOS
+            </Link>
             <a
-              href="#proximos-passeios"
+              href="/#proximos-passeios"
               className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
             >
               PASSEIOS
             </a>
-            <a
-              href="#vantagens"
+            <Link
+              to="/parceiros"
               className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
             >
-              BENEFÍCIOS
-            </a>
+              PARCEIROS
+            </Link>
             <a
-              href="#galeria"
+              href="/#galeria"
               className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
             >
               GALERIA
             </a>
             <a
-              href="#contato"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
+              href="/#cadastro-form"
+              className="text-xs font-semibold tracking-wider text-blue-400 hover:text-blue-300 transition-colors"
             >
-              CONTATO
+              QUERO FAZER PARTE
             </a>
           </nav>
 
@@ -216,20 +222,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
         {mobileMenuOpen && (
           <div className="lg:hidden bg-[#0a0d14] border-b border-[#1c2436] px-4 py-6 space-y-4 animate-in slide-in-from-top-2">
             <nav className="flex flex-col space-y-3">
-              <a
-                href="#inicio"
+              <Link
+                to="/"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-white hover:text-blue-400"
               >
                 INÍCIO
-              </a>
-              <a
-                href="#o-club"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
-              >
-                SOBRE O CLUBE
-              </a>
+              </Link>
               <Link
                 to="/club"
                 onClick={() => setMobileMenuOpen(false)}
@@ -237,33 +236,40 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               >
                 O CLUB
               </Link>
+              <Link
+                to="/beneficios"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-slate-300 hover:text-white"
+              >
+                BENEFÍCIOS
+              </Link>
               <a
-                href="#proximos-passeios"
+                href="/#proximos-passeios"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white"
               >
                 PASSEIOS
               </a>
-              <a
-                href="#vantagens"
+              <Link
+                to="/parceiros"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white"
               >
-                BENEFÍCIOS
-              </a>
+                PARCEIROS
+              </Link>
               <a
-                href="#galeria"
+                href="/#galeria"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white"
               >
                 GALERIA
               </a>
               <a
-                href="#contato"
+                href="/#cadastro-form"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
+                className="text-sm font-semibold text-blue-400 hover:text-blue-300"
               >
-                CONTATO
+                QUERO FAZER PARTE
               </a>
             </nav>
             <div className="pt-4 border-t border-slate-800">

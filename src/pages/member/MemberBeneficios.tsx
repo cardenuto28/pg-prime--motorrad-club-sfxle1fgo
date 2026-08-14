@@ -1,5 +1,17 @@
 import React, { useEffect, useState } from 'react'
-import { Gift, Phone, ExternalLink, CalendarClock, Tag, Store, Info } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  Gift,
+  Phone,
+  ExternalLink,
+  CalendarClock,
+  Tag,
+  Store,
+  Info,
+  ShieldCheck,
+  ChevronRight,
+  Handshake,
+} from 'lucide-react'
 import { Benefit, benefitService } from '@/services/api'
 import { resolveFileUrl, coverFallback, formatDate } from '@/lib/member'
 
@@ -10,7 +22,7 @@ const MemberBeneficios: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const data = await benefitService.getAllBenefits()
+        const data = await benefitService.getActiveBenefits()
         setBenefits(data)
       } catch (e) {
         console.error('Erro ao carregar benefícios:', e)
@@ -40,6 +52,22 @@ const MemberBeneficios: React.FC = () => {
         </p>
       </div>
 
+      {/* Destaque de membro */}
+      <div className="bg-gradient-to-r from-blue-950/40 to-[#0e131d] border border-blue-700/40 rounded-md p-4 flex items-center gap-3">
+        <div className="w-9 h-9 rounded-md bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0">
+          <ShieldCheck className="w-4 h-4" />
+        </div>
+        <div className="flex-1">
+          <p className="text-xs font-bold text-white font-montserrat tracking-wide uppercase">
+            Seu benefício como membro
+          </p>
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            Apresente sua identificação de membro do Euro Motors Club para aproveitar todas as
+            condições abaixo.
+          </p>
+        </div>
+      </div>
+
       {benefits.length === 0 ? (
         <div className="bg-[#0e131d] border border-dashed border-[#1c2538] rounded-md p-10 text-center">
           <Gift className="w-10 h-10 text-slate-600 mx-auto mb-3" />
@@ -51,6 +79,7 @@ const MemberBeneficios: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {benefits.map((b) => {
             const img = resolveFileUrl(b.image) || coverFallback('discount,store,benefit')
+            const isContactUrl = b.contact_link && b.contact_link.startsWith('http')
             return (
               <div
                 key={b.id}
@@ -109,6 +138,26 @@ const MemberBeneficios: React.FC = () => {
                           </span>
                         </div>
                       )}
+                      {b.contact_link && (
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-3.5 h-3.5 text-slate-500" />
+                          <span>
+                            <span className="text-slate-500">Contato: </span>
+                            {isContactUrl ? (
+                              <a
+                                href={b.contact_link}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="text-blue-400 hover:text-blue-300"
+                              >
+                                {b.contact_link.replace(/^https?:\/\//, '')}
+                              </a>
+                            ) : (
+                              b.contact_link
+                            )}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -116,12 +165,14 @@ const MemberBeneficios: React.FC = () => {
                 {b.contact_link && (
                   <div className="p-4 pt-0">
                     <a
-                      href={b.contact_link}
-                      target="_blank"
-                      rel="noreferrer"
+                      href={
+                        isContactUrl ? b.contact_link : `tel:${b.contact_link.replace(/\D/g, '')}`
+                      }
+                      target={isContactUrl ? '_blank' : undefined}
+                      rel={isContactUrl ? 'noreferrer' : undefined}
                       className="w-full flex items-center justify-center gap-1.5 border border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all"
                     >
-                      {b.contact_link.startsWith('http') && b.contact_link.includes('wa.me') ? (
+                      {isContactUrl && b.contact_link.includes('wa.me') ? (
                         <Phone className="w-3.5 h-3.5" />
                       ) : (
                         <ExternalLink className="w-3.5 h-3.5" />
@@ -135,6 +186,29 @@ const MemberBeneficios: React.FC = () => {
           })}
         </div>
       )}
+
+      {/* Link para parceiros */}
+      <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-md bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0">
+            <Handshake className="w-4 h-4" />
+          </div>
+          <div>
+            <p className="text-xs font-bold text-white font-montserrat tracking-wide uppercase">
+              Conheça nossos parceiros
+            </p>
+            <p className="text-[11px] text-slate-400 mt-0.5">
+              Veja a rede completa de estabelecimentos credenciados.
+            </p>
+          </div>
+        </div>
+        <Link
+          to="/parceiros"
+          className="flex items-center gap-1 text-[11px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider font-montserrat flex-shrink-0"
+        >
+          Ver parceiros <ChevronRight className="w-3.5 h-3.5" />
+        </Link>
+      </div>
     </div>
   )
 }

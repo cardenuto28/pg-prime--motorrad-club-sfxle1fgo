@@ -84,6 +84,7 @@ export interface Benefit {
   valid_until?: string
   how_to_use?: string
   contact_link?: string
+  active?: boolean
   created: string
   updated: string
 }
@@ -106,6 +107,7 @@ export interface Partner {
   website?: string
   phone?: string
   city?: string
+  active?: boolean
   created: string
   updated: string
 }
@@ -313,6 +315,14 @@ export const benefitService = {
     return records as unknown as Benefit[]
   },
 
+  /** Apenas benefícios ativos — usados nas páginas públicas e da área do membro. */
+  async getActiveBenefits(): Promise<Benefit[]> {
+    const records = await pb
+      .collection('benefits')
+      .getFullList({ filter: "active='true'", sort: '-created' })
+    return records as unknown as Benefit[]
+  },
+
   async createBenefit(data: Omit<Benefit, 'id' | 'created' | 'updated'>): Promise<Benefit> {
     const created = await pb.collection('benefits').create(data)
     return created as unknown as Benefit
@@ -332,6 +342,14 @@ export const benefitService = {
 export const partnerService = {
   async getAllPartners(): Promise<Partner[]> {
     const records = await pb.collection('partners').getFullList({ sort: '-created' })
+    return records as unknown as Partner[]
+  },
+
+  /** Apenas parceiros ativos — usados na página pública de parceiros. */
+  async getActivePartners(): Promise<Partner[]> {
+    const records = await pb
+      .collection('partners')
+      .getFullList({ filter: "active='true'", sort: '-created' })
     return records as unknown as Partner[]
   },
 

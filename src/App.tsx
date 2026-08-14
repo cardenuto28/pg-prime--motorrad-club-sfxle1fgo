@@ -5,6 +5,8 @@ import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
 import Club from './pages/Club'
+import Beneficios from './pages/Beneficios'
+import Parceiros from './pages/Parceiros'
 import RideDetail from './pages/RideDetail'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
@@ -23,6 +25,8 @@ import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminMembers from './pages/admin/AdminMembers'
 import AdminRides from './pages/admin/AdminRides'
 import AdminRideDetail from './pages/admin/AdminRideDetail'
+import AdminBenefits from './pages/admin/AdminBenefits'
+import AdminPartners from './pages/admin/AdminPartners'
 import AdminPlaceholder from './pages/admin/AdminPlaceholder'
 import { AuthProvider } from './context/AuthContext'
 
@@ -39,6 +43,8 @@ const App = () => (
           <Route element={<Layout />}>
             <Route path="/" element={<Index />} />
             <Route path="/club" element={<Club />} />
+            <Route path="/beneficios" element={<Beneficios />} />
+            <Route path="/parceiros" element={<Parceiros />} />
             {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
             <Route path="/passeios/:id" element={<RideDetail />} />
           </Route>
@@ -74,8 +80,8 @@ const App = () => (
             <Route path="rides" element={<AdminRides />} />
             <Route path="rides/:id" element={<AdminRideDetail />} />
             <Route path="registrations" element={<AdminPlaceholder title="Inscrições" />} />
-            <Route path="benefits" element={<AdminPlaceholder title="Benefícios" />} />
-            <Route path="partners" element={<AdminPlaceholder title="Parceiros" />} />
+            <Route path="benefits" element={<AdminBenefits />} />
+            <Route path="partners" element={<AdminPartners />} />
             <Route path="gallery" element={<AdminPlaceholder title="Galeria" />} />
             <Route path="announcements" element={<AdminPlaceholder title="Comunicados" />} />
             <Route path="reports" element={<AdminPlaceholder title="Relatórios" />} />

@@ -14,28 +14,39 @@ import {
   XCircle,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
-import { Ride, Registration, rideService, registrationService } from '@/services/api'
+import {
+  Ride,
+  Registration,
+  Benefit,
+  rideService,
+  registrationService,
+  benefitService,
+} from '@/services/api'
 import { Button } from '@/components/ui/button'
-import { StatusBadge, formatDate, isRidePast, coverFallback } from '@/lib/member'
+import { StatusBadge, formatDate, isRidePast, coverFallback, resolveFileUrl } from '@/lib/member'
 import pb from '@/lib/pocketbase/client'
+import { Gift, Store } from 'lucide-react'
 
 const MemberDashboard: React.FC = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [rides, setRides] = useState<Ride[]>([])
   const [regs, setRegs] = useState<Registration[]>([])
+  const [benefits, setBenefits] = useState<Benefit[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     if (!user) return
     setLoading(true)
     try {
-      const [allRides, userRegs] = await Promise.all([
+      const [allRides, userRegs, activeBenefits] = await Promise.all([
         rideService.getAllRides(),
         registrationService.getRegistrationsByUser(user.id),
+        benefitService.getActiveBenefits(),
       ])
       setRides(allRides)
       setRegs(userRegs)
+      setBenefits(activeBenefits)
     } catch (e) {
       console.error('Erro ao carregar dashboard:', e)
     } finally {
@@ -133,6 +144,61 @@ const MemberDashboard: React.FC = () => {
               : 'Aguardando aprovação'
           }
         />
+      </section>
+
+      {/* Benefícios em destaque */}
+      <section className="space-y-4">
+        <SectionHeader
+          title="Benefícios do Club"
+          icon={Gift}
+          action={
+            <Link
+              to="/member/beneficios"
+              className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+            >
+              VER TODOS <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          }
+        />
+        {benefits.length === 0 ? (
+          <EmptyState text="Nenhum benefício ativo no momento." />
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {benefits.slice(0, 4).map((b) => {
+              const img = resolveFileUrl(b.image) || coverFallback('discount,store,benefit')
+              return (
+                <div
+                  key={b.id}
+                  className="bg-[#0e131d] border border-[#1c2538] rounded-md overflow-hidden flex flex-col group hover:border-blue-600/50 transition-all"
+                >
+                  <div className="relative h-28 overflow-hidden">
+                    <img
+                      src={img}
+                      alt={b.title}
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#0e131d] via-[#0e131d]/40 to-transparent" />
+                    {b.partner && (
+                      <span className="absolute top-2 left-2 text-[9px] font-bold text-blue-300 bg-blue-950/80 border border-blue-700/50 px-2 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
+                        <Store className="w-3 h-3" /> {b.partner}
+                      </span>
+                    )}
+                  </div>
+                  <div className="p-3 space-y-2 flex-1">
+                    <h3 className="text-xs font-bold text-white tracking-wide uppercase font-montserrat line-clamp-1">
+                      {b.title}
+                    </h3>
+                    {b.description && (
+                      <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">
+                        {b.description}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       {/* Próximos Passeios */}
