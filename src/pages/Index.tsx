@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import heroBg from '@/assets/image-ee5cd.png'
+import heroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140658-0d19a.png'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 export default function Index() {
