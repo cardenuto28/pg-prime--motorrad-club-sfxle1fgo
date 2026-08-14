@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-14T20:33:29.209Z",
+  "generatedAt": "2026-08-14T20:53:48.869Z",
   "collections": [
     {
       "name": "users",
@@ -258,6 +258,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "cover_image_file",
+          "type": "file",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -431,6 +437,12 @@
           "type": "bool",
           "required": false,
           "system": false
+        },
+        {
+          "name": "image_file",
+          "type": "file",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []
@@ -521,6 +533,12 @@
         {
           "name": "active",
           "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "logo_file",
+          "type": "file",
           "required": false,
           "system": false
         }
@@ -620,6 +638,18 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "cover_image_file",
+          "type": "file",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "images_files",
+          "type": "file",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
@@ -711,6 +741,112 @@
       "indexes": [
         "CREATE INDEX `idx_announcements_active_priority` ON `announcements` (active,priority)"
       ]
+    },
+    {
+      "name": "settings",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "key",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "club_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "slogan",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "address",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "phone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "contact_email",
+          "type": "email",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "website_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "instagram_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "facebook_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "youtube_url",
+          "type": "url",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "whatsapp_number",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "eligibility_criteria",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "admin_email",
+          "type": "email",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }

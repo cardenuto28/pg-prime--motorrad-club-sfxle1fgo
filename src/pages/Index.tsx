@@ -155,7 +155,7 @@ export default function Index() {
             <img
               src={heroBg}
               alt="Euro Motors Motorrad Club GS"
-              className="w-full h-full object-cover object-center saturate-[1.15] contrast-[1.05]"
+              className="w-full h-full object-cover object-[center_25%] saturate-[1.15] contrast-[1.05]"
             />
             {/* Minimal gradient overlays to preserve vivid background colors while ensuring text readability */}
             <div className="absolute inset-0 bg-gradient-to-r from-[#05070d]/75 via-[#05070d]/25 to-[#05070d]/50" />
