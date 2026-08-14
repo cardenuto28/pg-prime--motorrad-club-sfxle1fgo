@@ -20,6 +20,8 @@ import MemberComunicados from './pages/member/MemberComunicados'
 import MemberPerfil from './pages/member/MemberPerfil'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminMembers from './pages/admin/AdminMembers'
+import AdminRides from './pages/admin/AdminRides'
+import AdminRideDetail from './pages/admin/AdminRideDetail'
 import AdminPlaceholder from './pages/admin/AdminPlaceholder'
 import { AuthProvider } from './context/AuthContext'
 

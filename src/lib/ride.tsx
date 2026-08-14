@@ -1,5 +1,5 @@
 import React from 'react'
-import type { Ride, Registration } from '@/services/api'
+import type { Ride } from '@/services/api'
 
 export type RideStatus = Ride['status']
 
