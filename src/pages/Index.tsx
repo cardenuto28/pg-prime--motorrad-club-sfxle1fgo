@@ -650,7 +650,7 @@ export default function Index() {
               <img
                 src="/visual-edits/whatsapp-image-2026-08-14-at-14-44-52-8b581baa.jpg"
                 alt="Euromotors Motorrad Club"
-                className="h-[2.8rem] sm:h-[3.36rem] w-auto object-contain opacity-95 hover:opacity-100 transition-opacity"
+                className="h-12 sm:h-[3.6rem] w-auto object-contain opacity-95 hover:opacity-100 transition-opacity"
               />
             </div>
 
