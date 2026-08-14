@@ -27,7 +27,7 @@ import {
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import heroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140658-0d19a.png'
+import heroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140658-cc4d6.png'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 export default function Index() {
@@ -139,8 +139,8 @@ export default function Index() {
               className="w-full h-full object-cover object-center"
             />
             {/* Dark Cinematic Overlay Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#05070d]/95 via-[#05070d]/70 to-[#05070d]/85" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d] via-transparent to-[#05070d]/40" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#05070d]/90 via-[#05070d]/55 to-[#05070d]/75" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d] via-transparent to-[#05070d]/30" />
           </div>
 
           {/* Hero Content */}
