@@ -16,42 +16,45 @@ import MemberBeneficios from './pages/member/MemberBeneficios'
 import MemberGaleria from './pages/member/MemberGaleria'
 import MemberComunicados from './pages/member/MemberComunicados'
 import MemberPerfil from './pages/member/MemberPerfil'
+import { AuthProvider } from './context/AuthContext'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
 
 const App = () => (
   <BrowserRouter>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <Routes>
-        <Route element={<Layout />}>
-          <Route path="/" element={<Index />} />
-          {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
-          <Route path="/passeios/:id" element={<RideDetail />} />
-        </Route>
-        {/* Área do Membro (protegida) */}
-        <Route
-          path="/member"
-          element={
-            <ProtectedRoute>
-              <MemberLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<MemberDashboard />} />
-          <Route path="dashboard" element={<MemberDashboard />} />
-          <Route path="passeios" element={<MemberPasseios />} />
-          <Route path="inscricoes" element={<MemberInscricoes />} />
-          <Route path="beneficios" element={<MemberBeneficios />} />
-          <Route path="galeria" element={<MemberGaleria />} />
-          <Route path="comunicados" element={<MemberComunicados />} />
-          <Route path="perfil" element={<MemberPerfil />} />
-        </Route>
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<Index />} />
+            {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
+            <Route path="/passeios/:id" element={<RideDetail />} />
+          </Route>
+          {/* Área do Membro (protegida) */}
+          <Route
+            path="/member"
+            element={
+              <ProtectedRoute>
+                <MemberLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<MemberDashboard />} />
+            <Route path="dashboard" element={<MemberDashboard />} />
+            <Route path="passeios" element={<MemberPasseios />} />
+            <Route path="inscricoes" element={<MemberInscricoes />} />
+            <Route path="beneficios" element={<MemberBeneficios />} />
+            <Route path="galeria" element={<MemberGaleria />} />
+            <Route path="comunicados" element={<MemberComunicados />} />
+            <Route path="perfil" element={<MemberPerfil />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </TooltipProvider>
+    </AuthProvider>
   </BrowserRouter>
 )
 
