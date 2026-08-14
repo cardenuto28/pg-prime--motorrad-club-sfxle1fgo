@@ -27,7 +27,10 @@ import AdminRides from './pages/admin/AdminRides'
 import AdminRideDetail from './pages/admin/AdminRideDetail'
 import AdminBenefits from './pages/admin/AdminBenefits'
 import AdminPartners from './pages/admin/AdminPartners'
+import AdminGallery from './pages/admin/AdminGallery'
+import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminPlaceholder from './pages/admin/AdminPlaceholder'
+import Galeria from './pages/Galeria'
 import { AuthProvider } from './context/AuthContext'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
@@ -47,6 +50,7 @@ const App = () => (
             <Route path="/parceiros" element={<Parceiros />} />
             {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
             <Route path="/passeios/:id" element={<RideDetail />} />
+            <Route path="/galeria" element={<Galeria />} />
           </Route>
           {/* Área do Membro (protegida) */}
           <Route
@@ -82,8 +86,8 @@ const App = () => (
             <Route path="registrations" element={<AdminPlaceholder title="Inscrições" />} />
             <Route path="benefits" element={<AdminBenefits />} />
             <Route path="partners" element={<AdminPartners />} />
-            <Route path="gallery" element={<AdminPlaceholder title="Galeria" />} />
-            <Route path="announcements" element={<AdminPlaceholder title="Comunicados" />} />
+            <Route path="gallery" element={<AdminGallery />} />
+            <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="reports" element={<AdminPlaceholder title="Relatórios" />} />
             <Route path="settings" element={<AdminPlaceholder title="Configurações" />} />
           </Route>

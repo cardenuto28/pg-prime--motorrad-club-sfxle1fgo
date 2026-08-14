@@ -18,14 +18,16 @@ import {
   Ride,
   Registration,
   Benefit,
+  Announcement,
   rideService,
   registrationService,
   benefitService,
+  announcementService,
 } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { StatusBadge, formatDate, isRidePast, coverFallback, resolveFileUrl } from '@/lib/member'
 import pb from '@/lib/pocketbase/client'
-import { Gift, Store } from 'lucide-react'
+import { Gift, Store, Megaphone, AlertTriangle, AlertCircle, ChevronDown } from 'lucide-react'
 
 const MemberDashboard: React.FC = () => {
   const { user } = useAuth()
@@ -33,20 +35,24 @@ const MemberDashboard: React.FC = () => {
   const [rides, setRides] = useState<Ride[]>([])
   const [regs, setRegs] = useState<Registration[]>([])
   const [benefits, setBenefits] = useState<Benefit[]>([])
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [expandedAnn, setExpandedAnn] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     if (!user) return
     setLoading(true)
     try {
-      const [allRides, userRegs, activeBenefits] = await Promise.all([
+      const [allRides, userRegs, activeBenefits, activeAnnouncements] = await Promise.all([
         rideService.getAllRides(),
         registrationService.getRegistrationsByUser(user.id),
         benefitService.getActiveBenefits(),
+        announcementService.getActive(),
       ])
       setRides(allRides)
       setRegs(userRegs)
       setBenefits(activeBenefits)
+      setAnnouncements(activeAnnouncements)
     } catch (e) {
       console.error('Erro ao carregar dashboard:', e)
     } finally {
@@ -144,6 +150,93 @@ const MemberDashboard: React.FC = () => {
               : 'Aguardando aprovação'
           }
         />
+      </section>
+
+      {/* Comunicados */}
+      <section className="space-y-4">
+        <SectionHeader
+          title="Comunicados"
+          icon={Megaphone}
+          action={
+            <Link
+              to="/member/comunicados"
+              className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+            >
+              VER TODOS <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          }
+        />
+        {announcements.length === 0 ? (
+          <EmptyState text="Nenhum comunicado ativo no momento." />
+        ) : (
+          <div className="space-y-3">
+            {announcements.slice(0, 4).map((a) => {
+              const isUrgent = a.priority === 'urgent'
+              const isImportant = a.priority === 'important'
+              const isOpen = !!expandedAnn[a.id]
+              return (
+                <div
+                  key={a.id}
+                  className={`rounded-md p-4 border transition-colors ${
+                    isUrgent
+                      ? 'bg-red-950/20 border-red-800/60'
+                      : isImportant
+                        ? 'bg-amber-950/20 border-amber-800/50'
+                        : 'bg-[#0e131d] border-[#1c2538]'
+                  }`}
+                >
+                  <button
+                    onClick={() => setExpandedAnn((p) => ({ ...p, [a.id]: !p[a.id] }))}
+                    className="flex items-start justify-between gap-3 w-full text-left"
+                  >
+                    <div className="flex items-start gap-2 min-w-0">
+                      {isUrgent ? (
+                        <AlertTriangle className="w-4 h-4 text-red-400 flex-shrink-0 mt-0.5" />
+                      ) : isImportant ? (
+                        <AlertCircle className="w-4 h-4 text-amber-400 flex-shrink-0 mt-0.5" />
+                      ) : (
+                        <Megaphone className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+                      )}
+                      <h3 className="text-sm font-bold text-white font-montserrat tracking-wide">
+                        {a.title}
+                      </h3>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span
+                        className={`text-[9px] font-bold tracking-wider px-2 py-0.5 rounded uppercase border ${
+                          isUrgent
+                            ? 'bg-red-950/70 text-red-300 border-red-700/50'
+                            : isImportant
+                              ? 'bg-amber-950/70 text-amber-300 border-amber-700/50'
+                              : 'bg-slate-800/70 text-slate-300 border-slate-600/50'
+                        }`}
+                      >
+                        {isUrgent ? 'Urgente' : isImportant ? 'Importante' : 'Normal'}
+                      </span>
+                      <ChevronDown
+                        className={`w-4 h-4 text-slate-400 transition-transform ${
+                          isOpen ? 'rotate-180' : ''
+                        }`}
+                      />
+                    </div>
+                  </button>
+                  {a.content && (
+                    <p
+                      className={`text-xs text-slate-300 leading-relaxed whitespace-pre-line pl-6 mt-2 ${
+                        isOpen ? '' : 'line-clamp-2'
+                      }`}
+                    >
+                      {a.content}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 pl-6 mt-2">
+                    {formatDate(a.publish_at || a.date)}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        )}
       </section>
 
       {/* Benefícios em destaque */}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
@@ -16,8 +16,10 @@ import {
   Menu,
   X,
   ChevronRight,
+  AlertTriangle,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { announcementService } from '@/services/api'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 interface NavItem {
@@ -43,6 +45,25 @@ export const AdminLayout: React.FC = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+  const [urgentCount, setUrgentCount] = useState(0)
+
+  useEffect(() => {
+    let cancelled = false
+    const loadUrgent = async () => {
+      try {
+        const list = await announcementService.getUrgent()
+        if (!cancelled) setUrgentCount(list.length)
+      } catch (_) {
+        if (!cancelled) setUrgentCount(0)
+      }
+    }
+    loadUrgent()
+    const t = setInterval(loadUrgent, 60000)
+    return () => {
+      cancelled = true
+      clearInterval(t)
+    }
+  }, [])
 
   const handleLogout = () => {
     logout()
@@ -72,6 +93,15 @@ export const AdminLayout: React.FC = () => {
                 ADMIN
               </span>
             </Link>
+            {urgentCount > 0 && (
+              <Link
+                to="/admin/announcements"
+                title={`${urgentCount} comunicado(s) urgente(s) ativo(s)`}
+                className="inline-flex items-center gap-1.5 text-[10px] font-bold text-red-300 bg-red-950/60 border border-red-700/50 px-2.5 py-1 rounded uppercase tracking-widest animate-pulse"
+              >
+                <AlertTriangle className="w-3.5 h-3.5" /> URGENTE ({urgentCount})
+              </Link>
+            )}
           </div>
 
           <div className="hidden sm:flex items-center gap-3">

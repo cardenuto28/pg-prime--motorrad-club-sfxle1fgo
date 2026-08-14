@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import {
   Calendar,
@@ -20,6 +20,8 @@ import {
   ShieldAlert,
   User,
   Lock,
+  Images,
+  ChevronRight,
 } from 'lucide-react'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -36,8 +38,21 @@ import {
 } from '@/components/ui/dialog'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { rideService, registrationService, Registration, Ride } from '@/services/api'
+import {
+  rideService,
+  registrationService,
+  galleryService,
+  Registration,
+  Ride,
+  Gallery,
+} from '@/services/api'
 import { formatDate, isRidePast, resolveFileUrl, coverFallback } from '@/lib/member'
+import { GalleryGrid, galleriesToTiles, type GalleryTile } from '@/components/gallery/GalleryGrid'
+import {
+  GalleryLightbox,
+  galleryToLightboxItems,
+  type LightboxItem,
+} from '@/components/gallery/GalleryLightbox'
 
 const RideDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -55,6 +70,8 @@ const RideDetail: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
+  const [gallery, setGallery] = useState<Gallery[]>([])
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -66,6 +83,15 @@ const RideDetail: React.FC = () => {
         return
       }
       setRide(r)
+      // Carrega galeria se o passeio já foi realizado
+      if (r.status === 'realizado') {
+        try {
+          const g = await galleryService.getByRide(id)
+          setGallery(g)
+        } catch (_) {
+          setGallery([])
+        }
+      }
       if (user) {
         const regs = await registrationService.getRegistrationsByUser(user.id)
         setUserRegs(regs)
@@ -84,6 +110,9 @@ const RideDetail: React.FC = () => {
     load()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  const galleryTiles: GalleryTile[] = useMemo(() => galleriesToTiles(gallery), [gallery])
+  const lightboxItems: LightboxItem[] = useMemo(() => galleryToLightboxItems(gallery), [gallery])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -344,6 +373,28 @@ const RideDetail: React.FC = () => {
                 </a>
               </div>
             )}
+
+            {/* Galeria do Passeio (apenas para passeios realizados) */}
+            {ride.status === 'realizado' && galleryTiles.length > 0 && (
+              <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 space-y-4">
+                <div className="flex items-center justify-between gap-2">
+                  <h3 className="text-xs font-bold text-white uppercase tracking-widest font-montserrat flex items-center gap-2">
+                    <Images className="w-4 h-4 text-blue-500" /> Galeria do Passeio
+                  </h3>
+                  <Link
+                    to={`/galeria?ride=${ride.id}`}
+                    className="text-[10px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider flex items-center gap-1 font-montserrat"
+                  >
+                    Ver galeria completa <ChevronRight className="w-3 h-3" />
+                  </Link>
+                </div>
+                <GalleryGrid
+                  tiles={galleryTiles}
+                  onOpen={(i) => setLightboxIndex(i)}
+                  masonry={false}
+                />
+              </div>
+            )}
           </div>
 
           {/* COLUNA LATERAL: Vagas + CTA */}
@@ -552,6 +603,14 @@ const RideDetail: React.FC = () => {
         isOpen={regModalOpen}
         onClose={() => setRegModalOpen(false)}
         onSuccess={load}
+      />
+
+      {/* Lightbox da galeria do passeio */}
+      <GalleryLightbox
+        items={lightboxItems}
+        index={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+        onNavigate={setLightboxIndex}
       />
     </div>
   )

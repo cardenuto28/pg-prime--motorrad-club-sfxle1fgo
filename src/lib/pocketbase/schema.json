@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-14T16:33:29.951Z",
+  "generatedAt": "2026-08-14T16:36:06.000Z",
   "collections": [
     {
       "name": "users",
@@ -77,18 +77,6 @@
         },
         {
           "name": "bike_year",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "pillion_name",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "pillion_phone",
           "type": "text",
           "required": false,
           "system": false
@@ -98,7 +86,7 @@
           "type": "select",
           "required": false,
           "system": false,
-          "selectValues": ["pendente", "ativo", "inativo", "bloqueado"]
+          "selectValues": ["ativo", "inativo", "pendente"]
         }
       ],
       "indexes": [
@@ -117,120 +105,27 @@
         "delete": ""
       },
       "fields": [
-        {
-          "name": "name",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
-        {
-          "name": "cover_image",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "description",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "date",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "meeting_time",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "departure_time",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "meeting_point",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "destination",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "route",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "distance_km",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "estimated_time",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "max_bikes",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "allow_pillion",
-          "type": "bool",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "price",
-          "type": "number",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "important_info",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "whats_included",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "rules",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "map_link",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "registration_deadline",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
+        { "name": "name", "type": "text", "required": true, "system": false },
+        { "name": "cover_image", "type": "text", "required": false, "system": false },
+        { "name": "description", "type": "text", "required": false, "system": false },
+        { "name": "date", "type": "text", "required": false, "system": false },
+        { "name": "meeting_time", "type": "text", "required": false, "system": false },
+        { "name": "departure_time", "type": "text", "required": false, "system": false },
+        { "name": "meeting_point", "type": "text", "required": false, "system": false },
+        { "name": "destination", "type": "text", "required": false, "system": false },
+        { "name": "route", "type": "text", "required": false, "system": false },
+        { "name": "distance_km", "type": "number", "required": false, "system": false },
+        { "name": "estimated_time", "type": "text", "required": false, "system": false },
+        { "name": "max_bikes", "type": "number", "required": false, "system": false },
+        { "name": "bikes_registered", "type": "number", "required": false, "system": false },
+        { "name": "participants_registered", "type": "number", "required": false, "system": false },
+        { "name": "allow_pillion", "type": "bool", "required": false, "system": false },
+        { "name": "price", "type": "number", "required": false, "system": false },
+        { "name": "important_info", "type": "text", "required": false, "system": false },
+        { "name": "whats_included", "type": "text", "required": false, "system": false },
+        { "name": "rules", "type": "text", "required": false, "system": false },
+        { "name": "map_link", "type": "text", "required": false, "system": false },
+        { "name": "registration_deadline", "type": "text", "required": false, "system": false },
         {
           "name": "status",
           "type": "select",
@@ -287,48 +182,13 @@
           "system": false,
           "collectionRef": "users"
         },
-        {
-          "name": "has_pillion",
-          "type": "bool",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "pillion_name",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "pillion_phone",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "emergency_contact_name",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "emergency_contact_phone",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "accepted_rules",
-          "type": "bool",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "accepted_terms",
-          "type": "bool",
-          "required": false,
-          "system": false
-        },
+        { "name": "has_pillion", "type": "bool", "required": false, "system": false },
+        { "name": "pillion_name", "type": "text", "required": false, "system": false },
+        { "name": "pillion_phone", "type": "text", "required": false, "system": false },
+        { "name": "emergency_contact_name", "type": "text", "required": false, "system": false },
+        { "name": "emergency_contact_phone", "type": "text", "required": false, "system": false },
+        { "name": "accepted_rules", "type": "bool", "required": false, "system": false },
+        { "name": "accepted_terms", "type": "bool", "required": false, "system": false },
         {
           "name": "status",
           "type": "select",
@@ -364,54 +224,12 @@
         "delete": ""
       },
       "fields": [
-        {
-          "name": "title",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
-        {
-          "name": "image",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "partner",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "description",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "exclusive_condition",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "valid_until",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "how_to_use",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "contact_link",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
+        { "name": "title", "type": "text", "required": true, "system": false },
+        { "name": "image", "type": "text", "required": false, "system": false },
+        { "name": "partner", "type": "text", "required": false, "system": false },
+        { "name": "description", "type": "text", "required": false, "system": false },
+        { "name": "exclusive_condition", "type": "text", "required": false, "system": false },
+        { "name": "active", "type": "bool", "required": false, "system": false },
         {
           "name": "created",
           "type": "autodate",
@@ -425,12 +243,6 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
-        },
-        {
-          "name": "active",
-          "type": "bool",
-          "required": false,
-          "system": false
         }
       ],
       "indexes": []
@@ -446,12 +258,7 @@
         "delete": ""
       },
       "fields": [
-        {
-          "name": "name",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
+        { "name": "name", "type": "text", "required": true, "system": false },
         {
           "name": "category",
           "type": "select",
@@ -468,42 +275,13 @@
             "outros"
           ]
         },
-        {
-          "name": "logo",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "description",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "discount_info",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "website",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "phone",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "city",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
+        { "name": "logo", "type": "text", "required": false, "system": false },
+        { "name": "description", "type": "text", "required": false, "system": false },
+        { "name": "discount_info", "type": "text", "required": false, "system": false },
+        { "name": "website", "type": "text", "required": false, "system": false },
+        { "name": "phone", "type": "text", "required": false, "system": false },
+        { "name": "city", "type": "text", "required": false, "system": false },
+        { "name": "active", "type": "bool", "required": false, "system": false },
         {
           "name": "created",
           "type": "autodate",
@@ -517,12 +295,6 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
-        },
-        {
-          "name": "active",
-          "type": "bool",
-          "required": false,
-          "system": false
         }
       ],
       "indexes": []
@@ -538,12 +310,7 @@
         "delete": ""
       },
       "fields": [
-        {
-          "name": "title",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
+        { "name": "title", "type": "text", "required": true, "system": false },
         {
           "name": "ride",
           "type": "relation",
@@ -558,36 +325,20 @@
           "system": false,
           "selectValues": ["passeios", "videos", "eventos", "viagens", "encontros"]
         },
+        { "name": "cover_image", "type": "text", "required": false, "system": false },
+        { "name": "images_json", "type": "json", "required": false, "system": false },
+        { "name": "video_url", "type": "text", "required": false, "system": false },
+        { "name": "description", "type": "text", "required": false, "system": false },
+        { "name": "event_date", "type": "text", "required": false, "system": false },
         {
-          "name": "cover_image",
-          "type": "text",
+          "name": "type",
+          "type": "select",
           "required": false,
-          "system": false
+          "system": false,
+          "selectValues": ["photo", "video"]
         },
-        {
-          "name": "images_json",
-          "type": "json",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "video_url",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "description",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "event_date",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
+        { "name": "featured", "type": "bool", "required": false, "system": false },
+        { "name": "sort_order", "type": "number", "required": false, "system": false },
         {
           "name": "created",
           "type": "autodate",
@@ -603,7 +354,10 @@
           "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_galleries_ride` ON `galleries` (`ride`)",
+        "CREATE INDEX `idx_galleries_sort` ON `galleries` (`sort_order`)"
+      ]
     },
     {
       "name": "announcements",
@@ -616,36 +370,21 @@
         "delete": ""
       },
       "fields": [
+        { "name": "title", "type": "text", "required": true, "system": false },
+        { "name": "content", "type": "text", "required": false, "system": false },
+        { "name": "date", "type": "text", "required": false, "system": false },
+        { "name": "category", "type": "text", "required": false, "system": false },
+        { "name": "important", "type": "bool", "required": false, "system": false },
         {
-          "name": "title",
-          "type": "text",
-          "required": true,
-          "system": false
-        },
-        {
-          "name": "content",
-          "type": "text",
+          "name": "priority",
+          "type": "select",
           "required": false,
-          "system": false
+          "system": false,
+          "selectValues": ["normal", "important", "urgent"]
         },
-        {
-          "name": "date",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "category",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "important",
-          "type": "bool",
-          "required": false,
-          "system": false
-        },
+        { "name": "active", "type": "bool", "required": false, "system": false },
+        { "name": "publish_at", "type": "date", "required": false, "system": false },
+        { "name": "expires_at", "type": "date", "required": false, "system": false },
         {
           "name": "created",
           "type": "autodate",
@@ -661,7 +400,9 @@
           "autodateTriggers": ["onCreate", "onUpdate"]
         }
       ],
-      "indexes": []
+      "indexes": [
+        "CREATE INDEX `idx_announcements_active_priority` ON `announcements` (`active`, `priority`)"
+      ]
     }
   ]
 }

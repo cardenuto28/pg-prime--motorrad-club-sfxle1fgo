@@ -14,6 +14,36 @@ export function resolveFileUrl(value: string | undefined | null): string {
   return value
 }
 
+/** Extrai o embed URL de um link YouTube/Vimeo. */
+export function getVideoEmbedUrl(url: string | undefined | null): string {
+  if (!url) return ''
+  const u = url.trim()
+  // YouTube
+  const ytMatch =
+    u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/) ||
+    u.match(/[?&]v=([\w-]{11})/)
+  if (ytMatch) return `https://www.youtube.com/embed/${ytMatch[1]}`
+  // Vimeo
+  const vimeoMatch = u.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+  if (vimeoMatch) return `https://player.vimeo.com/video/${vimeoMatch[1]}`
+  return u
+}
+
+/** Retorna a thumbnail de um vídeo YouTube/Vimeo a partir da URL. */
+export function getVideoThumb(url: string | undefined | null): string {
+  if (!url) return ''
+  const u = url.trim()
+  const ytMatch =
+    u.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([\w-]{11})/) ||
+    u.match(/[?&]v=([\w-]{11})/)
+  if (ytMatch) return `https://img.youtube.com/vi/${ytMatch[1]}/hqdefault.jpg`
+  const vimeoMatch = u.match(/vimeo\.com\/(?:video\/)?(\d+)/)
+  if (vimeoMatch) {
+    return `https://img.usecurling.com/p/800/500?q=video,vimeo,motorcycle`
+  }
+  return ''
+}
+
 /** Fallback cover image for rides/benefits. */
 export function coverFallback(query: string, w = 600, h = 400): string {
   return `https://img.usecurling.com/p/${w}/${h}?q=${encodeURIComponent(query)}`

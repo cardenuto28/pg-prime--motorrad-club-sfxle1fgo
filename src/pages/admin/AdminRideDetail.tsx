@@ -13,10 +13,25 @@ import {
   ChevronRight,
   Calendar,
   Loader2,
+  Images,
+  Plus,
+  Trash2,
+  Star,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
-import { Ride, Registration, rideService, registrationService } from '@/services/api'
+import {
+  Ride,
+  Registration,
+  Gallery,
+  rideService,
+  registrationService,
+  galleryService,
+} from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import {
   Dialog,
   DialogContent,
@@ -25,7 +40,7 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { useToast } from '@/hooks/use-toast'
-import { formatDate } from '@/lib/member'
+import { formatDate, resolveFileUrl } from '@/lib/member'
 import { RideStatusBadge, RegStatusBadge } from '@/lib/ride'
 
 const PAGE_SIZE = 10
@@ -42,6 +57,11 @@ const AdminRideDetail: React.FC = () => {
   const [page, setPage] = useState(1)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [phoneInfo, setPhoneInfo] = useState<Registration | null>(null)
+  const [gallery, setGallery] = useState<Gallery[]>([])
+  const [galleryLoading, setGalleryLoading] = useState(false)
+  const [addImageOpen, setAddImageOpen] = useState(false)
+  const [newImageUrls, setNewImageUrls] = useState('')
+  const [newImageTitle, setNewImageTitle] = useState('')
 
   const load = useCallback(async () => {
     if (!id) return
@@ -53,6 +73,13 @@ const AdminRideDetail: React.FC = () => {
       ])
       setRide(r)
       setRegs(rRegs)
+      // Gallery
+      try {
+        const g = await galleryService.getByRide(id)
+        setGallery(g)
+      } catch (_) {
+        setGallery([])
+      }
     } catch (e) {
       console.error('Erro ao carregar passeio:', e)
       toast({
@@ -64,6 +91,132 @@ const AdminRideDetail: React.FC = () => {
       setLoading(false)
     }
   }, [id, toast])
+
+  const reloadGallery = useCallback(async () => {
+    if (!id) return
+    setGalleryLoading(true)
+    try {
+      const g = await galleryService.getByRide(id)
+      setGallery(g)
+    } catch (_) {
+      setGallery([])
+    } finally {
+      setGalleryLoading(false)
+    }
+  }, [id])
+
+  const removeGalleryItem = async (g: Gallery) => {
+    setActionLoading(g.id)
+    try {
+      await galleryService.deleteGallery(g.id)
+      setGallery((prev) => prev.filter((x) => x.id !== g.id))
+      toast({ title: 'Item removido', description: g.title })
+    } catch (e) {
+      console.error(e)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível remover.',
+        variant: 'destructive',
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const moveGalleryItem = async (g: Gallery, direction: -1 | 1) => {
+    const sorted = [...gallery].sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+    const idx = sorted.findIndex((x) => x.id === g.id)
+    const swapIdx = idx + direction
+    if (swapIdx < 0 || swapIdx >= sorted.length) return
+    const other = sorted[swapIdx]
+    setActionLoading(`${g.id}:mv`)
+    try {
+      await Promise.all([
+        galleryService.updateGallery(g.id, { sort_order: other.sort_order || 0 }),
+        galleryService.updateGallery(other.id, { sort_order: g.sort_order || 0 }),
+      ])
+      await reloadGallery()
+    } catch (e) {
+      console.error(e)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível reordenar.',
+        variant: 'destructive',
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const handleAddImages = async () => {
+    if (!id || !ride) return
+    const urls = newImageUrls
+      .split('\n')
+      .map((s) => s.trim())
+      .filter(Boolean)
+    if (urls.length === 0) {
+      toast({
+        title: 'Nenhuma URL',
+        description: 'Cole ao menos uma URL de imagem.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setActionLoading('add')
+    try {
+      const images_json = JSON.stringify(urls.map((url) => ({ url })))
+      const title = newImageTitle.trim() || ride.name || 'Galeria do passeio'
+      const existing = gallery[0]
+      if (existing && existing.type !== 'video') {
+        // append
+        let arr: unknown = existing.images_json
+        if (typeof arr === 'string') {
+          try {
+            arr = JSON.parse(arr)
+          } catch {
+            arr = []
+          }
+        }
+        const merged = [
+          ...((Array.isArray(arr) ? arr : []) as any[]).map((it) =>
+            typeof it === 'string' ? { url: it } : it,
+          ),
+          ...urls.map((url) => ({ url })),
+        ]
+        await galleryService.updateGallery(existing.id, {
+          images_json: JSON.stringify(merged),
+        })
+      } else {
+        await galleryService.createGallery({
+          title,
+          category: 'passeios',
+          type: 'photo',
+          images_json,
+          cover_image: urls[0],
+          ride: id,
+          event_date: ride.date,
+          sort_order: (gallery[gallery.length - 1]?.sort_order || 0) + 1,
+        })
+      }
+      setNewImageUrls('')
+      setNewImageTitle('')
+      setAddImageOpen(false)
+      await reloadGallery()
+      toast({
+        title: 'Fotos adicionadas',
+        description: `${urls.length} imagem(ns) vinculada(s) ao passeio.`,
+      })
+    } catch (e) {
+      console.error(e)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível adicionar as fotos.',
+        variant: 'destructive',
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
 
   useEffect(() => {
     load()
@@ -389,6 +542,119 @@ const AdminRideDetail: React.FC = () => {
         )}
       </div>
 
+      {/* Gallery management section */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5">
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <Images className="w-4 h-4 text-blue-500" />
+            <h2 className="text-sm font-bold text-white font-montserrat tracking-wide uppercase">
+              Galeria do Passeio
+            </h2>
+            <span className="text-[10px] text-slate-500">({gallery.length})</span>
+          </div>
+          <Button
+            onClick={() => setAddImageOpen(true)}
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] tracking-wider gap-1.5 h-8"
+          >
+            <Plus className="w-3.5 h-3.5" /> ADICIONAR FOTOS
+          </Button>
+        </div>
+
+        {galleryLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+          </div>
+        ) : gallery.length === 0 ? (
+          <div className="border border-dashed border-[#1c2538] rounded-md p-8 text-center">
+            <Images className="w-8 h-8 text-slate-600 mx-auto mb-2" />
+            <p className="text-xs text-slate-500">Nenhuma foto vinculada a este passeio ainda.</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {gallery.map((g) => {
+              const imgs: string[] = (() => {
+                let arr: unknown = g.images_json
+                if (typeof arr === 'string') {
+                  try {
+                    arr = JSON.parse(arr)
+                  } catch {
+                    arr = []
+                  }
+                }
+                if (Array.isArray(arr)) {
+                  return arr
+                    .map((it) =>
+                      typeof it === 'string' ? it : (it as any)?.url || (it as any)?.src || '',
+                    )
+                    .filter(Boolean)
+                }
+                return []
+              })()
+              const display = imgs.length > 0 ? imgs : g.cover_image ? [g.cover_image] : []
+              return (
+                <div
+                  key={g.id}
+                  className="bg-[#121824] border border-[#1c2538] rounded-md p-3 space-y-2"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white line-clamp-1">
+                        {g.title || 'Sem título'}
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        {display.length} foto(s) · ordem {g.sort_order ?? 0}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-0.5 flex-shrink-0">
+                      <ActionBtn
+                        title="Mover para cima"
+                        disabled={!!actionLoading}
+                        onClick={() => moveGalleryItem(g, -1)}
+                        className="text-slate-300 hover:text-white hover:bg-[#1b2536]"
+                      >
+                        <ArrowUp className="w-3.5 h-3.5" />
+                      </ActionBtn>
+                      <ActionBtn
+                        title="Mover para baixo"
+                        disabled={!!actionLoading}
+                        onClick={() => moveGalleryItem(g, 1)}
+                        className="text-slate-300 hover:text-white hover:bg-[#1b2536]"
+                      >
+                        <ArrowDown className="w-3.5 h-3.5" />
+                      </ActionBtn>
+                      <ActionBtn
+                        title="Excluir"
+                        disabled={actionLoading === g.id}
+                        onClick={() => removeGalleryItem(g)}
+                        className="text-red-300 hover:text-red-200 hover:bg-red-950/50"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </ActionBtn>
+                    </div>
+                  </div>
+                  {display.length > 0 && (
+                    <div className="grid grid-cols-4 sm:grid-cols-6 gap-1.5">
+                      {display.slice(0, 12).map((url, i) => (
+                        <div
+                          key={i}
+                          className="aspect-square rounded overflow-hidden border border-[#1c2538] bg-[#07090e]"
+                        >
+                          <img
+                            src={resolveFileUrl(url)}
+                            alt=""
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </section>
+
       {/* Phone info modal */}
       <Dialog open={!!phoneInfo} onOpenChange={(o) => !o && setPhoneInfo(null)}>
         <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-md">
@@ -419,6 +685,60 @@ const AdminRideDetail: React.FC = () => {
                   : '—'
               }
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add images modal */}
+      <Dialog open={addImageOpen} onOpenChange={(o) => !o && setAddImageOpen(false)}>
+        <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold tracking-wide text-white flex items-center gap-2">
+              <Images className="w-4 h-4 text-blue-500" /> Adicionar fotos ao passeio
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Cole abaixo as URLs das imagens (uma por linha).
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-slate-300">Título do álbum (opcional)</Label>
+              <Input
+                value={newImageTitle}
+                onChange={(e) => setNewImageTitle(e.target.value)}
+                placeholder={ride?.name || 'Galeria do passeio'}
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-[11px] text-slate-300">URLs das fotos</Label>
+              <Textarea
+                value={newImageUrls}
+                onChange={(e) => setNewImageUrls(e.target.value)}
+                rows={6}
+                placeholder={
+                  'https://img.usecurling.com/p/800/560?q=motorcycle\nhttps://img.usecurling.com/p/800/1000?q=...'
+                }
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs resize-none font-mono"
+              />
+            </div>
+          </div>
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1c2538]">
+            <Button
+              variant="outline"
+              onClick={() => setAddImageOpen(false)}
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleAddImages}
+              disabled={actionLoading === 'add'}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" />{' '}
+              {actionLoading === 'add' ? 'ADICIONANDO...' : 'ADICIONAR'}
+            </Button>
           </div>
         </DialogContent>
       </Dialog>

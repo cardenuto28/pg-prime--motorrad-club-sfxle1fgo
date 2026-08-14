@@ -1,5 +1,19 @@
 import pb from '@/lib/pocketbase/client'
 
+/** Parses a PocketBase file token like `gallery_xx/image.webp` or a URL. */
+export function getFileUrl(record: { id: string } | null | undefined, filename?: string): string {
+  if (!filename) return ''
+  if (
+    filename.startsWith('http://') ||
+    filename.startsWith('https://') ||
+    filename.startsWith('/')
+  ) {
+    return filename
+  }
+  if (!record) return ''
+  return `${pb.baseUrl}/api/files/galleries/${record.id}/${filename}`
+}
+
 export interface UserProfile {
   id: string
   email: string
@@ -117,11 +131,17 @@ export interface Gallery {
   title: string
   ride?: string
   category: 'passeios' | 'videos' | 'eventos' | 'viagens' | 'encontros'
+  type: 'photo' | 'video'
   cover_image?: string
   images_json?: string
   video_url?: string
   description?: string
   event_date?: string
+  featured?: boolean
+  sort_order?: number
+  expand?: {
+    ride?: Ride
+  }
   created: string
   updated: string
 }
@@ -133,6 +153,10 @@ export interface Announcement {
   date: string
   category?: string
   important?: boolean
+  priority: 'normal' | 'important' | 'urgent'
+  active?: boolean
+  publish_at?: string
+  expires_at?: string
   created: string
   updated: string
 }
@@ -370,14 +394,48 @@ export const partnerService = {
 }
 
 export const galleryService = {
-  async getAllGalleries(): Promise<Gallery[]> {
-    const records = await pb.collection('galleries').getFullList({ sort: '-event_date' })
+  /** Todas as mídias ordenadas por sort_order (crescente) e criadas (decrescente). */
+  async getAll(): Promise<Gallery[]> {
+    const records = await pb.collection('galleries').getFullList({
+      sort: 'sort_order,-created',
+      expand: 'ride',
+    })
     return records as unknown as Gallery[]
   },
 
-  async createGallery(data: Omit<Gallery, 'id' | 'created' | 'updated'>): Promise<Gallery> {
+  /** Alias legado — usado pelas páginas antigas (Index, etc). */
+  async getAllGalleries(): Promise<Gallery[]> {
+    return this.getAll()
+  },
+
+  /** Mídias vinculadas a um passeio específico. */
+  async getByRide(rideId: string): Promise<Gallery[]> {
+    const records = await pb.collection('galleries').getFullList({
+      filter: `ride='${rideId}'`,
+      sort: 'sort_order,-created',
+      expand: 'ride',
+    })
+    return records as unknown as Gallery[]
+  },
+
+  /** Mídias destacadas (featured = true). */
+  async getFeatured(): Promise<Gallery[]> {
+    const records = await pb.collection('galleries').getFullList({
+      filter: "featured='true'",
+      sort: 'sort_order,-created',
+      expand: 'ride',
+    })
+    return records as unknown as Gallery[]
+  },
+
+  async createGallery(data: Partial<Gallery>): Promise<Gallery> {
     const created = await pb.collection('galleries').create(data)
     return created as unknown as Gallery
+  },
+
+  async updateGallery(id: string, data: Partial<Gallery>): Promise<Gallery> {
+    const updated = await pb.collection('galleries').update(id, data)
+    return updated as unknown as Gallery
   },
 
   async deleteGallery(id: string): Promise<boolean> {
@@ -388,15 +446,36 @@ export const galleryService = {
 
 export const announcementService = {
   async getAllAnnouncements(): Promise<Announcement[]> {
-    const records = await pb.collection('announcements').getFullList({ sort: '-date' })
+    const records = await pb.collection('announcements').getFullList({ sort: '-publish_at' })
     return records as unknown as Announcement[]
   },
 
-  async createAnnouncement(
-    data: Omit<Announcement, 'id' | 'created' | 'updated'>,
-  ): Promise<Announcement> {
+  /** Apenas comunicados ativos (active = true). */
+  async getActive(): Promise<Announcement[]> {
+    const records = await pb.collection('announcements').getFullList({
+      filter: "active='true'",
+      sort: '-publish_at',
+    })
+    return records as unknown as Announcement[]
+  },
+
+  /** Apenas comunicados urgentes ativos. */
+  async getUrgent(): Promise<Announcement[]> {
+    const records = await pb.collection('announcements').getFullList({
+      filter: "active='true' && priority='urgent'",
+      sort: '-publish_at',
+    })
+    return records as unknown as Announcement[]
+  },
+
+  async createAnnouncement(data: Partial<Announcement>): Promise<Announcement> {
     const created = await pb.collection('announcements').create(data)
     return created as unknown as Announcement
+  },
+
+  async updateAnnouncement(id: string, data: Partial<Announcement>): Promise<Announcement> {
+    const updated = await pb.collection('announcements').update(id, data)
+    return updated as unknown as Announcement
   },
 
   async deleteAnnouncement(id: string): Promise<boolean> {

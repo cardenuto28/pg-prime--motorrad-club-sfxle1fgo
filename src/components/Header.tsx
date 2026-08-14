@@ -114,12 +114,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             >
               PARCEIROS
             </Link>
-            <a
-              href="/#galeria"
+            <Link
+              to="/galeria"
               className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
             >
               GALERIA
-            </a>
+            </Link>
             <a
               href="/#cadastro-form"
               className="text-xs font-semibold tracking-wider text-blue-400 hover:text-blue-300 transition-colors"
@@ -230,13 +230,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               >
                 PARCEIROS
               </Link>
-              <a
-                href="/#galeria"
+              <Link
+                to="/galeria"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white"
               >
                 GALERIA
-              </a>
+              </Link>
               <a
                 href="/#cadastro-form"
                 onClick={() => setMobileMenuOpen(false)}
