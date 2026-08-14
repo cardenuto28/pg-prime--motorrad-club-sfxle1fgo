@@ -94,7 +94,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               to="/club"
               className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
             >
-              O CLUB
+              O CLUBE
             </Link>
             <Link
               to="/beneficios"
