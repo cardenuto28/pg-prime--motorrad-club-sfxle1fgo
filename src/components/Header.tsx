@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { User, LogIn, LogOut, Menu, X, Shield, Bike } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -28,6 +28,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const location = useLocation()
+
+  // Abrir modal de login automaticamente quando redirecionado por ProtectedRoute
+  useEffect(() => {
+    if ((location.state as any)?.openLogin) {
+      setLoginModalOpen(true)
+      // limpa o state para não reabrir
+      navigate(location.pathname, { replace: true, state: {} })
+    }
+  }, [location])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,6 +50,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
         description: 'Login realizado com sucesso.',
       })
       setLoginModalOpen(false)
+      navigate('/member/dashboard')
     } else {
       toast({
         title: 'Falha na autenticação',
@@ -142,14 +153,25 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           <div className="hidden sm:flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-3">
-                <div className="text-right">
+                <button
+                  onClick={() => navigate('/member/dashboard')}
+                  className="text-right hover:opacity-80 transition-opacity"
+                >
                   <span className="block text-xs font-bold text-white uppercase tracking-wider">
                     {user.name}
                   </span>
                   <span className="text-[10px] text-blue-400 uppercase font-semibold">
                     {user.role === 'admin' ? 'Administrador' : `Membro ${user.status}`}
                   </span>
-                </div>
+                </button>
+                <Button
+                  onClick={() => navigate('/member/dashboard')}
+                  variant="outline"
+                  size="sm"
+                  className="border-blue-600/60 hover:border-blue-500 bg-[#0d131f] hover:bg-blue-600/10 text-white font-semibold text-xs tracking-wider gap-1.5"
+                >
+                  <Bike className="w-3.5 h-3.5 text-blue-500" /> ÁREA DO MEMBRO
+                </Button>
                 <Button
                   onClick={logout}
                   variant="outline"
@@ -234,14 +256,26 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                     <p className="text-sm font-bold text-white">{user.name}</p>
                     <p className="text-xs text-blue-400">Membro {user.status}</p>
                   </div>
-                  <Button
-                    onClick={logout}
-                    variant="outline"
-                    size="sm"
-                    className="border-slate-700 text-xs"
-                  >
-                    Sair
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => {
+                        setMobileMenuOpen(false)
+                        navigate('/member/dashboard')
+                      }}
+                      size="sm"
+                      className="bg-blue-600 hover:bg-blue-500 text-white text-xs"
+                    >
+                      Área do Membro
+                    </Button>
+                    <Button
+                      onClick={logout}
+                      variant="outline"
+                      size="sm"
+                      className="border-slate-700 text-xs"
+                    >
+                      Sair
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <Button

@@ -3,9 +3,11 @@ import { useAuth } from '@/context/AuthContext'
 import { Registration, Ride, registrationService, rideService } from '@/services/api'
 import { Shield, ChevronRight, Calendar, MapPin, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { useNavigate } from 'react-router-dom'
 
 export const SidebarMemberWidget: React.FC = () => {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [userRegs, setUserRegs] = useState<Registration[]>([])
   const [nextRide, setNextRide] = useState<Ride | null>(null)
   const [loading, setLoading] = useState(false)
@@ -78,16 +80,6 @@ export const SidebarMemberWidget: React.FC = () => {
         </span>
       </div>
 
-      {/* Tabs / Sub-header */}
-      <div className="border-b border-[#1c2436] flex gap-4 text-xs font-semibold">
-        <button className="text-white border-b-2 border-blue-500 pb-1.5 text-[11px] tracking-wider uppercase font-montserrat">
-          MINHAS INSCRIÇÕES
-        </button>
-        <button className="text-slate-400 hover:text-slate-200 pb-1.5 text-[11px] tracking-wider uppercase font-montserrat">
-          MEUS DADOS
-        </button>
-      </div>
-
       {/* Próximo Passeio Section */}
       {nextRide && (
         <div className="space-y-2">
@@ -117,6 +109,7 @@ export const SidebarMemberWidget: React.FC = () => {
             </div>
           </div>
           <Button
+            onClick={() => navigate('/member/dashboard')}
             variant="outline"
             size="sm"
             className="w-full bg-[#121824] hover:bg-[#192130] border-[#222d42] text-slate-300 hover:text-white text-[10px] font-semibold tracking-wider h-7"
@@ -129,48 +122,49 @@ export const SidebarMemberWidget: React.FC = () => {
       {/* Outras Inscrições List */}
       <div className="space-y-2 pt-1">
         <span className="text-[10px] font-bold text-slate-400 tracking-wider uppercase font-montserrat block">
-          OUTRAS INSCRIÇÕES
+          MINHAS INSCRIÇÕES
         </span>
         <div className="space-y-1.5 text-[11px]">
-          <div className="bg-[#121824] border border-[#1c2538] rounded-sm p-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-slate-500 text-xs">👥</span>
-              <span className="text-slate-300 font-medium truncate text-[10px]">
-                SERRA DO RIO DO RASTRO
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-[10px] text-slate-500">07/06/2025</span>
-              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-1.5 py-0.5 rounded">
-                CONFIRMADO
-              </span>
-            </div>
-          </div>
-
-          <div className="bg-[#121824] border border-[#1c2538] rounded-sm p-2 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 min-w-0">
-              <span className="text-slate-500 text-xs">👥</span>
-              <span className="text-slate-300 font-medium truncate text-[10px]">
-                CAMINHOS DA MANTIQUEIRA
-              </span>
-            </div>
-            <div className="flex items-center gap-2 flex-shrink-0">
-              <span className="text-[10px] text-slate-500">21/06/2025</span>
-              <span className="text-[9px] font-bold text-emerald-400 bg-emerald-950/60 border border-emerald-800/50 px-1.5 py-0.5 rounded">
-                CONFIRMADO
-              </span>
-            </div>
-          </div>
+          {userRegs.length === 0 ? (
+            <p className="text-[10px] text-slate-500 py-2 text-center">Nenhuma inscrição ainda.</p>
+          ) : (
+            userRegs.slice(0, 2).map((reg) => {
+              const ride = reg.expand?.ride
+              return (
+                <div
+                  key={reg.id}
+                  className="bg-[#121824] border border-[#1c2538] rounded-sm p-2 flex items-center justify-between"
+                >
+                  <span className="text-slate-300 font-medium truncate text-[10px]">
+                    {ride?.name?.toUpperCase() || 'PASSEIO'}
+                  </span>
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    <span className="text-[10px] text-slate-500">{ride?.date || ''}</span>
+                    <span
+                      className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${
+                        reg.status === 'confirmada'
+                          ? 'text-emerald-400 bg-emerald-950/60 border-emerald-800/50'
+                          : reg.status === 'cancelada'
+                            ? 'text-red-400 bg-red-950/60 border-red-800/50'
+                            : 'text-amber-400 bg-amber-950/60 border-amber-800/50'
+                      }`}
+                    >
+                      {reg.status === 'confirmada' ? 'CONFIRMADO' : reg.status.toUpperCase()}
+                    </span>
+                  </div>
+                </div>
+              )
+            })
+          )}
         </div>
       </div>
 
-      <a
-        href="#historico"
-        className="text-[10px] font-bold text-blue-400 hover:text-blue-300 flex items-center justify-between pt-1 font-montserrat tracking-wider"
+      <button
+        onClick={() => navigate('/member/dashboard')}
+        className="w-full flex items-center justify-center gap-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold text-[11px] tracking-wider py-2.5 rounded-sm uppercase transition-colors"
       >
-        <span>VER HISTÓRICO COMPLETO</span>
-        <ChevronRight className="w-3.5 h-3.5" />
-      </a>
+        ACESSAR ÁREA DO MEMBRO <ChevronRight className="w-3.5 h-3.5" />
+      </button>
     </div>
   )
 }
