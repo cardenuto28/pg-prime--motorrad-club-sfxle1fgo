@@ -73,7 +73,7 @@ export default function Club() {
                 EUROMOTORS MOTORRAD CLUB
               </span>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-montserrat tracking-tight leading-none uppercase drop-shadow-md">
-                O CLUB
+                O CLUBE
               </h1>
               <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
                 Mais que uma motocicleta. Uma comunidade de pessoas que compartilham a mesma paixão.
