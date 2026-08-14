@@ -7,9 +7,9 @@ export const Footer: React.FC = () => {
   return (
     <footer
       id="contato"
-      className="bg-[#05070a] border-t border-[#121c2e] text-slate-400 text-xs py-8"
+      className="bg-[#030509] border-t border-[#121c2e] text-slate-400 text-xs py-8"
     >
-      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6 border-b border-[#121c2e]">
           {/* Seção SIGA-NOS à esquerda */}
           <div className="flex items-center gap-3">
@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
                 href="https://instagram.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                className="w-8 h-8 rounded-full bg-[#081329] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
                 aria-label="Instagram"
               >
                 <Instagram className="w-4 h-4" />
@@ -30,7 +30,7 @@ export const Footer: React.FC = () => {
                 href="https://facebook.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                className="w-8 h-8 rounded-full bg-[#081329] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
                 aria-label="Facebook"
               >
                 <Facebook className="w-4 h-4" />
@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
                 href="https://youtube.com"
                 target="_blank"
                 rel="noreferrer"
-                className="w-8 h-8 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                className="w-8 h-8 rounded-full bg-[#081329] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
                 aria-label="Youtube"
               >
                 <Youtube className="w-4 h-4" />
@@ -70,7 +70,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Copyright */}
-        <div className="pt-4 text-center text-[10px] text-slate-500 font-medium tracking-wider">
+        <div className="pt-4 text-center text-[10px] text-slate-500 font-medium tracking-wider font-montserrat">
           © 2025 EUROMOTORS MOTORRAD CLUB. TODOS OS DIREITOS RESERVADOS.
         </div>
       </div>

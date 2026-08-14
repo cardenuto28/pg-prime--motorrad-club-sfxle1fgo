@@ -40,7 +40,7 @@
   }
 
   body {
-    background-color: #0b0d12;
+    background-color: #030509;
     color: #e2e8f0;
     font-family: 'Inter', sans-serif;
   }
@@ -50,7 +50,8 @@
   h3,
   h4,
   h5,
-  h6 {
+  h6,
+  .font-montserrat {
     font-family: 'Montserrat', sans-serif;
   }
 

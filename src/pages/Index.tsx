@@ -111,15 +111,15 @@ export default function Index() {
     },
   ]
 
-  // Galeria de Momentos (7 fotos em faixa horizontal)
+  // Galeria de Momentos (7 fotos em faixa horizontal vibrantes)
   const galleryPhotos = [
-    'https://img.usecurling.com/p/400/300?q=bmw,r1250gs,motorcycles,riders,group&seed=1',
-    'https://img.usecurling.com/p/400/300?q=bmw,gs,motorcycle,rider,front&seed=2',
-    'https://img.usecurling.com/p/400/300?q=bmw,motorcycles,mountain,sunset&seed=3',
-    'https://img.usecurling.com/p/400/300?q=bmw,r1250gs,riding,road,curves&seed=4',
-    'https://img.usecurling.com/p/400/300?q=bmw,motorcycles,group,viewpoint&seed=5',
-    'https://img.usecurling.com/p/400/300?q=bmw,gs1300,motorcycle,serra&seed=6',
-    'https://img.usecurling.com/p/400/300?q=bmw,motorcycle,travel,landscape&seed=7',
+    'https://img.usecurling.com/p/500/350?q=bmw,motorcycles,riders,group,mountain&seed=11',
+    'https://img.usecurling.com/p/500/350?q=bmw,r1250gs,motorcycle,serra,road&seed=22',
+    'https://img.usecurling.com/p/500/350?q=bmw,motorcycles,sunset,riders&seed=33',
+    'https://img.usecurling.com/p/500/350?q=bmw,gs1300,riding,curves,mountains&seed=44',
+    'https://img.usecurling.com/p/500/350?q=bmw,motorcycle,adventure,viewpoint&seed=55',
+    'https://img.usecurling.com/p/500/350?q=bmw,r1250gs,coast,ocean,road&seed=66',
+    'https://img.usecurling.com/p/500/350?q=bmw,motorcycles,biker,lifestyle&seed=77',
   ]
 
   return (
@@ -179,21 +179,19 @@ export default function Index() {
                     UMA TRIBO.
                   </h2>
                 </div>
-
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
                   O Euromotors Motorrad Club foi criado para quem vive a estrada com propósito. Mais
                   do que motos, conectamos pessoas por meio de experiências, amizade, eventos e
                   passeios que ficam para sempre.
                 </p>
-
-                {/* 4 Ícones em Linha em Azul */}
+                {/* 4 Ícones de linha azul circulares exatos da referência */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-800/80">
                   {/* Item 1 */}
                   <div className="flex flex-col items-center text-center space-y-2 group">
-                    <div className="w-10 h-10 rounded-full bg-[#081329] border border-blue-500/40 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-105 transition-all shadow-md">
-                      <Users className="w-4 h-4" />
+                    <div className="w-11 h-11 rounded-full bg-[#061022]/80 border border-[#0066FF]/70 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-110 transition-all shadow-lg shadow-blue-950/30">
+                      <Users className="w-5 h-5 stroke-[1.75]" />
                     </div>
-                    <span className="text-[9px] font-bold text-slate-300 group-hover:text-white uppercase tracking-wider leading-snug">
+                    <span className="text-[9.5px] font-extrabold text-slate-300 group-hover:text-white uppercase tracking-wider leading-tight font-montserrat">
                       EXPERIÊNCIAS
                       <br />
                       EXCLUSIVAS
@@ -202,10 +200,10 @@ export default function Index() {
 
                   {/* Item 2 */}
                   <div className="flex flex-col items-center text-center space-y-2 group">
-                    <div className="w-10 h-10 rounded-full bg-[#081329] border border-blue-500/40 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-105 transition-all shadow-md">
-                      <Users className="w-4 h-4" />
+                    <div className="w-11 h-11 rounded-full bg-[#061022]/80 border border-[#0066FF]/70 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-110 transition-all shadow-lg shadow-blue-950/30">
+                      <Users className="w-5 h-5 stroke-[1.75]" />
                     </div>
-                    <span className="text-[9px] font-bold text-slate-300 group-hover:text-white uppercase tracking-wider leading-snug">
+                    <span className="text-[9.5px] font-extrabold text-slate-300 group-hover:text-white uppercase tracking-wider leading-tight font-montserrat">
                       COMUNIDADE
                       <br />
                       AUTÊNTICA
@@ -214,10 +212,10 @@ export default function Index() {
 
                   {/* Item 3 */}
                   <div className="flex flex-col items-center text-center space-y-2 group">
-                    <div className="w-10 h-10 rounded-full bg-[#081329] border border-blue-500/40 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-105 transition-all shadow-md">
-                      <Route className="w-4 h-4" />
+                    <div className="w-11 h-11 rounded-full bg-[#061022]/80 border border-[#0066FF]/70 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-110 transition-all shadow-lg shadow-blue-950/30">
+                      <Route className="w-5 h-5 stroke-[1.75]" />
                     </div>
-                    <span className="text-[9px] font-bold text-slate-300 group-hover:text-white uppercase tracking-wider leading-snug">
+                    <span className="text-[9.5px] font-extrabold text-slate-300 group-hover:text-white uppercase tracking-wider leading-tight font-montserrat">
                       PASSEIOS
                       <br />
                       MEMORÁVEIS
@@ -226,16 +224,16 @@ export default function Index() {
 
                   {/* Item 4 */}
                   <div className="flex flex-col items-center text-center space-y-2 group">
-                    <div className="w-10 h-10 rounded-full bg-[#081329] border border-blue-500/40 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-105 transition-all shadow-md">
-                      <Heart className="w-4 h-4" />
+                    <div className="w-11 h-11 rounded-full bg-[#061022]/80 border border-[#0066FF]/70 flex items-center justify-center text-[#0066FF] group-hover:border-[#0066FF] group-hover:scale-110 transition-all shadow-lg shadow-blue-950/30">
+                      <Heart className="w-5 h-5 stroke-[1.75]" />
                     </div>
-                    <span className="text-[9px] font-bold text-slate-300 group-hover:text-white uppercase tracking-wider leading-snug">
+                    <span className="text-[9.5px] font-extrabold text-slate-300 group-hover:text-white uppercase tracking-wider leading-tight font-montserrat">
                       RELACIONAMENTO
                       <br />
                       QUE INSPIRA
                     </span>
                   </div>
-                </div>
+                </div>{' '}
               </div>
             </div>
           </div>
@@ -487,69 +485,72 @@ export default function Index() {
             </div>
           </div>
 
-          {/* BENEFÍCIOS EXCLUSIVOS EURO MOTORS */}
-          <div className="pt-4 space-y-4 border-t border-[#121c2e]">
-            <h2 className="text-xs font-extrabold text-slate-300 tracking-widest uppercase font-montserrat">
-              BENEFÍCIOS EXCLUSIVOS EURO MOTORS
-            </h2>
+          {/* BENEFÍCIOS EXCLUSIVOS EURO MOTORS com linha azul indicadora */}
+          <div className="pt-5 space-y-4 border-t border-[#121c2e]">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-1 bg-[#0066FF] rounded-full" />
+              <h2 className="text-xs font-extrabold text-slate-200 tracking-widest uppercase font-montserrat">
+                BENEFÍCIOS EXCLUSIVOS EURO MOTORS
+              </h2>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
               {/* Box 1 */}
-              <div className="bg-[#09101e] border border-[#142036] rounded-md p-3 space-y-2 hover:border-[#0066FF]/60 transition-all group">
+              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
                 <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Mail className="w-4 h-4" />
+                  <Mail className="w-5 h-5 stroke-[1.75]" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
                   Convênios e parcerias para festas, lançamentos, cafés da manhã e passeios.
                 </p>
               </div>
 
               {/* Box 2 */}
-              <div className="bg-[#09101e] border border-[#142036] rounded-md p-3 space-y-2 hover:border-[#0066FF]/60 transition-all group">
+              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
                 <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Route className="w-4 h-4" />
+                  <Route className="w-5 h-5 stroke-[1.75]" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
                   Condições e descontos exclusivos em viagens Motorrad Euro Motors Jundiaí.
                 </p>
               </div>
 
               {/* Box 3 */}
-              <div className="bg-[#09101e] border border-[#142036] rounded-md p-3 space-y-2 hover:border-[#0066FF]/60 transition-all group">
+              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
                 <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Wrench className="w-4 h-4" />
+                  <Wrench className="w-5 h-5 stroke-[1.75]" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
                   Prioridade na agenda e condições diferenciadas no pós-vendas.
                 </p>
               </div>
 
               {/* Box 4 */}
-              <div className="bg-[#09101e] border border-[#142036] rounded-md p-3 space-y-2 hover:border-[#0066FF]/60 transition-all group">
+              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
                 <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Droplets className="w-4 h-4" />
+                  <Droplets className="w-5 h-5 stroke-[1.75]" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
                   Preço diferenciado na lavagem da moto.
                 </p>
               </div>
 
               {/* Box 5 */}
-              <div className="bg-[#09101e] border border-[#142036] rounded-md p-3 space-y-2 hover:border-[#0066FF]/60 transition-all group">
+              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
                 <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="w-4 h-4" />
+                  <ShieldCheck className="w-5 h-5 stroke-[1.75]" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
                   Experiências e treinamentos com instrutores especializados em condução de motos.
                 </p>
               </div>
 
               {/* Box 6 */}
-              <div className="bg-[#09101e] border border-[#142036] rounded-md p-3 space-y-2 hover:border-[#0066FF]/60 transition-all group">
+              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
                 <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Tag className="w-4 h-4" />
+                  <Tag className="w-5 h-5 stroke-[1.75]" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
                   Ações e promoções exclusivas na bandeira.
                 </p>
               </div>

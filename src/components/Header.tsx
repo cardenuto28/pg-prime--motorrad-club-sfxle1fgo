@@ -71,52 +71,56 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
 
   return (
     <>
-      <header className="sticky top-0 z-50 bg-[#07090e]/95 backdrop-blur border-b border-[#181f2f]">
-        <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+      <header className="sticky top-0 z-50 bg-[#050810]/95 backdrop-blur-md border-b border-[#121c2e]">
+        <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
           <Link to="/" className="flex items-center group shrink-0">
             <img
               src={logoImage}
-              alt="EUROMOTORS MOTORRAD CLUB - BMW MOTORRAD JUNDIAÍ"
-              className="h-12 sm:h-14 w-auto object-contain max-w-[280px] sm:max-w-[360px] md:max-w-none transition-opacity group-hover:opacity-90"
+              alt="EUROMOTORS MOTORRAD CLUB"
+              className="h-11 sm:h-13 w-auto object-contain transition-opacity group-hover:opacity-90"
             />
           </Link>
 
           {/* Nav Links - Desktop */}
-          <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
+          <nav className="hidden lg:flex items-center gap-7 xl:gap-9">
             <Link
               to="/"
-              className="text-xs font-bold tracking-wider text-white border-b-2 border-[#0066FF] pb-1 hover:text-white transition-colors"
+              className={`text-xs font-extrabold tracking-widest font-montserrat uppercase transition-colors py-1 ${
+                location.pathname === '/'
+                  ? 'text-white border-b-2 border-[#0066FF]'
+                  : 'text-slate-300 hover:text-white'
+              }`}
             >
               INÍCIO
             </Link>
             <Link
               to="/club"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
+              className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               SOBRE O CLUBE
             </Link>
             <a
               href="/#proximos-passeios"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
+              className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               PASSEIOS
             </a>
             <Link
               to="/beneficios"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
+              className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               BENEFÍCIOS
             </Link>
             <Link
               to="/galeria"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
+              className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               GALERIA
             </Link>
             <a
               href="#contato"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
+              className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               CONTATO
             </a>
@@ -130,7 +134,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                   onClick={() => navigate('/member/dashboard')}
                   className="text-right hover:opacity-80 transition-opacity"
                 >
-                  <span className="block text-xs font-bold text-white uppercase tracking-wider">
+                  <span className="block text-xs font-bold text-white uppercase tracking-wider font-montserrat">
                     {user.name}
                   </span>
                   <span className="text-[10px] text-blue-400 uppercase font-semibold">
@@ -141,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                   onClick={() => navigate('/member/dashboard')}
                   variant="outline"
                   size="sm"
-                  className="border-[#0066FF] hover:border-blue-400 bg-[#080d1a] hover:bg-blue-600/20 text-white font-bold text-xs tracking-wider gap-2 rounded-md px-4 py-2 border shadow-lg shadow-blue-950/40 uppercase"
+                  className="border-[#0066FF] hover:border-blue-400 bg-[#080d1a] hover:bg-blue-600/20 text-white font-extrabold text-xs tracking-wider gap-2 rounded-sm px-4 py-2 border shadow-lg shadow-blue-950/40 uppercase font-montserrat"
                 >
                   <User className="w-4 h-4 text-[#0066FF]" /> ÁREA DO MEMBRO
                 </Button>
@@ -168,7 +172,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               <Button
                 onClick={handleOpenLogin}
                 variant="outline"
-                className="border-[#0066FF] hover:border-blue-400 bg-[#080d1a] hover:bg-blue-600/20 text-white font-bold text-xs tracking-wider px-5 py-2 rounded-md transition-all gap-2 border shadow-lg shadow-blue-950/40 uppercase"
+                className="border-[#0066FF] hover:border-blue-400 bg-[#080d1a] hover:bg-[#0066FF]/20 text-white font-extrabold text-xs tracking-wider px-5 py-2 rounded-sm transition-all gap-2 border shadow-lg shadow-blue-950/50 uppercase font-montserrat"
               >
                 <User className="w-4 h-4 text-[#0066FF]" />
                 ÁREA DO MEMBRO
