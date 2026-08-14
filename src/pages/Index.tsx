@@ -486,82 +486,84 @@ export default function Index() {
             </div>
           </div>
 
-          {/* BENEFÍCIOS EXCLUSIVOS EURO MOTORS com linha azul indicadora */}
-          <div className="pt-5 space-y-4 border-t border-[#121c2e]">
-            <div className="relative flex items-center gap-3">
-              <div className="w-9 h-[3px] bg-[#0066FF] rounded-full shadow-[0_0_8px_rgba(0,102,255,0.6)]" />
-              <h2 className="text-xs font-extrabold text-slate-200 tracking-widest uppercase font-montserrat">
+          {/* BENEFÍCIOS EXCLUSIVOS EURO MOTORS com linha azul indicadora idênticos à imagem de referência */}
+          <div className="pt-2 space-y-3">
+            {/* Header: Title with vibrant blue accent bar floating directly ABOVE the word "BENEFÍCIOS" */}
+            <div className="relative pt-3 flex flex-col items-start gap-1.5 border-t border-[#121c2e]/80">
+              <div className="w-8 h-[3px] bg-[#0066FF] rounded-full shadow-[0_0_10px_rgba(0,102,255,0.8)]" />
+              <h2 className="text-[11px] sm:text-[12px] font-black text-slate-200 tracking-[0.12em] uppercase font-montserrat leading-tight">
                 BENEFÍCIOS EXCLUSIVOS EURO MOTORS
               </h2>
             </div>
 
+            {/* 6 Horizontal Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
-              {/* Box 1 - Mailbox/Envelope */}
-              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
-                  <EnvelopeMailboxIcon className="w-7 h-7 stroke-[1.3]" />
+              {/* Card 1: Convênios e parcerias */}
+              <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
+                  <EnvelopeMailboxIcon className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
                   Convênios e parcerias para festas, lançamentos, cafés da manhã e passeios.
                 </p>
               </div>
 
-              {/* Box 2 - Winding Road */}
-              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
-                  <WindingRoadIcon className="w-7 h-7 stroke-[1.3]" />
+              {/* Card 2: Viagens Motorrad Euro Motors Jundiaí */}
+              <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
+                  <WindingRoadIcon className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
                   Condições e descontos exclusivos em viagens Motorrad Euro Motors Jundiaí.
                 </p>
               </div>
 
-              {/* Box 3 - Spanner Wrench */}
-              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
-                  <SpannerWrenchIcon className="w-7 h-7 stroke-[1.3]" />
+              {/* Card 3: Pós-vendas */}
+              <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
+                  <SpannerWrenchIcon className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
                   Prioridade na agenda e condições diferenciadas no pós-vendas.
                 </p>
               </div>
 
-              {/* Box 4 - Water Drop with Ripples */}
-              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
-                  <WaterDropRipplesIcon className="w-7 h-7 stroke-[1.3]" />
+              {/* Card 4: Lavagem da moto */}
+              <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
+                  <WaterDropRipplesIcon className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
                   Preço diferenciado na lavagem da moto.
                 </p>
               </div>
 
-              {/* Box 5 - Motorcycle Helmet */}
-              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
-                  <MotorcycleHelmetIcon className="w-7 h-7 stroke-[1.3]" />
+              {/* Card 5: Treinamentos e experiências */}
+              <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
+                  <MotorcycleHelmetIcon className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
                   Experiências e treinamentos com instrutores especializados em condução de motos.
                 </p>
               </div>
 
-              {/* Box 6 - Barber Specific Icon */}
-              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
-                  <BarberSpecificIcon className="w-7 h-7 stroke-[1.3]" />
+              {/* Card 6: Barbearia */}
+              <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
+                  <BarberSpecificIcon className="w-8 h-8" />
                 </div>
-                <p className="text-[10px] text-slate-300 leading-snug font-normal">
-                  Ações e promoções exclusivas na bandeira.
+                <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
+                  Ações e promoções exclusivas na barbearia.
                 </p>
               </div>
             </div>
           </div>
 
-          {/* TRANSIÇÃO: FAÇA PARTE DESTE ECOSSISTEMA */}
-          <div className="py-6 text-center border-t border-[#121c2e]">
-            <p className="text-sm sm:text-base lg:text-lg font-black text-[#0066FF] uppercase font-montserrat tracking-[0.35em] sm:tracking-[0.55em] drop-shadow-lg">
-              FAÇA PARTE DESTE ECOSSISTEMA.
+          {/* TRANSIÇÃO: FAÇA PARTE DESTE ECOSSISTEMA entre duas linhas finas horizontais */}
+          <div className="relative py-5 border-t border-b border-[#121c2e]/80 flex items-center justify-center my-2">
+            <p className="text-sm sm:text-base lg:text-lg font-black text-[#0066FF] uppercase font-montserrat tracking-[0.45em] sm:tracking-[0.6em] text-center drop-shadow-[0_0_12px_rgba(0,102,255,0.4)]">
+              F A Ç A &nbsp; P A R T E &nbsp; D E S T E &nbsp; E C O S S I S T E M A .
             </p>
           </div>
 
