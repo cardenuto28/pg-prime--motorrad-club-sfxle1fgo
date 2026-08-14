@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { User, LogIn, LogOut, Menu, X, Shield, Bike } from 'lucide-react'
+import { User, LogOut, Menu, X, Bike, ShieldCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -172,6 +172,16 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                 >
                   <Bike className="w-3.5 h-3.5 text-blue-500" /> ÁREA DO MEMBRO
                 </Button>
+                {user.role === 'admin' && (
+                  <Button
+                    onClick={() => navigate('/admin')}
+                    variant="outline"
+                    size="sm"
+                    className="border-blue-600/60 hover:border-blue-500 bg-blue-600/10 hover:bg-blue-600/20 text-blue-300 font-semibold text-xs tracking-wider gap-1.5"
+                  >
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-400" /> ADMIN
+                  </Button>
+                )}
                 <Button
                   onClick={logout}
                   variant="outline"
@@ -267,6 +277,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                     >
                       Área do Membro
                     </Button>
+                    {user.role === 'admin' && (
+                      <Button
+                        onClick={() => {
+                          setMobileMenuOpen(false)
+                          navigate('/admin')
+                        }}
+                        variant="outline"
+                        size="sm"
+                        className="border-blue-600/60 bg-blue-600/10 text-blue-300 text-xs"
+                      >
+                        Admin
+                      </Button>
+                    )}
                     <Button
                       onClick={logout}
                       variant="outline"

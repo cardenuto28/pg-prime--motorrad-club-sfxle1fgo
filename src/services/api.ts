@@ -290,6 +290,14 @@ export const registrationService = {
     return records as unknown as Registration[]
   },
 
+  async getAllRegistrations(): Promise<Registration[]> {
+    const records = await pb.collection('registrations').getFullList({
+      expand: 'ride,user',
+      sort: '-created',
+    })
+    return records as unknown as Registration[]
+  },
+
   async updateRegistrationStatus(
     id: string,
     status: 'confirmada' | 'cancelada',

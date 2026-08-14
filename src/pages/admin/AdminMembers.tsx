@@ -1,0 +1,651 @@
+import React, { useEffect, useState, useCallback, useMemo } from 'react'
+import {
+  Search,
+  Pencil,
+  CheckCircle2,
+  Ban,
+  RotateCcw,
+  History,
+  Users,
+  ChevronLeft,
+  ChevronRight,
+  X,
+  Save,
+  Phone,
+  Mail,
+  MapPin,
+  Bike,
+  Calendar,
+} from 'lucide-react'
+import { UserProfile, Registration, userService, registrationService } from '@/services/api'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { useToast } from '@/hooks/use-toast'
+import { StatusBadge, formatDate, statusLabel } from '@/lib/member'
+
+const PAGE_SIZE = 10
+
+type Status = UserProfile['status']
+
+const AdminMembers: React.FC = () => {
+  const { toast } = useToast()
+  const [users, setUsers] = useState<UserProfile[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(1)
+
+  const [editing, setEditing] = useState<UserProfile | null>(null)
+  const [historyUser, setHistoryUser] = useState<UserProfile | null>(null)
+  const [historyRegs, setHistoryRegs] = useState<Registration[]>([])
+  const [historyLoading, setHistoryLoading] = useState(false)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const all = await userService.getAllUsers()
+      setUsers(all)
+    } catch (e) {
+      console.error('Erro ao carregar membros:', e)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível carregar os membros.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [toast])
+
+  useEffect(() => {
+    load()
+  }, [load])
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return users
+    return users.filter((u) => {
+      return (
+        (u.name || '').toLowerCase().includes(q) ||
+        (u.email || '').toLowerCase().includes(q) ||
+        (u.cpf || '').toLowerCase().includes(q)
+      )
+    })
+  }, [users, search])
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
+  const currentPage = Math.min(page, totalPages)
+  const pageItems = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE)
+
+  useEffect(() => {
+    setPage(1)
+  }, [search])
+
+  const updateLocalUser = (id: string, patch: Partial<UserProfile>) => {
+    setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)))
+  }
+
+  const handleStatusAction = async (user: UserProfile, status: Status, label: string) => {
+    setActionLoading(user.id)
+    try {
+      await userService.updateUserStatus(user.id, status)
+      updateLocalUser(user.id, { status })
+      toast({
+        title: 'Sucesso',
+        description: `${user.name || 'Membro'} → ${label}.`,
+      })
+    } catch (e) {
+      console.error(e)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível atualizar o status.',
+        variant: 'destructive',
+      })
+    } finally {
+      setActionLoading(null)
+    }
+  }
+
+  const openHistory = async (user: UserProfile) => {
+    setHistoryUser(user)
+    setHistoryLoading(true)
+    setHistoryRegs([])
+    try {
+      const regs = await registrationService.getRegistrationsByUser(user.id)
+      setHistoryRegs(regs)
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setHistoryLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <section className="bg-gradient-to-br from-[#0f131c] to-[#0a0d14] border border-[#1d2638] rounded-md p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-montserrat">
+              Gestão de Membros
+            </p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight mt-1">
+              Membros Cadastrados
+            </h1>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-slate-400">
+            <Users className="w-4 h-4 text-blue-500" />
+            <span>
+              <span className="text-white font-bold">{users.length}</span> membros
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* Search */}
+      <div className="relative max-w-md">
+        <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nome, e-mail ou CPF..."
+          className="pl-9 bg-[#141b27] border-[#222c3f] text-white text-xs placeholder:text-slate-500 h-10"
+        />
+      </div>
+
+      {/* Table */}
+      <div className="bg-[#0e131d] border border-[#1c2538] rounded-md overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr className="border-b border-[#1c2538] bg-[#0a0d14]">
+                <Th>Nome</Th>
+                <Th>E-mail</Th>
+                <Th>Telefone</Th>
+                <Th>Cidade</Th>
+                <Th>Moto</Th>
+                <Th>Status</Th>
+                <Th className="text-right">Ações</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center">
+                    <div className="flex items-center justify-center">
+                      <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  </td>
+                </tr>
+              ) : pageItems.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-12 text-center text-xs text-slate-500">
+                    Nenhum membro encontrado.
+                  </td>
+                </tr>
+              ) : (
+                pageItems.map((u) => (
+                  <tr
+                    key={u.id}
+                    className="border-b border-[#161e2c] last:border-0 hover:bg-[#11172250]"
+                  >
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs flex-shrink-0">
+                          {u.name ? u.name.charAt(0).toUpperCase() : '?'}
+                        </div>
+                        <span className="text-xs font-bold text-white">{u.name || '—'}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{u.email || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{u.phone || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">{u.city || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-400">
+                      {[u.bike_brand, u.bike_model, u.bike_year].filter(Boolean).join(' ') || '—'}
+                    </td>
+                    <td className="px-4 py-3">
+                      <StatusBadge status={u.status} />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center justify-end gap-1">
+                        <ActionBtn
+                          title="Editar cadastro"
+                          onClick={() => setEditing(u)}
+                          className="text-slate-300 hover:text-white hover:bg-[#1b2536]"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </ActionBtn>
+                        <ActionBtn
+                          title="Histórico de passeios"
+                          onClick={() => openHistory(u)}
+                          className="text-blue-300 hover:text-blue-200 hover:bg-blue-950/50"
+                        >
+                          <History className="w-3.5 h-3.5" />
+                        </ActionBtn>
+                        {u.status === 'pendente' && (
+                          <ActionBtn
+                            title="Aprovar cadastro"
+                            disabled={actionLoading === u.id}
+                            onClick={() => handleStatusAction(u, 'ativo', 'Ativo')}
+                            className="text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/50"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                          </ActionBtn>
+                        )}
+                        {u.status !== 'bloqueado' && (
+                          <ActionBtn
+                            title="Bloquear cadastro"
+                            disabled={actionLoading === u.id}
+                            onClick={() => handleStatusAction(u, 'bloqueado', 'Bloqueado')}
+                            className="text-red-300 hover:text-red-200 hover:bg-red-950/50"
+                          >
+                            <Ban className="w-3.5 h-3.5" />
+                          </ActionBtn>
+                        )}
+                        {u.status === 'bloqueado' && (
+                          <ActionBtn
+                            title="Desbloquear / Reativar"
+                            disabled={actionLoading === u.id}
+                            onClick={() => handleStatusAction(u, 'ativo', 'Ativo')}
+                            className="text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/50"
+                          >
+                            <RotateCcw className="w-3.5 h-3.5" />
+                          </ActionBtn>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        {!loading && filtered.length > 0 && (
+          <div className="flex items-center justify-between px-4 py-3 border-t border-[#1c2538]">
+            <span className="text-[11px] text-slate-500">
+              {filtered.length} membro(s) · página {currentPage} de {totalPages}
+            </span>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                className="h-8 px-2 border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                className="h-8 px-2 border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Edit Modal */}
+      <EditMemberModal
+        user={editing}
+        onClose={() => setEditing(null)}
+        onSaved={(id, patch) => {
+          updateLocalUser(id, patch)
+          setEditing(null)
+        }}
+      />
+
+      {/* History Modal */}
+      <Dialog open={!!historyUser} onOpenChange={(o) => !o && setHistoryUser(null)}>
+        <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold tracking-wide text-white flex items-center gap-2">
+              <History className="w-4 h-4 text-blue-500" />
+              Histórico de Passeios
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              {historyUser?.name} ·{' '}
+              {historyRegs.filter((r) => r.status === 'confirmada' && r.expand?.ride).length}{' '}
+              passeio(s) realizado(s)
+            </DialogDescription>
+          </DialogHeader>
+
+          {historyLoading ? (
+            <div className="flex items-center justify-center py-10">
+              <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+            </div>
+          ) : historyRegs.length === 0 ? (
+            <div className="bg-[#0e131d] border border-dashed border-[#1c2538] rounded-md p-8 text-center">
+              <p className="text-xs text-slate-500">
+                Este membro ainda não se inscreveu em nenhum passeio.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2 max-h-[60vh] overflow-y-auto pr-1">
+              {historyRegs.map((reg) => {
+                const ride = reg.expand?.ride
+                const statusColor =
+                  reg.status === 'confirmada'
+                    ? 'text-emerald-300 bg-emerald-950/60 border-emerald-800/50'
+                    : reg.status === 'cancelada'
+                      ? 'text-red-300 bg-red-950/60 border-red-800/50'
+                      : 'text-amber-300 bg-amber-950/60 border-amber-800/50'
+                return (
+                  <div
+                    key={reg.id}
+                    className="bg-[#0e131d] border border-[#1c2538] rounded-md p-3 flex items-center gap-3"
+                  >
+                    <div className="w-9 h-9 rounded-md bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
+                      <Bike className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-bold text-white truncate font-montserrat uppercase">
+                        {ride?.name || 'Passeio removido'}
+                      </p>
+                      <div className="flex flex-wrap items-center gap-3 text-[11px] text-slate-400 mt-0.5">
+                        <span className="flex items-center gap-1">
+                          <Calendar className="w-3 h-3 text-slate-500" />
+                          {ride ? formatDate(ride.date) : '—'}
+                        </span>
+                        {reg.has_pillion && <span className="text-blue-300">com garupa</span>}
+                      </div>
+                    </div>
+                    <span
+                      className={`text-[9px] font-bold tracking-wider px-2 py-1 rounded uppercase border flex-shrink-0 ${statusColor}`}
+                    >
+                      {reg.status}
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          <div className="flex items-center justify-between pt-3 border-t border-[#1c2538]">
+            <span className="text-[11px] text-slate-400">
+              Total de inscrições:{' '}
+              <span className="text-white font-bold">{historyRegs.length}</span>
+            </span>
+            <span className="text-[11px] text-emerald-300">
+              Passeios realizados:{' '}
+              <span className="font-bold">
+                {historyRegs.filter((r) => r.status === 'confirmada' && r.expand?.ride).length}
+              </span>
+            </span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
+
+/* ---------- helpers ---------- */
+
+const Th: React.FC<{ children: React.ReactNode; className?: string }> = ({
+  children,
+  className = '',
+}) => (
+  <th
+    className={`px-4 py-3 text-[10px] font-bold text-slate-400 uppercase tracking-widest font-montserrat ${className}`}
+  >
+    {children}
+  </th>
+)
+
+const ActionBtn: React.FC<{
+  children: React.ReactNode
+  title: string
+  onClick: () => void
+  className?: string
+  disabled?: boolean
+}> = ({ children, title, onClick, className = '', disabled }) => (
+  <button
+    type="button"
+    title={title}
+    onClick={onClick}
+    disabled={disabled}
+    className={`w-7 h-7 rounded-md flex items-center justify-center transition-colors disabled:opacity-40 ${className}`}
+  >
+    {children}
+  </button>
+)
+
+/* ---------- Edit modal ---------- */
+
+const EditMemberModal: React.FC<{
+  user: UserProfile | null
+  onClose: () => void
+  onSaved: (id: string, patch: Partial<UserProfile>) => void
+}> = ({ user, onClose, onSaved }) => {
+  const { toast } = useToast()
+  const [form, setForm] = useState<Partial<UserProfile>>({})
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setForm({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        cpf: user.cpf || '',
+        city: user.city || '',
+        bike_brand: user.bike_brand || '',
+        bike_model: user.bike_model || '',
+        bike_year: user.bike_year || 0,
+        pillion_name: user.pillion_name || '',
+        pillion_phone: user.pillion_phone || '',
+        status: user.status,
+      })
+    }
+  }, [user])
+
+  const set = (k: keyof UserProfile, v: string | number) => setForm((f) => ({ ...f, [k]: v }))
+
+  const handleSave = async () => {
+    if (!user) return
+    setSaving(true)
+    try {
+      const data: Partial<UserProfile> = {
+        name: form.name,
+        phone: form.phone,
+        cpf: form.cpf,
+        city: form.city,
+        bike_brand: form.bike_brand,
+        bike_model: form.bike_model,
+        bike_year: Number(form.bike_year) || 0,
+        pillion_name: form.pillion_name,
+        pillion_phone: form.pillion_phone,
+        status: form.status,
+      }
+      await userService.updateUserProfile(user.id, data)
+      toast({
+        title: 'Cadastro atualizado',
+        description: `${user.name || 'Membro'} foi atualizado com sucesso.`,
+      })
+      onSaved(user.id, data)
+    } catch (e) {
+      console.error(e)
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar as alterações.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-lg font-bold tracking-wide text-white flex items-center gap-2">
+            <Pencil className="w-4 h-4 text-blue-500" />
+            Editar Cadastro
+          </DialogTitle>
+          <DialogDescription className="text-xs text-slate-400">
+            {user?.name} · {user?.email}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
+          <Field label="Nome" icon={null}>
+            <Input
+              value={(form.name as string) || ''}
+              onChange={(e) => set('name', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="E-mail" icon={<Mail className="w-3 h-3" />}>
+            <Input
+              type="email"
+              value={(form.email as string) || ''}
+              onChange={(e) => set('email', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="Telefone" icon={<Phone className="w-3 h-3" />}>
+            <Input
+              value={(form.phone as string) || ''}
+              onChange={(e) => set('phone', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="CPF" icon={null}>
+            <Input
+              value={(form.cpf as string) || ''}
+              onChange={(e) => set('cpf', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="Cidade" icon={<MapPin className="w-3 h-3" />}>
+            <Input
+              value={(form.city as string) || ''}
+              onChange={(e) => set('city', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="Status" icon={null}>
+            <Select
+              value={(form.status as string) || 'pendente'}
+              onValueChange={(v) => set('status', v)}
+            >
+              <SelectTrigger className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white">
+                {(['pendente', 'ativo', 'inativo', 'bloqueado'] as Status[]).map((s) => (
+                  <SelectItem key={s} value={s} className="text-xs">
+                    {statusLabel(s)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
+            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-montserrat mb-3">
+              Moto
+            </p>
+          </div>
+          <Field label="Marca da Moto" icon={<Bike className="w-3 h-3" />}>
+            <Input
+              value={(form.bike_brand as string) || ''}
+              onChange={(e) => set('bike_brand', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="Modelo da Moto" icon={null}>
+            <Input
+              value={(form.bike_model as string) || ''}
+              onChange={(e) => set('bike_model', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="Ano da Moto" icon={null}>
+            <Input
+              type="number"
+              value={(form.bike_year as number) || ''}
+              onChange={(e) => set('bike_year', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+
+          <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
+            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest font-montserrat mb-3">
+              Garupa
+            </p>
+          </div>
+          <Field label="Nome do Garupa" icon={null}>
+            <Input
+              value={(form.pillion_name as string) || ''}
+              onChange={(e) => set('pillion_name', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+          <Field label="Telefone do Garupa" icon={<Phone className="w-3 h-3" />}>
+            <Input
+              value={(form.pillion_phone as string) || ''}
+              onChange={(e) => set('pillion_phone', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+        </div>
+
+        <div className="flex items-center justify-end gap-2 pt-4 border-t border-[#1c2538]">
+          <Button
+            variant="outline"
+            onClick={onClose}
+            className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5"
+          >
+            <X className="w-3.5 h-3.5" /> Cancelar
+          </Button>
+          <Button
+            onClick={handleSave}
+            disabled={saving}
+            className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5"
+          >
+            <Save className="w-3.5 h-3.5" /> {saving ? 'SALVANDO...' : 'SALVAR'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+const Field: React.FC<{
+  label: string
+  icon: React.ReactNode
+  children: React.ReactNode
+}> = ({ label, icon, children }) => (
+  <div className="space-y-1.5">
+    <Label className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
+      {icon}
+      {label}
+    </Label>
+    {children}
+  </div>
+)
+
+export default AdminMembers

@@ -8,6 +8,8 @@ import RideDetail from './pages/RideDetail'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { AdminRoute } from './components/AdminRoute'
+import { AdminLayout } from './components/AdminLayout'
 import { MemberLayout } from './components/MemberLayout'
 import MemberDashboard from './pages/member/MemberDashboard'
 import MemberPasseios from './pages/member/MemberPasseios'
@@ -16,6 +18,9 @@ import MemberBeneficios from './pages/member/MemberBeneficios'
 import MemberGaleria from './pages/member/MemberGaleria'
 import MemberComunicados from './pages/member/MemberComunicados'
 import MemberPerfil from './pages/member/MemberPerfil'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import AdminMembers from './pages/admin/AdminMembers'
+import AdminPlaceholder from './pages/admin/AdminPlaceholder'
 import { AuthProvider } from './context/AuthContext'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
@@ -50,6 +55,26 @@ const App = () => (
             <Route path="galeria" element={<MemberGaleria />} />
             <Route path="comunicados" element={<MemberComunicados />} />
             <Route path="perfil" element={<MemberPerfil />} />
+          </Route>
+          {/* Área Administrativa (protegida — admin) */}
+          <Route
+            path="/admin"
+            element={
+              <AdminRoute>
+                <AdminLayout />
+              </AdminRoute>
+            }
+          >
+            <Route index element={<AdminDashboard />} />
+            <Route path="members" element={<AdminMembers />} />
+            <Route path="rides" element={<AdminPlaceholder title="Gestão de Passeios" />} />
+            <Route path="registrations" element={<AdminPlaceholder title="Inscrições" />} />
+            <Route path="benefits" element={<AdminPlaceholder title="Benefícios" />} />
+            <Route path="partners" element={<AdminPlaceholder title="Parceiros" />} />
+            <Route path="gallery" element={<AdminPlaceholder title="Galeria" />} />
+            <Route path="announcements" element={<AdminPlaceholder title="Comunicados" />} />
+            <Route path="reports" element={<AdminPlaceholder title="Relatórios" />} />
+            <Route path="settings" element={<AdminPlaceholder title="Configurações" />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
