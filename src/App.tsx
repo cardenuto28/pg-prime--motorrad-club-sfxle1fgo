@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
 import Index from './pages/Index'
+import RideDetail from './pages/RideDetail'
 import NotFound from './pages/NotFound'
 import Layout from './components/Layout'
 import { ProtectedRoute } from './components/ProtectedRoute'
@@ -28,6 +29,7 @@ const App = () => (
         <Route element={<Layout />}>
           <Route path="/" element={<Index />} />
           {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
+          <Route path="/passeios/:id" element={<RideDetail />} />
         </Route>
         {/* Área do Membro (protegida) */}
         <Route

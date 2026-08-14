@@ -149,26 +149,31 @@ const MemberPasseios: React.FC = () => {
                     </div>
                   </div>
                 </div>
-                <div className="p-4 pt-0">
-                  <Button
-                    onClick={() => (isReg ? null : handleOpenRegistration(ride))}
-                    variant={isReg ? 'outline' : 'default'}
-                    className={`w-full font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all ${
-                      isReg
-                        ? 'border-emerald-600/60 text-emerald-300 bg-emerald-950/40 hover:bg-emerald-950/60'
-                        : 'bg-blue-600 hover:bg-blue-500 text-white'
-                    }`}
-                  >
-                    {isReg ? (
-                      <>
-                        <CheckCircle2 className="w-4 h-4" /> INSCRIÇÃO CONFIRMADA
-                      </>
-                    ) : (
-                      <>
-                        INSCREVER-SE <ChevronRight className="w-4 h-4" />
-                      </>
-                    )}
-                  </Button>
+                <div className="p-4 pt-0 flex flex-col gap-2">
+                  <Link to={`/passeios/${ride.id}`}>
+                    <Button
+                      variant="outline"
+                      className="w-full border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all"
+                    >
+                      VER DETALHES
+                    </Button>
+                  </Link>
+                  {isReg ? (
+                    <Button
+                      variant="outline"
+                      disabled
+                      className="w-full border-emerald-600/60 text-emerald-300 bg-emerald-950/40 font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase cursor-default flex items-center justify-center gap-1.5"
+                    >
+                      <CheckCircle2 className="w-4 h-4" /> INSCRIÇÃO CONFIRMADA
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={() => handleOpenRegistration(ride)}
+                      className="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all flex items-center justify-center gap-1"
+                    >
+                      INSCREVER-SE <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
             )

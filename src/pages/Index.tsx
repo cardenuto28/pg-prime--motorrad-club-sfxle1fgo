@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { SidebarSignup } from '@/components/SidebarSignup'
@@ -296,26 +297,24 @@ export default function Index() {
 
                     {/* Card Footer Action */}
                     <div className="p-4 pt-0">
-                      <Button
-                        onClick={() =>
-                          item.rawRide
-                            ? handleOpenRegistration(item.rawRide)
-                            : handleOpenRegistration({
-                                id: item.id,
-                                name: item.name,
-                                date: item.date,
-                                max_bikes: 40,
-                                allow_pillion: true,
-                                status: 'inscricoes_abertas',
-                                created: '',
-                                updated: '',
-                              })
-                        }
-                        variant="outline"
-                        className="w-full border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all"
-                      >
-                        INSCREVER-SE
-                      </Button>
+                      {item.rawRide ? (
+                        <Link to={`/passeios/${item.rawRide.id}`}>
+                          <Button
+                            variant="outline"
+                            className="w-full border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all"
+                          >
+                            VER DETALHES
+                          </Button>
+                        </Link>
+                      ) : (
+                        <Button
+                          disabled
+                          variant="outline"
+                          className="w-full border-[#1c2538] bg-[#0d1524] text-slate-500 font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase cursor-not-allowed"
+                        >
+                          INDISPONÍVEL
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))}

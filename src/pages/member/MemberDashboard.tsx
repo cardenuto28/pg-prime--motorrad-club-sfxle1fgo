@@ -297,13 +297,14 @@ const RideMiniCard: React.FC<{
         </div>
       </div>
       <div className="p-3 pt-0">
-        <Button
-          onClick={onRegister}
-          variant="outline"
-          className="w-full border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-8 rounded-sm uppercase transition-all"
-        >
-          {isRegistered ? 'VER DETALHES' : 'INSCREVER-SE'}
-        </Button>
+        <Link to={`/passeios/${ride.id}`}>
+          <Button
+            variant="outline"
+            className="w-full border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-8 rounded-sm uppercase transition-all"
+          >
+            {isRegistered ? 'VER DETALHES' : 'INSCREVER-SE'}
+          </Button>
+        </Link>
       </div>
     </div>
   )
