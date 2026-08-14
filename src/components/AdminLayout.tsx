@@ -87,7 +87,7 @@ export const AdminLayout: React.FC = () => {
               <img
                 src={logoImage}
                 alt="EUROMOTORS MOTORRAD CLUB"
-                className="h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
+                className="h-[2.52rem] w-auto object-contain transition-opacity group-hover:opacity-90"
               />
               <span className="text-[10px] tracking-[0.2em] text-blue-400 font-bold uppercase font-montserrat border-l border-slate-700 pl-3">
                 ADMIN
