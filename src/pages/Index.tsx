@@ -152,9 +152,7 @@ export default function Index() {
               {/* Esquerda: Título, Subtítulo e Botão Azul */}
               <div className="lg:col-span-7 space-y-5">
                 <h1 className="text-3xl sm:text-5xl lg:text-[54px] font-black text-white tracking-tight leading-[1.05] uppercase font-montserrat drop-shadow-2xl">
-                  EUROMOTORS
-                  <br />
-                  <span className="text-white">MOTORRAD CLUB</span>
+                  MOTORRAD CLUBE
                 </h1>
 
                 <p className="text-sm sm:text-lg text-slate-200 font-medium leading-relaxed max-w-xl">
