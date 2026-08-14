@@ -1,4 +1,4 @@
-import pb from './client'
+import pb from '@/lib/pocketbase/client'
 
 export interface UserProfile {
   id: string
@@ -159,7 +159,7 @@ export const userService = {
 
   async registerCustomer(data: {
     email: string
-    password: string
+    password?: string
     name: string
     phone: string
     cpf: string
@@ -170,14 +170,20 @@ export const userService = {
     pillion_name?: string
     pillion_phone?: string
   }): Promise<UserProfile> {
+    const passwordToUse = data.password || 'Membro@2026'
     const record = await pb.collection('users').create({
       ...data,
-      passwordConfirm: data.password,
+      password: passwordToUse,
+      passwordConfirm: passwordToUse,
       role: 'member',
-      status: 'ativo',
+      status: 'pendente',
     })
-    // Auto login
-    await pb.collection('users').authWithPassword(data.email, data.password)
+    // Tenta autenticar após cadastro
+    try {
+      await pb.collection('users').authWithPassword(data.email, passwordToUse)
+    } catch (e) {
+      console.log('Auto-login após cadastro:', e)
+    }
     return record as unknown as UserProfile
   },
 }
@@ -225,7 +231,7 @@ export const rideService = {
           0,
         ),
         is_user_registered: userId ? registrations.some((reg) => reg.user === userId) : false,
-      } as Ride
+      } as unknown as Ride
     } catch {
       return null
     }
