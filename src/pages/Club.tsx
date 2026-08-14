@@ -1,5 +1,4 @@
 import React from 'react'
-import { Link } from 'react-router-dom'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { Button } from '@/components/ui/button'
@@ -16,6 +15,7 @@ import {
   MessageCircle,
   Bike,
 } from 'lucide-react'
+import clubHeroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140749-4b77d.png'
 
 const beneficios = [
   {
@@ -57,27 +57,58 @@ export default function Club() {
 
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <div className="max-w-5xl mx-auto space-y-14 lg:space-y-20">
-          {/* HERO */}
-          <section className="relative rounded-md overflow-hidden min-h-[360px] sm:min-h-[420px] flex flex-col justify-end p-6 sm:p-10 border border-[#1a2336] group">
+          {/* HERO BANNER - Exact match with reference visual */}
+          <section className="relative rounded-xl overflow-hidden min-h-[380px] sm:min-h-[460px] flex flex-col justify-center p-6 sm:p-10 md:p-12 border border-[#1a2336] shadow-2xl group">
+            {/* Background Image - Vibrant & Vivid without heavy opaque filters */}
             <div className="absolute inset-0 z-0">
               <img
-                src="https://img.usecurling.com/p/1200/700?q=bmw,motorcycle,group,riders,night"
+                src={clubHeroBg}
                 alt="Euromotors Motorrad Club"
-                className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover object-center saturate-[1.12] contrast-[1.05] group-hover:scale-105 transition-transform duration-700"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-[#07090e]/70 to-transparent" />
-              <div className="absolute inset-0 bg-gradient-to-r from-[#07090e]/90 via-transparent to-transparent" />
+              {/* Soft directional gradients preserving vivid background colors while ensuring readability */}
+              <div className="absolute inset-0 bg-gradient-to-r from-[#07090e]/90 via-[#07090e]/50 to-transparent max-w-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-t from-[#07090e]/80 via-transparent to-black/20" />
             </div>
+
+            {/* Banner Content matching reference image */}
             <div className="relative z-10 space-y-4 max-w-xl">
-              <span className="inline-block text-[10px] font-bold text-blue-400 uppercase tracking-widest font-montserrat border border-blue-500/40 bg-[#0d1422]/90 rounded-sm px-2.5 py-1">
-                EUROMOTORS MOTORRAD CLUB
-              </span>
-              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white font-montserrat tracking-tight leading-none uppercase drop-shadow-md">
-                O CLUBE
-              </h1>
-              <p className="text-sm sm:text-base text-slate-300 font-normal leading-relaxed">
-                Mais que uma motocicleta. Uma comunidade de pessoas que compartilham a mesma paixão.
+              <div className="space-y-1">
+                <h1 className="text-2xl sm:text-4xl lg:text-[42px] font-black text-white font-montserrat tracking-tight leading-[1.1] uppercase drop-shadow-xl">
+                  FAÇA PARTE DO{' '}
+                  <span className="block text-[#0066FF] drop-shadow-[0_0_20px_rgba(0,102,255,0.7)]">
+                    EUROMOTORS
+                  </span>
+                  <span className="block text-[#0066FF] drop-shadow-[0_0_20px_rgba(0,102,255,0.7)]">
+                    MOTORRAD CLUB
+                  </span>
+                </h1>
+              </div>
+
+              <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed drop-shadow">
+                Para participar do Euromotors Motorrad Club, você precisa ser cliente da{' '}
+                <strong className="text-[#0066FF] font-extrabold">BMW Euro Motors Jundiaí</strong>.
               </p>
+
+              <div className="flex items-center gap-2.5 pt-1">
+                <div className="flex flex-col gap-0.5 flex-shrink-0">
+                  <span className="w-4 h-0.5 bg-[#0066FF] rounded-full shadow-[0_0_6px_rgba(0,102,255,0.8)]" />
+                  <span className="w-3 h-0.5 bg-[#0066FF] rounded-full shadow-[0_0_6px_rgba(0,102,255,0.8)]" />
+                  <span className="w-2 h-0.5 bg-[#0066FF] rounded-full shadow-[0_0_6px_rgba(0,102,255,0.8)]" />
+                </div>
+                <span className="text-[11px] sm:text-xs text-slate-300 font-medium leading-snug">
+                  Venha ser nosso cliente e participe deste ecossistema de experiência Euro Motors.
+                </span>
+              </div>
+
+              <div className="pt-2">
+                <a href="/#cadastro-form">
+                  <Button className="bg-[#081226]/90 hover:bg-[#0066FF] text-white font-black text-xs tracking-wider px-6 py-3.5 h-auto rounded-md border border-[#0066FF] shadow-[0_0_20px_rgba(0,102,255,0.4)] hover:shadow-[0_0_25px_rgba(0,102,255,0.8)] transition-all gap-2 uppercase font-montserrat group/btn">
+                    <ChevronRight className="w-4 h-4 text-[#0066FF] group-hover/btn:text-white transition-colors" />
+                    SEJA NOSSO CLIENTE
+                  </Button>
+                </a>
+              </div>
             </div>
           </section>
 
