@@ -17,6 +17,8 @@ import {
   Loader2,
 } from 'lucide-react'
 import { Ride, rideService } from '@/services/api'
+import pb from '@/lib/pocketbase/client'
+import { ImageUploadField } from '@/components/ImageUploadField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,6 +58,7 @@ const PAGE_SIZE = 10
 const EMPTY_FORM: RideFormState = {
   name: '',
   cover_image: '',
+  cover_image_file: '',
   description: '',
   date: '',
   meeting_time: '',
@@ -79,6 +82,7 @@ const EMPTY_FORM: RideFormState = {
 interface RideFormState {
   name: string
   cover_image: string
+  cover_image_file: string
   description: string
   date: string
   meeting_time: string
@@ -442,13 +446,16 @@ const RideFormModal: React.FC<{
   const { toast } = useToast()
   const [form, setForm] = useState<RideFormState>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (open) {
+      setPendingCoverFile(null)
       if (ride) {
         setForm({
           name: ride.name || '',
           cover_image: ride.cover_image || '',
+          cover_image_file: (ride as any).cover_image_file || '',
           description: ride.description || '',
           date: ride.date || '',
           meeting_time: ride.meeting_time || '',
@@ -474,6 +481,11 @@ const RideFormModal: React.FC<{
     }
   }, [open, ride])
 
+  // Limpa o arquivo pendente ao fechar o modal.
+  useEffect(() => {
+    if (!open) setPendingCoverFile(null)
+  }, [open])
+
   const set = <K extends keyof RideFormState>(k: K, v: RideFormState[K]) =>
     setForm((f) => ({ ...f, [k]: v }))
 
@@ -488,7 +500,7 @@ const RideFormModal: React.FC<{
     }
     setSaving(true)
     try {
-      const payload: Omit<Ride, 'id' | 'created' | 'updated'> = {
+      const payload: any = {
         name: form.name.trim(),
         cover_image: form.cover_image.trim(),
         description: form.description,
@@ -511,12 +523,29 @@ const RideFormModal: React.FC<{
         status: form.status,
       }
       if (ride) {
-        await rideService.updateRide(ride.id, payload)
+        // Edição: se há arquivo pendente, envia via FormData; senão update normal.
+        if (pendingCoverFile) {
+          const fd = new FormData()
+          for (const [k, v] of Object.entries(payload)) {
+            if (v !== undefined && v !== null) fd.append(k, String(v))
+          }
+          fd.append('cover_image_file', pendingCoverFile)
+          await pb.collection('rides').update(ride.id, fd)
+        } else {
+          await rideService.updateRide(ride.id, payload)
+        }
         toast({ title: 'Passeio atualizado', description: 'As alterações foram salvas.' })
       } else {
-        await rideService.createRide(payload)
+        // Criação: cria o registro primeiro, depois faz upload do arquivo se houver.
+        const created = await rideService.createRide(payload)
+        if (pendingCoverFile) {
+          const fd = new FormData()
+          fd.append('cover_image_file', pendingCoverFile)
+          await pb.collection('rides').update(created.id, fd)
+        }
         toast({ title: 'Passeio criado', description: 'Novo passeio salvo como rascunho.' })
       }
+      setPendingCoverFile(null)
       onSaved()
     } catch (e) {
       console.error(e)
@@ -555,12 +584,21 @@ const RideFormModal: React.FC<{
           </div>
 
           <div className="sm:col-span-2">
-            <Field label="Foto de capa (URL)">
+            <Field label="Foto de capa">
+              <ImageUploadField
+                collection="rides"
+                fieldName="cover_image_file"
+                recordId={ride?.id}
+                value={form.cover_image_file}
+                onChange={(v) => set('cover_image_file', v)}
+                onFileChange={(f) => setPendingCoverFile(f)}
+                allowUrl
+              />
               <Input
                 value={form.cover_image}
                 onChange={(e) => set('cover_image', e.target.value)}
-                placeholder="https://..."
-                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+                placeholder="URL alternativa (opcional)"
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 mt-2"
               />
             </Field>
           </div>

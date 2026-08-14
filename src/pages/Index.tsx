@@ -4,7 +4,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { RideRegistrationModal } from '@/components/RideRegistrationModal'
 import { useAuth } from '@/context/AuthContext'
-import { Ride, rideService } from '@/services/api'
+import { Ride, Registration, rideService, registrationService } from '@/services/api'
 import {
   ChevronRight,
   Calendar,
@@ -19,6 +19,8 @@ import {
   Facebook,
   Youtube,
   Globe,
+  Bike,
+  Lock,
 } from 'lucide-react'
 import {
   EnvelopeMailboxIcon,
@@ -45,22 +47,36 @@ export default function Index() {
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
 
+  // Inscrições do usuário logado (dados reais para o widget Área do Membro)
+  const [userRegs, setUserRegs] = useState<Registration[]>([])
+
   useEffect(() => {
     loadData()
-  }, [])
+  }, [user])
 
   const loadData = async () => {
     setLoading(true)
     try {
       const ridesData = await rideService.getAllRides()
       setRides(ridesData)
+
+      if (user?.id) {
+        try {
+          const regs = await registrationService.getRegistrationsByUser(user.id)
+          setUserRegs(regs)
+        } catch (err) {
+          console.error('Erro ao carregar inscrições do membro:', err)
+          setUserRegs([])
+        }
+      } else {
+        setUserRegs([])
+      }
     } catch (err) {
       console.error('Erro ao carregar dados da Home:', err)
     } finally {
       setLoading(false)
     }
   }
-
   const handleOpenRegistration = (ride: Ride | null) => {
     if (!ride) {
       navigate('/member/dashboard')
@@ -392,97 +408,173 @@ export default function Index() {
                 ÁREA DO MEMBRO
               </h3>
 
-              {/* User Bar */}
-              <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-2 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <img
-                    src="https://img.usecurling.com/ppl/thumbnail?gender=male&seed=42"
-                    alt="Marcelo"
-                    className="w-6 h-6 rounded-full object-cover border border-[#0066FF]/60"
-                  />
-                  <span className="text-[9px] text-slate-300 font-medium uppercase tracking-wider block leading-tight">
-                    BEM-VINDO,{' '}
-                    <strong className="text-white font-bold">
-                      {user ? user.name.split(' ')[0].toUpperCase() : 'MARCELO'}
-                    </strong>
-                  </span>
-                </div>
-                <span className="text-[7.5px] font-extrabold text-blue-300 bg-blue-900/60 border border-blue-700/60 px-1.5 py-0.5 rounded uppercase tracking-wider">
-                  MEMBRO PREMIUM
-                </span>
-              </div>
-
-              {/* Próximo Passeio Card */}
-              <div className="space-y-1">
-                <span className="text-[8.5px] font-bold text-slate-400 tracking-wider uppercase font-montserrat block">
-                  PRÓXIMO PASSEIO
-                </span>
-                <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-1.5 flex gap-2 items-center">
-                  <img
-                    src="https://img.usecurling.com/p/200/200?q=ocean,coast,motorcycle&seed=88"
-                    alt="Litoral Norte Experience"
-                    className="w-12 h-12 object-cover rounded-sm border border-slate-700/50 flex-shrink-0"
-                  />
-                  <div className="space-y-0.5 min-w-0 flex-1">
-                    <h4 className="text-[9.5px] font-extrabold text-white truncate font-montserrat">
-                      LITORAL NORTE EXPERIENCE
-                    </h4>
-                    <p className="text-[8.5px] text-slate-400">05/07/2025 - 07h30</p>
-                    <p className="text-[8.5px] text-slate-400 truncate">Ubatuba - SP</p>
-                    <button
-                      onClick={() => navigate('/member/dashboard')}
-                      className="text-[8px] font-bold text-[#0066FF] hover:text-blue-300 uppercase tracking-wider block mt-0.5"
+              {user ? (
+                <>
+                  {/* User Bar — dados reais do membro */}
+                  <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-2 flex items-center justify-between">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <div className="w-6 h-6 rounded-full bg-blue-600/20 border border-[#0066FF]/60 flex items-center justify-center text-blue-400 font-bold text-[10px] flex-shrink-0">
+                        {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
+                      </div>
+                      <span className="text-[9px] text-slate-300 font-medium uppercase tracking-wider block leading-tight truncate">
+                        BEM-VINDO,{' '}
+                        <strong className="text-white font-bold">
+                          {user.name.split(' ')[0].toUpperCase()}
+                        </strong>
+                      </span>
+                    </div>
+                    <span
+                      className={`text-[7.5px] font-extrabold px-1.5 py-0.5 rounded uppercase tracking-wider border flex-shrink-0 ${
+                        user.status === 'ativo' || user.role === 'admin'
+                          ? 'text-blue-300 bg-blue-900/60 border-blue-700/60'
+                          : 'text-amber-300 bg-amber-900/60 border-amber-700/60'
+                      }`}
                     >
-                      VER DETALHES
-                    </button>
+                      {user.status === 'ativo' || user.role === 'admin'
+                        ? 'MEMBRO ATIVO'
+                        : `STATUS: ${user.status?.toUpperCase() || 'PENDENTE'}`}
+                    </span>
                   </div>
+
+                  {/* Moto do membro */}
+                  {((user.bike_brand && user.bike_model) || user.bike_model) && (
+                    <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-1.5 flex items-center gap-1.5 text-[8.5px] text-slate-300">
+                      <Bike className="w-3 h-3 text-[#0066FF] flex-shrink-0" />
+                      <span className="truncate font-medium">
+                        {user.bike_brand ? `${user.bike_brand} ` : ''}
+                        {user.bike_model || ''}
+                        {user.bike_year ? ` · ${user.bike_year}` : ''}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Próximo Passeio confirmado (dados reais) */}
+                  {(() => {
+                    const confirmed = userRegs.filter((r) => r.status === 'confirmada')
+                    const next = confirmed.find((r) => r.expand?.ride) || confirmed[0]
+                    const ride = next?.expand?.ride
+                    if (!ride) return null
+                    return (
+                      <div className="space-y-1">
+                        <span className="text-[8.5px] font-bold text-slate-400 tracking-wider uppercase font-montserrat block">
+                          PRÓXIMO PASSEIO
+                        </span>
+                        <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-1.5 flex gap-2 items-center">
+                          <img
+                            src={
+                              ride.cover_image ||
+                              'https://img.usecurling.com/p/200/200?q=motorcycle'
+                            }
+                            alt={ride.name}
+                            className="w-12 h-12 object-cover rounded-sm border border-slate-700/50 flex-shrink-0"
+                          />
+                          <div className="space-y-0.5 min-w-0 flex-1">
+                            <h4 className="text-[9.5px] font-extrabold text-white truncate font-montserrat">
+                              {ride.name.toUpperCase()}
+                            </h4>
+                            <p className="text-[8.5px] text-slate-400">
+                              {ride.date}
+                              {ride.meeting_time ? ` - ${ride.meeting_time}` : ''}
+                            </p>
+                            {ride.destination && (
+                              <p className="text-[8.5px] text-slate-400 truncate">
+                                {ride.destination}
+                              </p>
+                            )}
+                            <button
+                              onClick={() => navigate('/member/dashboard')}
+                              className="text-[8px] font-bold text-[#0066FF] hover:text-blue-300 uppercase tracking-wider block mt-0.5"
+                            >
+                              VER DETALHES
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })()}
+
+                  {/* Inscrições do membro (dados reais) */}
+                  <div className="space-y-1">
+                    <span className="text-[8.5px] font-bold text-slate-400 tracking-wider uppercase font-montserrat block">
+                      MINHAS INSCRIÇÕES
+                    </span>
+                    <div className="space-y-1">
+                      {userRegs.length === 0 ? (
+                        <p className="text-[8.5px] text-slate-500 py-1.5 text-center">
+                          Nenhuma inscrição ainda.
+                        </p>
+                      ) : (
+                        userRegs.slice(0, 2).map((reg) => {
+                          const ride = reg.expand?.ride
+                          return (
+                            <div
+                              key={reg.id}
+                              className="bg-[#0e1728] border border-[#1a2a46] rounded-sm p-1.5 flex items-center justify-between text-[8.5px]"
+                            >
+                              <div className="flex items-center gap-1 truncate pr-1 min-w-0">
+                                <CheckCircle2 className="w-3 h-3 text-[#0066FF] flex-shrink-0" />
+                                <span className="text-slate-300 truncate font-medium">
+                                  {ride?.name?.toUpperCase() || 'PASSEIO'}
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1 flex-shrink-0">
+                                <span className="text-slate-500 text-[8px]">
+                                  {ride?.date || ''}
+                                </span>
+                                <span
+                                  className={`text-[7.5px] font-bold px-1 py-0.2 rounded uppercase border ${
+                                    reg.status === 'confirmada'
+                                      ? 'text-emerald-400 bg-emerald-950/80 border-emerald-800/60'
+                                      : reg.status === 'cancelada'
+                                        ? 'text-red-400 bg-red-950/80 border-red-800/60'
+                                        : 'text-amber-400 bg-amber-950/80 border-amber-800/60'
+                                  }`}
+                                >
+                                  {reg.status === 'confirmada'
+                                    ? 'CONFIRMADO'
+                                    : reg.status.toUpperCase()}
+                                </span>
+                              </div>
+                            </div>
+                          )
+                        })
+                      )}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => navigate('/member/dashboard')}
+                    className="w-full text-center text-[9.5px] font-extrabold text-[#0066FF] hover:text-blue-300 tracking-wider uppercase pt-1 flex items-center justify-center gap-1 font-montserrat transition-colors"
+                  >
+                    VER HISTÓRICO COMPLETO <ChevronRight className="w-3 h-3" />
+                  </button>
+                </>
+              ) : (
+                /* Usuário não logado — card de convite para cadastro/login */
+                <div className="space-y-3">
+                  <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-3 space-y-2 text-center">
+                    <div className="w-9 h-9 rounded-full bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400 mx-auto">
+                      <Lock className="w-4 h-4" />
+                    </div>
+                    <p className="text-[10px] text-slate-300 leading-snug">
+                      Faça login ou cadastre-se para acessar sua área exclusiva, ver seus passeios
+                      confirmados e benefícios do clube.
+                    </p>
+                  </div>
+                  <Button
+                    onClick={() => navigate('/member/dashboard')}
+                    className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-[10px] tracking-wider h-8 rounded-sm uppercase"
+                  >
+                    ENTRAR NA ÁREA DO MEMBRO
+                  </Button>
+                  <button
+                    onClick={() => navigate('/member/dashboard')}
+                    className="w-full text-center text-[9px] font-bold text-slate-400 hover:text-white tracking-wider uppercase flex items-center justify-center gap-1"
+                  >
+                    FAZER CADASTRO <ChevronRight className="w-3 h-3" />
+                  </button>
                 </div>
-              </div>
-
-              {/* Outras Inscrições */}
-              <div className="space-y-1">
-                <span className="text-[8.5px] font-bold text-slate-400 tracking-wider uppercase font-montserrat block">
-                  OUTRAS INSCRIÇÕES
-                </span>
-                <div className="space-y-1">
-                  <div className="bg-[#0e1728] border border-[#1a2a46] rounded-sm p-1.5 flex items-center justify-between text-[8.5px]">
-                    <div className="flex items-center gap-1 truncate pr-1">
-                      <CheckCircle2 className="w-3 h-3 text-[#0066FF] flex-shrink-0" />
-                      <span className="text-slate-300 truncate font-medium">
-                        SERRA DO RIO DO RASTRO
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-slate-500 text-[8px]">07/06/2025</span>
-                      <span className="text-[7.5px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-1 py-0.2 rounded uppercase">
-                        CONFIRMADO
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="bg-[#0e1728] border border-[#1a2a46] rounded-sm p-1.5 flex items-center justify-between text-[8.5px]">
-                    <div className="flex items-center gap-1 truncate pr-1">
-                      <CheckCircle2 className="w-3 h-3 text-[#0066FF] flex-shrink-0" />
-                      <span className="text-slate-300 truncate font-medium">
-                        CAMINHOS DA MANTIQUEIRA
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-1 flex-shrink-0">
-                      <span className="text-slate-500 text-[8px]">21/06/2025</span>
-                      <span className="text-[7.5px] font-bold text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-1 py-0.2 rounded uppercase">
-                        CONFIRMADO
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => navigate('/member/dashboard')}
-                className="w-full text-center text-[9.5px] font-extrabold text-[#0066FF] hover:text-blue-300 tracking-wider uppercase pt-1 flex items-center justify-center gap-1 font-montserrat transition-colors"
-              >
-                VER HISTÓRICO COMPLETO <ChevronRight className="w-3 h-3" />
-              </button>
+              )}
             </div>
           </div>
 

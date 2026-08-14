@@ -185,7 +185,7 @@ export const userService = {
 
   async registerCustomer(data: {
     email: string
-    password?: string
+    password: string
     name: string
     phone: string
     cpf: string
@@ -196,7 +196,10 @@ export const userService = {
     pillion_name?: string
     pillion_phone?: string
   }): Promise<UserProfile> {
-    const passwordToUse = data.password || 'Membro@2026'
+    const passwordToUse = data.password
+    if (!passwordToUse || passwordToUse.length < 6) {
+      throw new Error('A senha deve ter no mínimo 6 caracteres.')
+    }
     const record = await pb.collection('users').create({
       ...data,
       password: passwordToUse,

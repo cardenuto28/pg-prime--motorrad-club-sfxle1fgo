@@ -30,6 +30,7 @@ import AdminPartners from './pages/admin/AdminPartners'
 import AdminGallery from './pages/admin/AdminGallery'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminPlaceholder from './pages/admin/AdminPlaceholder'
+import AdminSettings from './pages/admin/AdminSettings'
 import AdminReports from './pages/admin/AdminReports'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
 import Galeria from './pages/Galeria'
@@ -93,7 +94,7 @@ const App = () => (
             <Route path="gallery" element={<AdminGallery />} />
             <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="reports" element={<AdminReports />} />
-            <Route path="settings" element={<AdminPlaceholder title="Configurações" />} />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

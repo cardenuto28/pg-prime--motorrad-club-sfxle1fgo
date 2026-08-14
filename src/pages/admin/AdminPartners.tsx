@@ -13,6 +13,8 @@ import {
   Save,
 } from 'lucide-react'
 import { Partner, partnerService } from '@/services/api'
+import pb from '@/lib/pocketbase/client'
+import { ImageUploadField } from '@/components/ImageUploadField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,6 +58,7 @@ type PartnerForm = {
   name: string
   category: PartnerCategory
   logo: string
+  logo_file: string
   description: string
   discount_info: string
   website: string
@@ -68,6 +71,7 @@ const EMPTY_FORM: PartnerForm = {
   name: '',
   category: 'outros',
   logo: '',
+  logo_file: '',
   description: '',
   discount_info: '',
   website: '',
@@ -458,14 +462,17 @@ const PartnerFormModal: React.FC<{
   const { toast } = useToast()
   const [form, setForm] = useState<PartnerForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [pendingLogoFile, setPendingLogoFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (open) {
+      setPendingLogoFile(null)
       if (partner) {
         setForm({
           name: partner.name || '',
           category: (partner.category as PartnerCategory) || 'outros',
           logo: partner.logo || '',
+          logo_file: (partner as any).logo_file || '',
           description: partner.description || '',
           discount_info: partner.discount_info || '',
           website: partner.website || '',
@@ -478,6 +485,10 @@ const PartnerFormModal: React.FC<{
       }
     }
   }, [open, partner])
+
+  useEffect(() => {
+    if (!open) setPendingLogoFile(null)
+  }, [open])
 
   const set = <K extends keyof PartnerForm>(k: K, v: PartnerForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }))
@@ -493,15 +504,31 @@ const PartnerFormModal: React.FC<{
     }
     setSaving(true)
     try {
+      const payload: any = { ...form }
       if (partner) {
-        await partnerService.updatePartner(partner.id, { ...form })
+        if (pendingLogoFile) {
+          const fd = new FormData()
+          for (const [k, v] of Object.entries(payload)) {
+            if (v !== undefined && v !== null) fd.append(k, String(v))
+          }
+          fd.append('logo_file', pendingLogoFile)
+          await pb.collection('partners').update(partner.id, fd)
+        } else {
+          await partnerService.updatePartner(partner.id, payload)
+        }
         toast({ title: 'Parceiro atualizado', description: form.name })
-        onSaved(partner.id, { ...form }, false)
+        onSaved(partner.id, { ...payload }, false)
       } else {
-        const created = await partnerService.createPartner({ ...form })
+        const created = await partnerService.createPartner(payload)
+        if (pendingLogoFile) {
+          const fd = new FormData()
+          fd.append('logo_file', pendingLogoFile)
+          await pb.collection('partners').update(created.id, fd)
+        }
         toast({ title: 'Parceiro criado', description: form.name })
-        onSaved(created.id, { ...form }, true)
+        onSaved(created.id, { ...payload }, true)
       }
+      setPendingLogoFile(null)
     } catch (e) {
       console.error(e)
       toast({
@@ -563,12 +590,21 @@ const PartnerFormModal: React.FC<{
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
-          <Field label="URL do logo/imagem">
+          <Field label="Logo / Imagem">
+            <ImageUploadField
+              collection="partners"
+              fieldName="logo_file"
+              recordId={partner?.id}
+              value={form.logo_file}
+              onChange={(v) => set('logo_file', v)}
+              onFileChange={(f) => setPendingLogoFile(f)}
+              allowUrl
+            />
             <Input
               value={form.logo}
               onChange={(e) => set('logo', e.target.value)}
-              placeholder="https://..."
-              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+              placeholder="URL alternativa (opcional)"
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 mt-2"
             />
           </Field>
           <Field label="Website">

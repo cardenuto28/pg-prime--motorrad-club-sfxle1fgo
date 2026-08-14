@@ -15,6 +15,8 @@ import {
   Store,
 } from 'lucide-react'
 import { Benefit, benefitService } from '@/services/api'
+import pb from '@/lib/pocketbase/client'
+import { ImageUploadField } from '@/components/ImageUploadField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -51,6 +53,7 @@ const PAGE_SIZE = 10
 type BenefitForm = {
   title: string
   image: string
+  image_file: string
   partner: string
   description: string
   exclusive_condition: string
@@ -63,6 +66,7 @@ type BenefitForm = {
 const EMPTY_FORM: BenefitForm = {
   title: '',
   image: '',
+  image_file: '',
   partner: '',
   description: '',
   exclusive_condition: '',
@@ -438,13 +442,16 @@ const BenefitFormModal: React.FC<{
   const { toast } = useToast()
   const [form, setForm] = useState<BenefitForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (open) {
+      setPendingImageFile(null)
       if (benefit) {
         setForm({
           title: benefit.title || '',
           image: benefit.image || '',
+          image_file: (benefit as any).image_file || '',
           partner: benefit.partner || '',
           description: benefit.description || '',
           exclusive_condition: benefit.exclusive_condition || '',
@@ -458,6 +465,10 @@ const BenefitFormModal: React.FC<{
       }
     }
   }, [open, benefit])
+
+  useEffect(() => {
+    if (!open) setPendingImageFile(null)
+  }, [open])
 
   const set = <K extends keyof BenefitForm>(k: K, v: BenefitForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }))
@@ -473,15 +484,31 @@ const BenefitFormModal: React.FC<{
     }
     setSaving(true)
     try {
+      const payload: any = { ...form }
       if (benefit) {
-        await benefitService.updateBenefit(benefit.id, { ...form })
+        if (pendingImageFile) {
+          const fd = new FormData()
+          for (const [k, v] of Object.entries(payload)) {
+            if (v !== undefined && v !== null) fd.append(k, String(v))
+          }
+          fd.append('image_file', pendingImageFile)
+          await pb.collection('benefits').update(benefit.id, fd)
+        } else {
+          await benefitService.updateBenefit(benefit.id, payload)
+        }
         toast({ title: 'Benefício atualizado', description: form.title })
-        onSaved(benefit.id, { ...form }, false)
+        onSaved(benefit.id, { ...payload }, false)
       } else {
-        const created = await benefitService.createBenefit({ ...form })
+        const created = await benefitService.createBenefit(payload)
+        if (pendingImageFile) {
+          const fd = new FormData()
+          fd.append('image_file', pendingImageFile)
+          await pb.collection('benefits').update(created.id, fd)
+        }
         toast({ title: 'Benefício criado', description: form.title })
-        onSaved(created.id, { ...form }, true)
+        onSaved(created.id, { ...payload }, true)
       }
+      setPendingImageFile(null)
     } catch (e) {
       console.error(e)
       toast({
@@ -536,12 +563,21 @@ const BenefitFormModal: React.FC<{
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
-          <Field label="URL da imagem">
+          <Field label="Imagem do benefício">
+            <ImageUploadField
+              collection="benefits"
+              fieldName="image_file"
+              recordId={benefit?.id}
+              value={form.image_file}
+              onChange={(v) => set('image_file', v)}
+              onFileChange={(f) => setPendingImageFile(f)}
+              allowUrl
+            />
             <Input
               value={form.image}
               onChange={(e) => set('image', e.target.value)}
-              placeholder="https://..."
-              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+              placeholder="URL alternativa (opcional)"
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 mt-2"
             />
           </Field>
           <Field label="Contato (telefone ou link)">

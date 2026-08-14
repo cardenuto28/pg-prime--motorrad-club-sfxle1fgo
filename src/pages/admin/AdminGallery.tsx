@@ -16,6 +16,8 @@ import {
   Film,
 } from 'lucide-react'
 import { Gallery, Ride, galleryService, rideService } from '@/services/api'
+import pb from '@/lib/pocketbase/client'
+import { ImageUploadField } from '@/components/ImageUploadField'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -56,6 +58,7 @@ type GalleryForm = {
   category: GalleryCategory
   type: 'photo' | 'video'
   cover_image: string
+  cover_image_file: string
   images_json: string
   video_url: string
   description: string
@@ -70,6 +73,7 @@ const EMPTY_FORM: GalleryForm = {
   category: 'passeios',
   type: 'photo',
   cover_image: '',
+  cover_image_file: '',
   images_json: '[]',
   video_url: '',
   description: '',
@@ -480,15 +484,18 @@ const GalleryFormModal: React.FC<{
   const { toast } = useToast()
   const [form, setForm] = useState<GalleryForm>(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
+  const [pendingCoverFile, setPendingCoverFile] = useState<File | null>(null)
 
   useEffect(() => {
     if (open) {
+      setPendingCoverFile(null)
       if (gallery) {
         setForm({
           title: gallery.title || '',
           category: gallery.category || 'passeios',
           type: (gallery.type as 'photo' | 'video') || 'photo',
           cover_image: gallery.cover_image || '',
+          cover_image_file: (gallery as any).cover_image_file || '',
           images_json: gallery.images_json || '[]',
           video_url: gallery.video_url || '',
           description: gallery.description || '',
@@ -498,11 +505,14 @@ const GalleryFormModal: React.FC<{
           sort_order: gallery.sort_order || 0,
         })
       } else {
-        setForm({ ...EMPTY_FORM })
+        setForm(EMPTY_FORM)
       }
     }
   }, [open, gallery])
 
+  useEffect(() => {
+    if (!open) setPendingCoverFile(null)
+  }, [open])
   const set = <K extends keyof GalleryForm>(k: K, v: GalleryForm[K]) =>
     setForm((f) => ({ ...f, [k]: v }))
 
@@ -517,7 +527,7 @@ const GalleryFormModal: React.FC<{
     }
     setSaving(true)
     try {
-      const payload = {
+      const payload: any = {
         title: form.title,
         category: form.category,
         type: form.type,
@@ -531,14 +541,29 @@ const GalleryFormModal: React.FC<{
         sort_order: Number(form.sort_order) || 0,
       }
       if (gallery) {
-        await galleryService.updateGallery(gallery.id, payload)
+        if (pendingCoverFile) {
+          const fd = new FormData()
+          for (const [k, v] of Object.entries(payload)) {
+            if (v !== undefined && v !== null) fd.append(k, String(v))
+          }
+          fd.append('cover_image_file', pendingCoverFile)
+          await pb.collection('galleries').update(gallery.id, fd)
+        } else {
+          await galleryService.updateGallery(gallery.id, payload)
+        }
         toast({ title: 'Item atualizado', description: form.title })
         onSaved(gallery.id, { ...payload }, false)
       } else {
         const created = await galleryService.createGallery(payload)
+        if (pendingCoverFile) {
+          const fd = new FormData()
+          fd.append('cover_image_file', pendingCoverFile)
+          await pb.collection('galleries').update(created.id, fd)
+        }
         toast({ title: 'Item criado', description: form.title })
         onSaved(created.id, { ...payload }, true)
       }
+      setPendingCoverFile(null)
     } catch (e) {
       console.error(e)
       toast({
@@ -653,12 +678,21 @@ const GalleryFormModal: React.FC<{
           </Field>
 
           <div className="sm:col-span-2">
-            <Field label="URL da imagem de capa">
+            <Field label="Imagem de capa">
+              <ImageUploadField
+                collection="galleries"
+                fieldName="cover_image_file"
+                recordId={gallery?.id}
+                value={form.cover_image_file}
+                onChange={(v) => set('cover_image_file', v)}
+                onFileChange={(f) => setPendingCoverFile(f)}
+                allowUrl
+              />
               <Input
                 value={form.cover_image}
                 onChange={(e) => set('cover_image', e.target.value)}
-                placeholder="https://..."
-                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+                placeholder="URL alternativa (opcional)"
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 mt-2"
               />
             </Field>
           </div>

@@ -33,14 +33,21 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
     bike_brand: '',
     bike_model: '',
     bike_year: '',
+    password: '',
+    passwordConfirm: '',
   })
 
   const [submitting, setSubmitting] = useState(false)
   const [successMsg, setSuccessMsg] = useState(false)
+  const [passwordError, setPasswordError] = useState('')
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
+    // Limpa o erro de senha quando o usuário edita os campos de senha.
+    if (name === 'password' || name === 'passwordConfirm') {
+      setPasswordError('')
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,6 +71,26 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
       return
     }
 
+    // Validação de senha definida pelo usuário.
+    if (formData.password.length < 6) {
+      setPasswordError('A senha deve ter no mínimo 6 caracteres.')
+      toast({
+        title: 'Senha inválida',
+        description: 'A senha deve ter no mínimo 6 caracteres.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (formData.password !== formData.passwordConfirm) {
+      setPasswordError('As senhas não conferem.')
+      toast({
+        title: 'Senhas não conferem',
+        description: 'A confirmação da senha deve ser igual à senha informada.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setSubmitting(true)
 
     try {
@@ -76,6 +103,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         bike_brand: formData.bike_brand.trim(),
         bike_model: formData.bike_model.trim(),
         bike_year: parseInt(formData.bike_year, 10) || new Date().getFullYear(),
+        password: formData.password,
       })
 
       setSuccessMsg(true)
@@ -128,6 +156,8 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
               bike_brand: '',
               bike_model: '',
               bike_year: '',
+              password: '',
+              passwordConfirm: '',
             })
           }}
           variant="outline"
@@ -256,6 +286,39 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
           />
           <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
         </div>
+
+        {/* Crie uma senha */}
+        <div className="relative">
+          <Input
+            type="password"
+            name="password"
+            placeholder="Crie uma senha (mín. 6 caracteres)"
+            value={formData.password}
+            onChange={handleChange}
+            required
+            className="bg-[#141a26] border-[#202a3d] focus:border-blue-500 text-white placeholder:text-slate-500 text-xs h-10 pr-9 rounded-sm"
+          />
+          <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+        </div>
+
+        {/* Confirme sua senha */}
+        <div className="relative">
+          <Input
+            type="password"
+            name="passwordConfirm"
+            placeholder="Confirme sua senha"
+            value={formData.passwordConfirm}
+            onChange={handleChange}
+            required
+            className={`bg-[#141a26] ${
+              passwordError
+                ? 'border-red-500/70 focus:border-red-500'
+                : 'border-[#202a3d] focus:border-blue-500'
+            } text-white placeholder:text-slate-500 text-xs h-10 pr-9 rounded-sm`}
+          />
+          <Lock className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+        </div>
+        {passwordError && <p className="text-[10px] text-red-400 -mt-1.5">{passwordError}</p>}
 
         {/* Botão Fazer Cadastro */}
         <Button
