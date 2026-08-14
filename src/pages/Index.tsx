@@ -13,18 +13,21 @@ import {
   Compass,
   Users,
   Heart,
-  Mail,
-  Wrench,
-  Droplets,
   CheckCircle2,
   Route,
-  ShieldCheck,
-  Tag,
   Instagram,
   Facebook,
   Youtube,
   Globe,
 } from 'lucide-react'
+import {
+  EnvelopeMailboxIcon,
+  WindingRoadIcon,
+  SpannerWrenchIcon,
+  WaterDropRipplesIcon,
+  MotorcycleHelmetIcon,
+  BarberSpecificIcon,
+} from '@/components/BenefitIcons'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import heroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140658-cc4d6.png'
@@ -131,16 +134,16 @@ export default function Index() {
       <main className="max-w-[1440px] mx-auto px-3 sm:px-6 lg:px-8 py-5 space-y-6">
         {/* HERO SECTION */}
         <section className="relative w-full rounded-xl overflow-hidden bg-[#060812] border border-[#131d30] shadow-2xl">
-          {/* Hero Background Image */}
+          {/* Hero Background Image - Vivid & Alive */}
           <div className="absolute inset-0 z-0">
             <img
               src={heroBg}
               alt="Euro Motors Motorrad Club GS"
-              className="w-full h-full object-cover object-center"
+              className="w-full h-full object-cover object-center saturate-[1.15] contrast-[1.05]"
             />
-            {/* Dark Cinematic Overlay Gradients */}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#05070d]/90 via-[#05070d]/55 to-[#05070d]/75" />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d] via-transparent to-[#05070d]/30" />
+            {/* Minimal gradient overlays to preserve vivid background colors while ensuring text readability */}
+            <div className="absolute inset-0 bg-gradient-to-r from-[#05070d]/75 via-[#05070d]/25 to-[#05070d]/50" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#05070d]/80 via-transparent to-black/20" />
           </div>
 
           {/* Hero Content */}
@@ -333,7 +336,7 @@ export default function Index() {
                         <img
                           src={item.cover_image}
                           alt={item.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                          className="w-full h-full object-cover saturate-[1.1] group-hover:scale-105 transition-transform duration-500"
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-[#09101e] via-transparent to-transparent" />
 
@@ -487,70 +490,70 @@ export default function Index() {
 
           {/* BENEFÍCIOS EXCLUSIVOS EURO MOTORS com linha azul indicadora */}
           <div className="pt-5 space-y-4 border-t border-[#121c2e]">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-1 bg-[#0066FF] rounded-full" />
+            <div className="relative flex items-center gap-3">
+              <div className="w-9 h-[3px] bg-[#0066FF] rounded-full shadow-[0_0_8px_rgba(0,102,255,0.6)]" />
               <h2 className="text-xs font-extrabold text-slate-200 tracking-widest uppercase font-montserrat">
                 BENEFÍCIOS EXCLUSIVOS EURO MOTORS
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3">
-              {/* Box 1 */}
-              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Mail className="w-5 h-5 stroke-[1.75]" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-2.5">
+              {/* Box 1 - Mailbox/Envelope */}
+              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
+                  <EnvelopeMailboxIcon className="w-7 h-7 stroke-[1.3]" />
                 </div>
-                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10px] text-slate-300 leading-snug font-normal">
                   Convênios e parcerias para festas, lançamentos, cafés da manhã e passeios.
                 </p>
               </div>
 
-              {/* Box 2 */}
-              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Route className="w-5 h-5 stroke-[1.75]" />
+              {/* Box 2 - Winding Road */}
+              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
+                  <WindingRoadIcon className="w-7 h-7 stroke-[1.3]" />
                 </div>
-                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10px] text-slate-300 leading-snug font-normal">
                   Condições e descontos exclusivos em viagens Motorrad Euro Motors Jundiaí.
                 </p>
               </div>
 
-              {/* Box 3 */}
-              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Wrench className="w-5 h-5 stroke-[1.75]" />
+              {/* Box 3 - Spanner Wrench */}
+              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
+                  <SpannerWrenchIcon className="w-7 h-7 stroke-[1.3]" />
                 </div>
-                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10px] text-slate-300 leading-snug font-normal">
                   Prioridade na agenda e condições diferenciadas no pós-vendas.
                 </p>
               </div>
 
-              {/* Box 4 */}
-              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Droplets className="w-5 h-5 stroke-[1.75]" />
+              {/* Box 4 - Water Drop with Ripples */}
+              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
+                  <WaterDropRipplesIcon className="w-7 h-7 stroke-[1.3]" />
                 </div>
-                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10px] text-slate-300 leading-snug font-normal">
                   Preço diferenciado na lavagem da moto.
                 </p>
               </div>
 
-              {/* Box 5 */}
-              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <ShieldCheck className="w-5 h-5 stroke-[1.75]" />
+              {/* Box 5 - Motorcycle Helmet */}
+              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
+                  <MotorcycleHelmetIcon className="w-7 h-7 stroke-[1.3]" />
                 </div>
-                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10px] text-slate-300 leading-snug font-normal">
                   Experiências e treinamentos com instrutores especializados em condução de motos.
                 </p>
               </div>
 
-              {/* Box 6 */}
-              <div className="bg-[#08101d] border border-[#15233d] rounded-md p-3.5 space-y-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
-                <div className="text-[#0066FF] group-hover:scale-110 transition-transform">
-                  <Tag className="w-5 h-5 stroke-[1.75]" />
+              {/* Box 6 - Barber Specific Icon */}
+              <div className="bg-[#08101d]/90 border border-[#15233d] rounded-md p-3 flex items-start gap-3 lg:flex-col lg:items-start lg:gap-2.5 hover:border-[#0066FF]/80 hover:bg-[#0b162a] transition-all group shadow-md">
+                <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5 lg:pt-0">
+                  <BarberSpecificIcon className="w-7 h-7 stroke-[1.3]" />
                 </div>
-                <p className="text-[10.5px] text-slate-300 leading-snug font-normal">
+                <p className="text-[10px] text-slate-300 leading-snug font-normal">
                   Ações e promoções exclusivas na bandeira.
                 </p>
               </div>
@@ -558,8 +561,8 @@ export default function Index() {
           </div>
 
           {/* TRANSIÇÃO: FAÇA PARTE DESTE ECOSSISTEMA */}
-          <div className="py-4 text-center border-t border-[#121c2e]">
-            <p className="text-xs sm:text-sm md:text-base font-black text-[#0066FF] uppercase font-montserrat tracking-[0.25em] sm:tracking-[0.4em] drop-shadow-md">
+          <div className="py-6 text-center border-t border-[#121c2e]">
+            <p className="text-sm sm:text-base lg:text-lg font-black text-[#0066FF] uppercase font-montserrat tracking-[0.35em] sm:tracking-[0.55em] drop-shadow-lg">
               FAÇA PARTE DESTE ECOSSISTEMA.
             </p>
           </div>
@@ -577,8 +580,7 @@ export default function Index() {
                 VER GALERIA COMPLETA <ChevronRight className="w-3 h-3 text-[#0066FF]" />
               </Link>
             </div>
-
-            {/* Faixa Horizontal de 7 Fotos */}
+            {/* Faixa Horizontal de 7 Fotos - Vivid colors */}
             <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
               {galleryPhotos.map((url, idx) => (
                 <div
@@ -588,19 +590,19 @@ export default function Index() {
                   <img
                     src={url}
                     alt={`Galeria de Momentos ${idx + 1}`}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    className="w-full h-full object-cover saturate-[1.15] contrast-[1.05] group-hover:scale-110 transition-transform duration-500"
                   />
                   <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
               ))}
-            </div>
+            </div>{' '}
           </div>
 
-          {/* FOOTER INTERNO DO CONTAINER ESCURO */}
-          <div className="pt-6 border-t border-[#121c2e] flex flex-col md:flex-row items-center justify-between gap-4">
-            {/* Siga-nos */}
+          {/* FOOTER INTERNO DO CONTAINER ESCURO REPLICA EXACT */}
+          <div className="pt-6 border-t border-[#121c2e] flex flex-col md:flex-row items-center justify-between gap-6">
+            {/* Esquerda: SIGA-NOS com ícones sociais idênticos à referência */}
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-extrabold text-slate-400 tracking-widest uppercase font-montserrat">
+              <span className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase font-montserrat">
                 SIGA-NOS
               </span>
               <div className="flex items-center gap-2">
@@ -608,52 +610,56 @@ export default function Index() {
                   href="https://instagram.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-7 h-7 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  aria-label="Instagram"
                 >
-                  <Instagram className="w-3.5 h-3.5" />
+                  <Instagram className="w-4 h-4" />
                 </a>
                 <a
                   href="https://facebook.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-7 h-7 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  aria-label="Facebook"
                 >
-                  <Facebook className="w-3.5 h-3.5" />
+                  <Facebook className="w-4 h-4" />
                 </a>
                 <a
                   href="https://youtube.com"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-7 h-7 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  aria-label="Youtube"
                 >
-                  <Youtube className="w-3.5 h-3.5" />
+                  <Youtube className="w-4 h-4" />
                 </a>
                 <a
                   href="https://euromotorsmc.com.br"
                   target="_blank"
                   rel="noreferrer"
-                  className="w-7 h-7 rounded-full bg-[#0d1627] border border-[#1a2b48] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                  aria-label="Website"
                 >
-                  <Globe className="w-3.5 h-3.5" />
+                  <Globe className="w-4 h-4" />
                 </a>
               </div>
             </div>
 
-            {/* Logo Euro Motors */}
+            {/* Centro: Logo Euro Motors */}
             <div className="flex items-center justify-center">
               <img
                 src={logoImage}
                 alt="Euromotors Motorrad Club"
-                className="h-9 sm:h-11 w-auto object-contain opacity-90"
+                className="h-10 sm:h-12 w-auto object-contain opacity-95 hover:opacity-100 transition-opacity"
               />
             </div>
 
-            {/* Right Slogan */}
-            <div className="text-center md:text-right">
+            {/* Direita: Slogan "MAIS QUE UM CLUBE. UMA TRIBO." */}
+            <div className="text-center md:text-right border-l-0 md:border-l border-[#121c2e] md:pl-6">
               <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase block font-montserrat leading-tight">
                 MAIS QUE UM CLUBE.
               </span>
-              <span className="text-xs font-black text-white tracking-widest uppercase font-montserrat leading-tight">
+              <span className="text-sm font-black text-white tracking-widest uppercase font-montserrat leading-tight">
                 UMA TRIBO.
               </span>
             </div>
