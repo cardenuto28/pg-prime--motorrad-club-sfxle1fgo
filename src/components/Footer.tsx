@@ -1,6 +1,7 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { Phone, Mail, MapPin, Instagram, Facebook, Youtube } from 'lucide-react'
+import logoImage from '@/assets/logo-e67e1.jpeg'
 
 export const Footer: React.FC = () => {
   return (
@@ -11,7 +12,7 @@ export const Footer: React.FC = () => {
           <div className="lg:col-span-1 space-y-3">
             <Link to="/" className="flex items-center group">
               <img
-                src="/src/assets/logo-e67e1.jpeg"
+                src={logoImage}
                 alt="EUROMOTORS MOTORRAD CLUB"
                 className="h-12 w-auto object-contain transition-opacity group-hover:opacity-90"
               />

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { StatusBadge, statusLabel } from '@/lib/member'
+import logoImage from '@/assets/logo-e67e1.jpeg'
 
 interface NavItem {
   to: string
@@ -57,7 +58,7 @@ export const MemberLayout: React.FC = () => {
             </button>
             <Link to="/" className="flex items-center gap-3 group shrink-0">
               <img
-                src="/src/assets/logo-e67e1.jpeg"
+                src={logoImage}
                 alt="EUROMOTORS MOTORRAD CLUB"
                 className="h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
               />

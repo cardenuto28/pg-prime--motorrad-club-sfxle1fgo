@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/hooks/use-toast'
+import logoImage from '@/assets/logo-e67e1.jpeg'
 
 interface HeaderProps {
   onOpenAuthModal?: () => void
@@ -75,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           {/* Logo */}
           <Link to="/" className="flex items-center group shrink-0">
             <img
-              src="/src/assets/logo-e67e1.jpeg"
+              src={logoImage}
               alt="EUROMOTORS MOTORRAD CLUB - BMW MOTORRAD JUNDIAÍ"
               className="h-12 sm:h-14 w-auto object-contain max-w-[280px] sm:max-w-[360px] md:max-w-none transition-opacity group-hover:opacity-90"
             />
