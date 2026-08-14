@@ -86,45 +86,39 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           <nav className="hidden lg:flex items-center gap-6 xl:gap-8">
             <Link
               to="/"
-              className="text-xs font-semibold tracking-wider text-white border-b-2 border-blue-600 pb-1 hover:text-white transition-colors"
+              className="text-xs font-bold tracking-wider text-white border-b-2 border-[#0066FF] pb-1 hover:text-white transition-colors"
             >
               INÍCIO
             </Link>
             <Link
               to="/club"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
+              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
             >
-              O CLUBE
-            </Link>
-            <Link
-              to="/beneficios"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
-            >
-              BENEFÍCIOS
+              SOBRE O CLUBE
             </Link>
             <a
               href="/#proximos-passeios"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
+              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
             >
               PASSEIOS
             </a>
             <Link
-              to="/parceiros"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
+              to="/beneficios"
+              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
             >
-              PARCEIROS
+              BENEFÍCIOS
             </Link>
             <Link
               to="/galeria"
-              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors"
+              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
             >
               GALERIA
             </Link>
             <a
-              href="/#cadastro-form"
-              className="text-xs font-semibold tracking-wider text-blue-400 hover:text-blue-300 transition-colors"
+              href="#contato"
+              className="text-xs font-semibold tracking-wider text-slate-300 hover:text-white transition-colors uppercase"
             >
-              QUERO FAZER PARTE
+              CONTATO
             </a>
           </nav>
 
@@ -147,9 +141,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                   onClick={() => navigate('/member/dashboard')}
                   variant="outline"
                   size="sm"
-                  className="border-blue-500/80 hover:border-blue-400 bg-[#080d19] hover:bg-blue-600/20 text-white font-semibold text-xs tracking-wider gap-2 rounded-md px-4 py-2 border"
+                  className="border-[#0066FF] hover:border-blue-400 bg-[#080d1a] hover:bg-blue-600/20 text-white font-bold text-xs tracking-wider gap-2 rounded-md px-4 py-2 border shadow-lg shadow-blue-950/40 uppercase"
                 >
-                  <User className="w-4 h-4 text-blue-400" /> ÁREA DO MEMBRO
+                  <User className="w-4 h-4 text-[#0066FF]" /> ÁREA DO MEMBRO
                 </Button>
                 {user.role === 'admin' && (
                   <Button
@@ -174,9 +168,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               <Button
                 onClick={handleOpenLogin}
                 variant="outline"
-                className="border-blue-500/80 hover:border-blue-400 bg-[#080d19] hover:bg-blue-600/20 text-white font-semibold text-xs tracking-wider px-5 py-2 rounded-md transition-all gap-2 border shadow-lg shadow-blue-950/40"
+                className="border-[#0066FF] hover:border-blue-400 bg-[#080d1a] hover:bg-blue-600/20 text-white font-bold text-xs tracking-wider px-5 py-2 rounded-md transition-all gap-2 border shadow-lg shadow-blue-950/40 uppercase"
               >
-                <User className="w-4 h-4 text-blue-400" />
+                <User className="w-4 h-4 text-[#0066FF]" />
                 ÁREA DO MEMBRO
               </Button>
             )}
@@ -205,44 +199,37 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               <Link
                 to="/club"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
+                className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
-                O CLUB
-              </Link>
-              <Link
-                to="/beneficios"
-                onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
-              >
-                BENEFÍCIOS
+                SOBRE O CLUBE
               </Link>
               <a
                 href="/#proximos-passeios"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
+                className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
                 PASSEIOS
               </a>
               <Link
-                to="/parceiros"
+                to="/beneficios"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
+                className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
-                PARCEIROS
+                BENEFÍCIOS
               </Link>
               <Link
                 to="/galeria"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-slate-300 hover:text-white"
+                className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
                 GALERIA
               </Link>
               <a
-                href="/#cadastro-form"
+                href="#contato"
                 onClick={() => setMobileMenuOpen(false)}
-                className="text-sm font-semibold text-blue-400 hover:text-blue-300"
+                className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
-                QUERO FAZER PARTE
+                CONTATO
               </a>
             </nav>
             <div className="pt-4 border-t border-slate-800">
