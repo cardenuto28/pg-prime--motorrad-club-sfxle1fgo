@@ -147,9 +147,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                   onClick={() => navigate('/member/dashboard')}
                   variant="outline"
                   size="sm"
-                  className="border-blue-600/60 hover:border-blue-500 bg-[#0d131f] hover:bg-blue-600/10 text-white font-semibold text-xs tracking-wider gap-1.5"
+                  className="border-blue-500/80 hover:border-blue-400 bg-[#080d19] hover:bg-blue-600/20 text-white font-semibold text-xs tracking-wider gap-2 rounded-md px-4 py-2 border"
                 >
-                  <Bike className="w-3.5 h-3.5 text-blue-500" /> ÁREA DO MEMBRO
+                  <User className="w-4 h-4 text-blue-400" /> ÁREA DO MEMBRO
                 </Button>
                 {user.role === 'admin' && (
                   <Button
@@ -174,9 +174,9 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               <Button
                 onClick={handleOpenLogin}
                 variant="outline"
-                className="border-blue-600/60 hover:border-blue-500 bg-[#0d131f] hover:bg-blue-600/10 text-white font-semibold text-xs tracking-wider px-5 py-2 rounded-md transition-all gap-2"
+                className="border-blue-500/80 hover:border-blue-400 bg-[#080d19] hover:bg-blue-600/20 text-white font-semibold text-xs tracking-wider px-5 py-2 rounded-md transition-all gap-2 border shadow-lg shadow-blue-950/40"
               >
-                <User className="w-4 h-4 text-blue-500" />
+                <User className="w-4 h-4 text-blue-400" />
                 ÁREA DO MEMBRO
               </Button>
             )}
