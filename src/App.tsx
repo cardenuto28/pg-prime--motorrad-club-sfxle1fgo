@@ -30,7 +30,10 @@ import AdminPartners from './pages/admin/AdminPartners'
 import AdminGallery from './pages/admin/AdminGallery'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminPlaceholder from './pages/admin/AdminPlaceholder'
+import AdminReports from './pages/admin/AdminReports'
+import AdminRegistrations from './pages/admin/AdminRegistrations'
 import Galeria from './pages/Galeria'
+import Contato from './pages/Contato'
 import { AuthProvider } from './context/AuthContext'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
@@ -51,6 +54,7 @@ const App = () => (
             {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
             <Route path="/passeios/:id" element={<RideDetail />} />
             <Route path="/galeria" element={<Galeria />} />
+            <Route path="/contato" element={<Contato />} />
           </Route>
           {/* Área do Membro (protegida) */}
           <Route
@@ -83,12 +87,12 @@ const App = () => (
             <Route path="members" element={<AdminMembers />} />
             <Route path="rides" element={<AdminRides />} />
             <Route path="rides/:id" element={<AdminRideDetail />} />
-            <Route path="registrations" element={<AdminPlaceholder title="Inscrições" />} />
+            <Route path="registrations" element={<AdminRegistrations />} />
             <Route path="benefits" element={<AdminBenefits />} />
             <Route path="partners" element={<AdminPartners />} />
             <Route path="gallery" element={<AdminGallery />} />
             <Route path="announcements" element={<AdminAnnouncements />} />
-            <Route path="reports" element={<AdminPlaceholder title="Relatórios" />} />
+            <Route path="reports" element={<AdminReports />} />
             <Route path="settings" element={<AdminPlaceholder title="Configurações" />} />
           </Route>
           <Route path="*" element={<NotFound />} />

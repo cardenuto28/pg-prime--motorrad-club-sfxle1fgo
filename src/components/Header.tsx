@@ -76,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           {/* Logo */}
           <Link to="/" className="flex items-center group shrink-0">
             <img
-              src="/visual-edits/whatsapp-image-2026-08-14-at-14-44-51-0d98db6c.jpg"
+              src={logoImage}
               alt="EUROMOTORS MOTORRAD CLUB"
               className="h-[3.08rem] sm:h-[3.64rem] w-auto object-contain transition-opacity group-hover:opacity-90"
             />
@@ -118,12 +118,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             >
               GALERIA
             </Link>
-            <a
-              href="#contato"
+            <Link
+              to="/contato"
               className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               CONTATO
-            </a>
+            </Link>
           </nav>
 
           {/* Action / Member Area Button */}
@@ -228,13 +228,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               >
                 GALERIA
               </Link>
-              <a
-                href="#contato"
+              <Link
+                to="/contato"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
                 CONTATO
-              </a>
+              </Link>
             </nav>
             <div className="pt-4 border-t border-slate-800">
               {user ? (
