@@ -49,8 +49,11 @@ export const Footer: React.FC = () => {
               NAVEGAÇÃO
             </h4>
             <div className="grid grid-cols-2 gap-2 text-slate-400 text-[11px]">
-              <a href="#como-funciona" className="hover:text-white transition-colors">
+              <a href="/club" className="hover:text-white transition-colors">
                 Sobre o Clube
+              </a>
+              <a href="#o-club" className="hover:text-white transition-colors">
+                O Club
               </a>
               <a href="#galeria" className="hover:text-white transition-colors">
                 Galeria
@@ -132,10 +135,10 @@ export const Footer: React.FC = () => {
           {/* Coluna 5: Slogan */}
           <div className="flex flex-col justify-center items-start lg:items-end">
             <p className="font-montserrat font-extrabold text-sm sm:text-base text-slate-400 uppercase tracking-widest leading-snug">
-              MAIS QUE UM CLUBE.
+              MAIS QUE UMA MOTOCICLETA.
             </p>
             <p className="font-montserrat font-extrabold text-sm sm:text-base text-white uppercase tracking-widest leading-snug">
-              UMA TRIBO.
+              UMA COMUNIDADE.
             </p>
           </div>
         </div>

@@ -20,6 +20,14 @@ import {
   Users,
   Star,
   Mountain,
+  Ticket,
+  Plane,
+  Wrench,
+  Droplets,
+  GraduationCap,
+  Scissors,
+  CreditCard,
+  MessageCircle,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
@@ -157,6 +165,10 @@ export default function Index() {
                   <br />
                   Essa é a nossa direção.
                 </p>
+                <p className="text-xs sm:text-sm text-blue-300/90 font-medium leading-relaxed italic border-l-2 border-blue-500/50 pl-3">
+                  Mais que uma motocicleta. Uma comunidade de pessoas que compartilham a mesma
+                  paixão.
+                </p>
                 <div className="pt-2">
                   <a href="#cadastro-form">
                     <Button className="bg-[#2563eb] hover:bg-blue-600 text-white font-bold text-xs tracking-wider px-6 py-3 h-auto rounded-sm gap-2 shadow-lg shadow-blue-900/30 transition-all uppercase">
@@ -166,6 +178,84 @@ export default function Index() {
                 </div>
               </div>
             </div>
+
+            {/* SEÇÃO O CLUB */}
+            <section id="o-club" className="space-y-6">
+              <div className="space-y-2">
+                <h2 className="text-xs font-bold text-slate-400 font-montserrat tracking-widest uppercase">
+                  O CLUB
+                </h2>
+                <p className="text-sm text-slate-300 leading-relaxed max-w-2xl">
+                  Clube exclusivo para clientes da BMW Motorrad Euro Motors Jundiaí, criado para
+                  proporcionar acesso privilegiado às experiências, eventos e benefícios oferecidos
+                  pela concessionária.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                {/* Quem pode participar */}
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 flex flex-col gap-4">
+                  <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500">
+                    <Users className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
+                      QUEM PODE PARTICIPAR
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Clientes que adquiriram motocicletas novas ou seminovas nos últimos 4 anos
+                      e/ou possuem relacionamento com o pós-vendas (revisões ativas).
+                    </p>
+                  </div>
+                </div>
+
+                {/* Carteirinha exclusiva */}
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 flex flex-col gap-4">
+                  <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500">
+                    <CreditCard className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
+                      CARTEIRINHA EXCLUSIVA
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Cada participante recebe uma carteirinha exclusiva e numerada, sua
+                      identificação como membro do Euromotors Motorrad Club, a ser apresentada nas
+                      inscrições para eventos, passeios, viagens, cursos e demais experiências.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Grupo de WhatsApp */}
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 flex flex-col gap-4">
+                  <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500">
+                    <MessageCircle className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
+                      GRUPO EXCLUSIVO WHATSAPP
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Os membros têm acesso a um grupo exclusivo no WhatsApp, criado para
+                      centralizar todas as informações do Clube e garantir acesso antecipado e
+                      prioritário às novidades, lançamentos, eventos, inscrições e experiências
+                      disponíveis.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-1">
+                <Link to="/club">
+                  <Button
+                    variant="outline"
+                    className="border-blue-600/60 hover:border-blue-500 bg-[#0d1524] hover:bg-blue-600 text-white font-semibold text-[11px] tracking-wider h-9 rounded-sm uppercase transition-all gap-2"
+                  >
+                    CONHEÇA O CLUBE <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </div>
+            </section>
 
             {/* SEÇÃO 1: COMO FUNCIONA */}
             <section id="como-funciona" className="space-y-6">
@@ -326,64 +416,93 @@ export default function Index() {
               <h2 className="text-xs font-bold text-slate-400 font-montserrat tracking-widest uppercase">
                 VANTAGENS DE SER EUROMOTORS
               </h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 {/* Vantagem 1 */}
-                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4">
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4 hover:border-blue-600/50 transition-all duration-300">
                   <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
-                    <Tag className="w-6 h-6" />
+                    <Ticket className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
-                      DESCONTOS EXCLUSIVOS
+                      CONVITES PREFERENCIAIS
                     </h3>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Condições especiais em produtos, peças e acessórios com nossos parceiros
-                      credenciados.
+                      Convites preferenciais para festas, lançamentos, cafés da manhã e passeios.
                     </p>
                   </div>
                 </div>
 
                 {/* Vantagem 2 */}
-                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4">
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4 hover:border-blue-600/50 transition-all duration-300">
                   <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
-                    <Users className="w-6 h-6" />
+                    <Plane className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
-                      PARCEIROS PREMIUM
+                      VIAGENS MOTORRAD
                     </h3>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Rede selecionada de parceiros que compartilham da nossa paixão por duas rodas.
+                      Condições e descontos exclusivos em viagens Motorrad.
                     </p>
                   </div>
                 </div>
 
                 {/* Vantagem 3 */}
-                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4">
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4 hover:border-blue-600/50 transition-all duration-300">
                   <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
-                    <Star className="w-6 h-6" />
+                    <Wrench className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
-                      EVENTOS EXCLUSIVOS
+                      PÓS-VENDAS PRIORITÁRIO
                     </h3>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Passeios, encontros e eventos exclusivos para membros do clube.
+                      Prioridade na agenda e condições diferenciadas no pós-vendas.
                     </p>
                   </div>
                 </div>
 
                 {/* Vantagem 4 */}
-                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4">
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4 hover:border-blue-600/50 transition-all duration-300">
                   <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
-                    <Mountain className="w-6 h-6" />
+                    <Droplets className="w-6 h-6" />
                   </div>
                   <div className="space-y-1">
                     <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
-                      EXPERIÊNCIAS ÚNICAS
+                      LAVAGEM
                     </h3>
                     <p className="text-[11px] text-slate-400 leading-relaxed">
-                      Rotas incríveis, boa companhia e momentos que ficam para sempre na memória.
+                      Preço diferenciado na lavagem da moto.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Vantagem 5 */}
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4 hover:border-blue-600/50 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
+                    <GraduationCap className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
+                      CURSOS E EXPERIÊNCIAS
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Prioridade de inscrição em cursos, viagens e experiências com vagas limitadas.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Vantagem 6 */}
+                <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 flex items-start gap-4 hover:border-blue-600/50 transition-all duration-300">
+                  <div className="w-12 h-12 rounded-sm bg-[#131b2b] border border-[#222e43] flex items-center justify-center text-blue-500 flex-shrink-0">
+                    <Scissors className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xs font-bold text-white uppercase font-montserrat tracking-wider">
+                      BARBEARIA
+                    </h3>
+                    <p className="text-[11px] text-slate-400 leading-relaxed">
+                      Ações e promoções exclusivas na Barbearia.
                     </p>
                   </div>
                 </div>

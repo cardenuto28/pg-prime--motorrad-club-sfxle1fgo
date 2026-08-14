@@ -224,12 +224,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
                 INÍCIO
               </a>
               <a
-                href="#como-funciona"
+                href="#o-club"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white"
               >
                 SOBRE O CLUBE
               </a>
+              <Link
+                to="/club"
+                onClick={() => setMobileMenuOpen(false)}
+                className="text-sm font-semibold text-slate-300 hover:text-white"
+              >
+                O CLUB
+              </Link>
               <a
                 href="#proximos-passeios"
                 onClick={() => setMobileMenuOpen(false)}
