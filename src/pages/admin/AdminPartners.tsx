@@ -504,7 +504,10 @@ const PartnerFormModal: React.FC<{
     }
     setSaving(true)
     try {
-      const payload: any = { ...form }
+      // `logo_file` é um campo de arquivo do PocketBase — não deve ir no payload
+      // JSON (apenas via FormData quando há upload). Enviamos apenas a URL texto.
+      const { logo_file, ...rest } = form
+      const payload: any = { ...rest }
       if (partner) {
         if (pendingLogoFile) {
           const fd = new FormData()

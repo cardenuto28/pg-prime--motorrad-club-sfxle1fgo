@@ -527,6 +527,8 @@ const GalleryFormModal: React.FC<{
     }
     setSaving(true)
     try {
+      // `cover_image_file` é um campo de arquivo do PocketBase — não vai no JSON,
+      // apenas via FormData. `images_files` (multiplo) também não é enviado aqui.
       const payload: any = {
         title: form.title,
         category: form.category,

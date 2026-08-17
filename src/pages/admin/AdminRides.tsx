@@ -177,8 +177,14 @@ const AdminRides: React.FC = () => {
         bikes_registered,
         participants_registered,
         is_user_registered,
+        cover_image_file,
+        expand,
+        collectionId,
+        collectionName,
         ...rest
-      } = ride
+      } = ride as any
+      // cover_image_file é um campo de arquivo do PocketBase — nunca enviar como
+      // string na criação; o texto cover_image (URL) é copiado normalmente.
       const dup = await rideService.createRide({
         ...rest,
         name: `${ride.name} (cópia)`,

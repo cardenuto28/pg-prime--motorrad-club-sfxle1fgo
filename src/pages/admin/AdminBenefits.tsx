@@ -484,7 +484,10 @@ const BenefitFormModal: React.FC<{
     }
     setSaving(true)
     try {
-      const payload: any = { ...form }
+      // `image_file` é um campo de arquivo do PocketBase — não deve ir no payload
+      // JSON (apenas via FormData quando há upload). Enviamos apenas a URL texto.
+      const { image_file, ...rest } = form
+      const payload: any = { ...rest }
       if (benefit) {
         if (pendingImageFile) {
           const fd = new FormData()
