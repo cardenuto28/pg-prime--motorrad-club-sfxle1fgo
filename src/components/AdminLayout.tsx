@@ -20,6 +20,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { announcementService } from '@/services/api'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 interface NavItem {
@@ -138,7 +139,9 @@ export const AdminLayout: React.FC = () => {
 
           {/* Main content */}
           <main className="lg:col-span-9 xl:col-span-10 min-w-0">
-            <Outlet />
+            <ErrorBoundary context="a página do painel administrativo">
+              <Outlet />
+            </ErrorBoundary>
           </main>
         </div>
       </div>

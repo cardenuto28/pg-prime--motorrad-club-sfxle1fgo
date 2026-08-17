@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { StatusBadge, statusLabel } from '@/lib/member'
+import { ErrorBoundary } from '@/components/ErrorBoundary'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 interface NavItem {
@@ -102,7 +103,9 @@ export const MemberLayout: React.FC = () => {
 
           {/* Main content */}
           <main className="lg:col-span-9 min-w-0">
-            <Outlet />
+            <ErrorBoundary context="a página da área do membro">
+              <Outlet />
+            </ErrorBoundary>
           </main>
         </div>
       </div>
