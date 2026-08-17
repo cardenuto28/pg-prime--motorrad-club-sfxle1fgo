@@ -100,12 +100,12 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             >
               SOBRE O CLUBE
             </Link>
-            <a
-              href="/#proximos-passeios"
+            <Link
+              to="/passeios"
               className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
             >
               PASSEIOS
-            </a>
+            </Link>
             <Link
               to="/beneficios"
               className="text-xs font-bold tracking-widest font-montserrat text-slate-300 hover:text-white transition-colors uppercase py-1"
@@ -207,13 +207,13 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               >
                 SOBRE O CLUBE
               </Link>
-              <a
-                href="/#proximos-passeios"
+              <Link
+                to="/passeios"
                 onClick={() => setMobileMenuOpen(false)}
                 className="text-sm font-semibold text-slate-300 hover:text-white uppercase"
               >
                 PASSEIOS
-              </a>
+              </Link>
               <Link
                 to="/beneficios"
                 onClick={() => setMobileMenuOpen(false)}

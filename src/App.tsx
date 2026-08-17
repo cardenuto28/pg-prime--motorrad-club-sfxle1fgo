@@ -33,6 +33,7 @@ import AdminPlaceholder from './pages/admin/AdminPlaceholder'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminReports from './pages/admin/AdminReports'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
+import Passeios from './pages/Passeios'
 import Galeria from './pages/Galeria'
 import Contato from './pages/Contato'
 import { AuthProvider } from './context/AuthContext'
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="/beneficios" element={<Beneficios />} />
             <Route path="/parceiros" element={<Parceiros />} />
             {/* ADD ALL CUSTOM ROUTES MUST BE ADDED HERE */}
+            <Route path="/passeios" element={<Passeios />} />
             <Route path="/passeios/:id" element={<RideDetail />} />
             <Route path="/galeria" element={<Galeria />} />
             <Route path="/contato" element={<Contato />} />

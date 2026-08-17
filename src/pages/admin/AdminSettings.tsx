@@ -38,12 +38,17 @@ const AdminSettings: React.FC = () => {
     setLoading(true)
     try {
       const data = await settingsService.getSettings()
+      // getSettings() já lida com todos os erros internamente e retorna null.
+      // Usar EMPTY_SETTINGS silenciosamente quando não houver dados.
       setForm(data || EMPTY_SETTINGS)
     } catch (e) {
-      console.error('Erro ao carregar configurações:', e)
+      // Erro realmente inesperado (ex: rede offline) — ainda assim renderiza o form.
+      console.error('Erro inesperado ao carregar configurações:', e)
+      setForm(EMPTY_SETTINGS)
       toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as configurações.',
+        title: 'Aviso',
+        description:
+          'Não foi possível conectar ao servidor. Você ainda pode preencher e salvar as configurações.',
         variant: 'destructive',
       })
     } finally {

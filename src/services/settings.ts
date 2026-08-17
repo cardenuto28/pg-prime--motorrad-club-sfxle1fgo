@@ -24,9 +24,10 @@ export const settingsService = {
       const record = await pb.collection('settings').getFirstListItem('key="site"')
       return record as unknown as SiteSettings
     } catch (e: any) {
-      // 404 — ainda não existe
-      if (e?.status === 404) return null
-      throw e
+      // Qualquer erro (404 ainda não existe, 403 sem acesso, rede, etc.)
+      // retorna null silenciosamente para que a UI sempre consiga renderizar.
+      console.warn('getSettings: não foi possível carregar configurações:', e?.status || e)
+      return null
     }
   },
 

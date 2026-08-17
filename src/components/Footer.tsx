@@ -50,10 +50,10 @@ export const Footer: React.FC = () => {
           {/* Direita: Slogan */}
           <div className="flex flex-col items-center md:items-end gap-1 order-3">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest font-montserrat">
-              MAIS QUE UMA MOTOCICLETA.
+              MAIS QUE UM CLUBE.
             </span>
             <span className="text-sm font-black text-white uppercase tracking-tight font-montserrat">
-              UMA COMUNIDADE.
+              UMA TRIBO.
             </span>
           </div>
         </div>
