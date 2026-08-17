@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Bike,
 } from 'lucide-react'
-import clubHeroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140749-4b77d.png'
+import clubHeroBg from '@/assets/chatgpt-image-17-de-ago.de-2026-085401-36fe8.png'
 
 const beneficios = [
   {
