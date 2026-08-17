@@ -21,7 +21,8 @@ export const settingsService = {
   /** Retorna o documento único de configurações do site (key = "site"). */
   async getSettings(): Promise<SiteSettings | null> {
     try {
-      const record = await pb.collection('settings').getFirstListItem('key="site"')
+      // Filtro com aspas simples — convenção usada pelos demais serviços (api.ts).
+      const record = await pb.collection('settings').getFirstListItem("key='site'")
       return record as unknown as SiteSettings
     } catch (e: any) {
       // Qualquer erro (404 ainda não existe, 403 sem acesso, rede, etc.)
@@ -49,14 +50,15 @@ export const settingsService = {
       admin_email: data.admin_email || '',
     }
 
-    // Se já existe, atualiza; senão cria.
+    // Se já temos o id, atualiza direto.
     if (data.id) {
       const updated = await pb.collection('settings').update(data.id, payload)
       return updated as unknown as SiteSettings
     }
 
+    // Senão, tenta buscar o existente pelo key; se não houver, cria.
     try {
-      const existing = await pb.collection('settings').getFirstListItem('key="site"')
+      const existing = await pb.collection('settings').getFirstListItem("key='site'")
       const updated = await pb.collection('settings').update(existing.id, payload)
       return updated as unknown as SiteSettings
     } catch (e: any) {
