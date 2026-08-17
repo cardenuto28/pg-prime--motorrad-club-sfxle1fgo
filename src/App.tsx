@@ -1,5 +1,5 @@
 /* Main App Component - Handles routing (using react-router-dom), query client and other providers - use this file to add all routes */
-import React, { Suspense } from 'react'
+import React from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
@@ -31,7 +31,7 @@ import AdminPartners from './pages/admin/AdminPartners'
 import AdminGallery from './pages/admin/AdminGallery'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminReports from './pages/admin/AdminReports'
-const AdminSettings = React.lazy(() => import('./pages/admin/AdminSettings'))
+import AdminSettings from './pages/admin/AdminSettings'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
 import Passeios from './pages/Passeios'
 import Galeria from './pages/Galeria'
@@ -96,20 +96,7 @@ const App = () => (
             <Route path="gallery" element={<AdminGallery />} />
             <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="reports" element={<AdminReports />} />
-            <Route
-              path="settings"
-              element={
-                <Suspense
-                  fallback={
-                    <div className="flex items-center justify-center py-32">
-                      <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
-                    </div>
-                  }
-                >
-                  <AdminSettings />
-                </Suspense>
-              }
-            />
+            <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

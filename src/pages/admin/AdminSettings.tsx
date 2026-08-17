@@ -5,29 +5,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-
-/**
- * Tipo das configurações do site. Mantido localmente (em vez de importado de
- * @/services/settings) para que a página continue tipada mesmo que o módulo
- * de serviço falhe ao carregar por qualquer motivo (erro de módulo circular,
- * import dinâmico rejeitado, etc.).
- */
-export interface SiteSettings {
-  id: string
-  key: string
-  club_name: string
-  slogan: string
-  address: string
-  phone: string
-  contact_email: string
-  website_url: string
-  instagram_url: string
-  facebook_url: string
-  youtube_url: string
-  whatsapp_number: string
-  eligibility_criteria: string
-  admin_email: string
-}
+import { settingsService, type SiteSettings } from '@/services/settings'
 
 const EMPTY_SETTINGS: SiteSettings = {
   id: '',
@@ -46,32 +24,6 @@ const EMPTY_SETTINGS: SiteSettings = {
   admin_email: '',
 }
 
-// Carregamento dinâmico do serviço de configurações com fallback seguro.
-// Se o módulo @/services/settings não puder ser importado (ex.: erro de
-// módulo circular, falha de resolução), usamos um serviço "vazio" que não
-// quebra a página — ela apenas renderiza com dados em branco.
-type SettingsServiceShape = {
-  getSettings: () => Promise<SiteSettings | null>
-  saveSettings: (data: Partial<SiteSettings>) => Promise<SiteSettings>
-}
-
-const NULL_SERVICE: SettingsServiceShape = {
-  getSettings: async () => null,
-  saveSettings: async (data) => ({ ...EMPTY_SETTINGS, ...data }) as SiteSettings,
-}
-
-function loadSettingsService(): Promise<SettingsServiceShape> {
-  return import('@/services/settings')
-    .then((mod) => {
-      if (mod && mod.settingsService) return mod.settingsService as SettingsServiceShape
-      return NULL_SERVICE
-    })
-    .catch((err) => {
-      console.error('Falha ao importar @/services/settings — usando serviço vazio:', err)
-      return NULL_SERVICE
-    })
-}
-
 const AdminSettingsInner: React.FC = () => {
   const { toast } = useToast()
   const [form, setForm] = useState<SiteSettings>(EMPTY_SETTINGS)
@@ -86,8 +38,7 @@ const AdminSettingsInner: React.FC = () => {
   const load = async () => {
     setLoading(true)
     try {
-      const svc = await loadSettingsService()
-      const data = await svc.getSettings()
+      const data = await settingsService.getSettings()
       setForm(data || EMPTY_SETTINGS)
     } catch (e) {
       console.error('Erro inesperado ao carregar configurações:', e)
@@ -109,8 +60,7 @@ const AdminSettingsInner: React.FC = () => {
   const handleSave = async () => {
     setSaving(true)
     try {
-      const svc = await loadSettingsService()
-      await svc.saveSettings(form)
+      await settingsService.saveSettings(form)
       toast({
         title: 'Configurações salvas',
         description: 'As informações do site foram atualizadas com sucesso.',
@@ -368,67 +318,4 @@ const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, 
   </div>
 )
 
-/**
- * Wrapper seguro exportado como default. Encapsula o AdminSettings real em um
- * componente de erro controlado para que QUALQUER falha de renderização (mesmo
- * durante a avaliação do módulo) seja capturada e exiba um fallback amigável
- * em vez de uma tela 404/NotFound.
- */
-class SafeAdminSettings extends React.Component<
-  { children: React.ReactNode },
-  { hasError: boolean; message?: string }
-> {
-  constructor(props: { children: React.ReactNode }) {
-    super(props)
-    this.state = { hasError: false }
-  }
-
-  static getDerivedStateFromError(error: unknown) {
-    const message =
-      error instanceof Error ? error.message : typeof error === 'string' ? error : undefined
-    return { hasError: true, message }
-  }
-
-  componentDidCatch(error: unknown) {
-    console.error('SafeAdminSettings capturou erro:', error)
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="space-y-6">
-          <section className="bg-gradient-to-br from-[#0f131c] to-[#0a0d14] border border-[#1d2638] rounded-md p-5 sm:p-6">
-            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-montserrat">
-              Painel Administrativo
-            </p>
-            <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight mt-1 flex items-center gap-2">
-              <SettingsIcon className="w-5 h-5 text-blue-500" /> Configurações do Site
-            </h1>
-          </section>
-          <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-6">
-            <p className="text-sm text-slate-300">
-              Não foi possível carregar o módulo de configurações. Recarregue a página para tentar
-              novamente.
-            </p>
-            <Button
-              onClick={() => window.location.reload()}
-              className="mt-4 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs"
-            >
-              Recarregar página
-            </Button>
-          </section>
-        </div>
-      )
-    }
-    return <>{this.props.children}</>
-  }
-}
-
-// Otimização: envolve o componente interno no SafeAdminSettings.
-const AdminSettings: React.FC = () => (
-  <SafeAdminSettings>
-    <AdminSettingsInner />
-  </SafeAdminSettings>
-)
-
-export default AdminSettings
+export default AdminSettingsInner
