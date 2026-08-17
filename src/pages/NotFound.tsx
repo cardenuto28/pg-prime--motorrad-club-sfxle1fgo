@@ -14,7 +14,7 @@ const NotFound = () => {
     <div className="min-h-screen flex items-center justify-center bg-[#07090e] text-white font-sans selection:bg-blue-600 selection:text-white px-4">
       <div className="text-center max-w-md w-full">
         <div className="flex justify-center mb-6">
-          <div className="w-16 h-16 rounded-full bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-500">
+          <div className="w-16 h-16 rounded-full bg-[#0066FF]/15 border border-[#0066FF]/30 flex items-center justify-center text-[#3b82f6]">
             <Compass className="w-8 h-8" />
           </div>
         </div>
@@ -32,7 +32,7 @@ const NotFound = () => {
 
         <Link
           to="/"
-          className="inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wider uppercase px-7 py-3.5 rounded-md shadow-lg shadow-blue-900/30 transition-all font-montserrat"
+          className="inline-flex items-center gap-2 bg-[#0066FF] hover:bg-[#0052cc] text-white font-bold text-xs tracking-wider uppercase px-7 py-3.5 rounded-md shadow-lg shadow-blue-900/30 transition-all font-montserrat"
         >
           <ChevronLeft className="w-4 h-4" />
           Voltar para o início
