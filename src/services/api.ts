@@ -161,6 +161,25 @@ export interface Announcement {
   updated: string
 }
 
+export interface Banner {
+  id: string
+  title: string
+  subtitle?: string
+  description?: string
+  /** URL externa (modo legado). */
+  image?: string
+  button_text?: string
+  button_link?: string
+  sort_order?: number
+  active?: boolean
+  /** Página onde o banner aparece (home, club, passeios, etc.). */
+  page?: string
+  /** Nome do arquivo enviado via upload. */
+  image_file?: string
+  created: string
+  updated: string
+}
+
 // Data Services
 export const userService = {
   async getCurrentUser(): Promise<UserProfile | null> {
@@ -483,6 +502,35 @@ export const announcementService = {
 
   async deleteAnnouncement(id: string): Promise<boolean> {
     await pb.collection('announcements').delete(id)
+    return true
+  },
+}
+
+export const bannerService = {
+  async getAll(): Promise<Banner[]> {
+    const records = await pb.collection('banners').getFullList({ sort: 'sort_order,-created' })
+    return records as unknown as Banner[]
+  },
+
+  async getActive(): Promise<Banner[]> {
+    const records = await pb
+      .collection('banners')
+      .getFullList({ filter: "active='true'", sort: 'sort_order,-created' })
+    return records as unknown as Banner[]
+  },
+
+  async create(data: Partial<Banner>): Promise<Banner> {
+    const created = await pb.collection('banners').create(data)
+    return created as unknown as Banner
+  },
+
+  async update(id: string, data: Partial<Banner>): Promise<Banner> {
+    const updated = await pb.collection('banners').update(id, data)
+    return updated as unknown as Banner
+  },
+
+  async delete(id: string): Promise<boolean> {
+    await pb.collection('banners').delete(id)
     return true
   },
 }

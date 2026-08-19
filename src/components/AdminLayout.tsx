@@ -17,6 +17,7 @@ import {
   X,
   ChevronRight,
   AlertTriangle,
+  Image,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { announcementService } from '@/services/api'
@@ -39,6 +40,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/admin/gallery', label: 'Galeria', icon: Images },
   { to: '/admin/announcements', label: 'Comunicados', icon: Megaphone },
   { to: '/admin/reports', label: 'Relatórios', icon: BarChart3 },
+  { to: '/admin/banners', label: 'Banners', icon: Image },
   { to: '/admin/settings', label: 'Configurações', icon: Settings },
 ]
 

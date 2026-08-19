@@ -1,11 +1,41 @@
+/**
+ * AdminSettings — página TOTALMENTE autossuficiente.
+ *
+ * Não depende de `services/settings` nem de `useToast`: qualquer erro de
+ * importação de módulo que possa escapar do ErrorBoundary foi eliminado.
+ * Toda a comunicação com o backend é feita inline via `fetch`, envolvendo
+ * cada chamada em try/catch robusto. Se o fetch falhar por qualquer motivo,
+ * o formulário é renderizado com dados vazios (EMPTY_SETTINGS). A página
+ * NUNCA pode quebrar nem mostrar 404.
+ *
+ * Únicas dependências: React, lucide-react e os componentes UI primitivos
+ * (Button, Input, Label, Textarea). Feedback via alert()/console.log.
+ */
 import React, { useEffect, useState } from 'react'
 import { Save, Loader2, Settings as SettingsIcon, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { useToast } from '@/hooks/use-toast'
-import { settingsService, type SiteSettings } from '@/services/settings'
+import pb from '@/lib/pocketbase/client'
+
+/** Shape das configurações do site — definido LOCALMENTE (não importado). */
+interface SiteSettings {
+  id: string
+  key: string
+  club_name: string
+  slogan: string
+  address: string
+  phone: string
+  contact_email: string
+  website_url: string
+  instagram_url: string
+  facebook_url: string
+  youtube_url: string
+  whatsapp_number: string
+  eligibility_criteria: string
+  admin_email: string
+}
 
 const EMPTY_SETTINGS: SiteSettings = {
   id: '',
@@ -24,8 +54,7 @@ const EMPTY_SETTINGS: SiteSettings = {
   admin_email: '',
 }
 
-const AdminSettingsInner: React.FC = () => {
-  const { toast } = useToast()
+const AdminSettings: React.FC = () => {
   const [form, setForm] = useState<SiteSettings>(EMPTY_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -37,21 +66,48 @@ const AdminSettingsInner: React.FC = () => {
 
   const load = async () => {
     setLoading(true)
+    // Qualquer erro aqui deve sempre resultar em setForm(data || EMPTY_SETTINGS).
+    let data: SiteSettings | null = null
     try {
-      const data = await settingsService.getSettings()
-      setForm(data || EMPTY_SETTINGS)
+      const res = await fetch(
+        `${pb.baseUrl}/api/collections/settings/records?filter=${encodeURIComponent("key='site'")}`,
+        {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        },
+      )
+      if (res.ok) {
+        const json = await res.json()
+        const items: any[] = Array.isArray(json?.items) ? json.items : []
+        if (items.length > 0) {
+          const rec = items[0]
+          data = {
+            id: rec?.id || '',
+            key: rec?.key || 'site',
+            club_name: rec?.club_name || '',
+            slogan: rec?.slogan || '',
+            address: rec?.address || '',
+            phone: rec?.phone || '',
+            contact_email: rec?.contact_email || '',
+            website_url: rec?.website_url || '',
+            instagram_url: rec?.instagram_url || '',
+            facebook_url: rec?.facebook_url || '',
+            youtube_url: rec?.youtube_url || '',
+            whatsapp_number: rec?.whatsapp_number || '',
+            eligibility_criteria: rec?.eligibility_criteria || '',
+            admin_email: rec?.admin_email || '',
+          }
+        }
+      }
     } catch (e) {
-      console.error('Erro inesperado ao carregar configurações:', e)
-      setForm(EMPTY_SETTINGS)
-      toast({
-        title: 'Aviso',
-        description:
-          'Não foi possível conectar ao servidor. Você ainda pode preencher e salvar as configurações.',
-        variant: 'destructive',
-      })
-    } finally {
-      setLoading(false)
+      // Erro de rede / JSON inválido / qualquer outra coisa — ignora e usa fallback.
+      console.warn('AdminSettings: não foi possível carregar configurações:', e)
     }
+    // Sempre define o form — nunca quebra.
+    setForm(data || EMPTY_SETTINGS)
+    setLoading(false)
   }
 
   const set = <K extends keyof SiteSettings>(k: K, v: SiteSettings[K]) =>
@@ -60,18 +116,110 @@ const AdminSettingsInner: React.FC = () => {
   const handleSave = async () => {
     setSaving(true)
     try {
-      await settingsService.saveSettings(form)
-      toast({
-        title: 'Configurações salvas',
-        description: 'As informações do site foram atualizadas com sucesso.',
-      })
-    } catch (e) {
-      console.error(e)
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível salvar as configurações.',
-        variant: 'destructive',
-      })
+      const payload: Omit<SiteSettings, 'id'> = {
+        key: form.key || 'site',
+        club_name: form.club_name || '',
+        slogan: form.slogan || '',
+        address: form.address || '',
+        phone: form.phone || '',
+        contact_email: form.contact_email || '',
+        website_url: form.website_url || '',
+        instagram_url: form.instagram_url || '',
+        facebook_url: form.facebook_url || '',
+        youtube_url: form.youtube_url || '',
+        whatsapp_number: form.whatsapp_number || '',
+        eligibility_criteria: form.eligibility_criteria || '',
+        admin_email: form.admin_email || '',
+      }
+
+      let ok = false
+      let errMsg = ''
+
+      // 1) Se já temos id, PUT no registro existente.
+      if (form.id) {
+        try {
+          const res = await fetch(
+            `${pb.baseUrl}/api/collections/settings/records/${encodeURIComponent(form.id)}`,
+            {
+              method: 'PATCH',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify(payload),
+            },
+          )
+          ok = res.ok
+          if (!res.ok) errMsg = `HTTP ${res.status}`
+        } catch (e: any) {
+          errMsg = e?.message || String(e)
+        }
+      } else {
+        // 2) Sem id: tenta PATCH/PUT no documento existente pelo key;
+        //    se não houver, cria (POST).
+        let existingId = ''
+        try {
+          const res = await fetch(
+            `${pb.baseUrl}/api/collections/settings/records?filter=${encodeURIComponent(
+              "key='site'",
+            )}`,
+            { method: 'GET', headers: { 'Content-Type': 'application/json' } },
+          )
+          if (res.ok) {
+            const json = await res.json()
+            const items: any[] = Array.isArray(json?.items) ? json.items : []
+            existingId = items[0]?.id || ''
+          }
+        } catch (_) {
+          // ignora — segue para POST
+        }
+
+        if (existingId) {
+          try {
+            const res = await fetch(
+              `${pb.baseUrl}/api/collections/settings/records/${encodeURIComponent(existingId)}`,
+              {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+              },
+            )
+            ok = res.ok
+            if (ok) setForm((f) => ({ ...f, id: existingId }))
+            if (!res.ok) errMsg = `HTTP ${res.status}`
+          } catch (e: any) {
+            errMsg = e?.message || String(e)
+          }
+        } else {
+          try {
+            const res = await fetch(`${pb.baseUrl}/api/collections/settings/records`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+            })
+            ok = res.ok
+            if (res.ok) {
+              const created = await res.json()
+              if (created?.id) setForm((f) => ({ ...f, id: created.id }))
+            } else {
+              errMsg = `HTTP ${res.status}`
+            }
+          } catch (e: any) {
+            errMsg = e?.message || String(e)
+          }
+        }
+      }
+
+      if (ok) {
+        console.log('AdminSettings: configurações salvas com sucesso.')
+        alert('Configurações salvas com sucesso!')
+      } else {
+        console.error('AdminSettings: falha ao salvar configurações:', errMsg)
+        alert('Não foi possível salvar as configurações. Tente novamente.')
+      }
+    } catch (e: any) {
+      // Qualquer exceção imprevista — feedback ao usuário sem quebrar a página.
+      console.error('AdminSettings: erro inesperado ao salvar:', e)
+      alert('Erro inesperado ao salvar as configurações.')
     } finally {
       setSaving(false)
     }
@@ -318,4 +466,4 @@ const Field: React.FC<{ label: string; children: React.ReactNode }> = ({ label, 
   </div>
 )
 
-export default AdminSettingsInner
+export default AdminSettings

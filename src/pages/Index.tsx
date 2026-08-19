@@ -4,7 +4,13 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { RideRegistrationModal } from '@/components/RideRegistrationModal'
 import { useAuth } from '@/context/AuthContext'
-import { Ride, Registration, rideService, registrationService } from '@/services/api'
+import {
+  Ride,
+  Registration,
+  rideService,
+  registrationService,
+  galleryService,
+} from '@/services/api'
 import {
   ChevronRight,
   Calendar,
@@ -41,6 +47,7 @@ export default function Index() {
   const navigate = useNavigate()
 
   const [rides, setRides] = useState<Ride[]>([])
+  const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
   const [, setLoading] = useState(true)
 
   // Modal de Inscrição na Ride
@@ -59,6 +66,18 @@ export default function Index() {
     try {
       const ridesData = await rideService.getAllRides()
       setRides(ridesData)
+
+      // Galeria real — apenas cover_image reais vindas do backend, sem placeholders.
+      try {
+        const galleries = await galleryService.getAll()
+        const photos = galleries
+          .map((g) => g.cover_image || '')
+          .filter((url) => url && url.trim() !== '')
+        setGalleryPhotos(photos)
+      } catch (galleryErr) {
+        console.error('Erro ao carregar galeria da Home:', galleryErr)
+        setGalleryPhotos([])
+      }
 
       if (user?.id) {
         try {
@@ -93,53 +112,47 @@ export default function Index() {
     setModalOpen(true)
   }
 
-  // Passeios da Referência
-  const displayRides = [
-    {
-      id: rides[0]?.id || 'r1',
-      day: '07',
-      month: 'JUN',
-      name: 'SERRA DO RIO DO RASTRO',
-      date: '07/06/2025',
-      location: 'Lauro Müller - SC',
-      time: 'Saída: 07h00',
-      cover_image: 'https://img.usecurling.com/p/600/400?q=serra,road,curves,mountains',
-      rawRide: rides[0] || null,
-    },
-    {
-      id: rides[1]?.id || 'r2',
-      day: '21',
-      month: 'JUN',
-      name: 'CAMINHOS DA MANTIQUEIRA',
-      date: '21/06/2025',
-      location: 'Campos do Jordão - SP',
-      time: 'Saída: 08h00',
-      cover_image: 'https://img.usecurling.com/p/600/400?q=bmw,motorcycle,mountains,road',
-      rawRide: rides[1] || null,
-    },
-    {
-      id: rides[2]?.id || 'r3',
-      day: '05',
-      month: 'JUL',
-      name: 'LITORAL NORTE EXPERIENCE',
-      date: '05/07/2025',
-      location: 'Ubatuba - SP',
-      time: 'Saída: 07h30',
-      cover_image: 'https://img.usecurling.com/p/600/400?q=ocean,coast,motorcycle,beach',
-      rawRide: rides[2] || null,
-    },
+  // Passeios — SOMENTE dados reais vindos do backend (sem mesclar com dados fake).
+  // Se rides[] tiver menos de 3 itens, mostra menos cards; se vazio, não mostra nenhum.
+  const MONTHS_PT = [
+    'JAN',
+    'FEV',
+    'MAR',
+    'ABR',
+    'MAI',
+    'JUN',
+    'JUL',
+    'AGO',
+    'SET',
+    'OUT',
+    'NOV',
+    'DEZ',
   ]
-
-  // Galeria de Momentos (7 fotos em faixa horizontal vibrantes)
-  const galleryPhotos = [
-    'https://img.usecurling.com/p/500/350?q=bmw,motorcycles,riders,group,mountain&seed=11',
-    'https://img.usecurling.com/p/500/350?q=bmw,r1250gs,motorcycle,serra,road&seed=22',
-    'https://img.usecurling.com/p/500/350?q=bmw,motorcycles,sunset,riders&seed=33',
-    'https://img.usecurling.com/p/500/350?q=bmw,gs1300,riding,curves,mountains&seed=44',
-    'https://img.usecurling.com/p/500/350?q=bmw,motorcycle,adventure,viewpoint&seed=55',
-    'https://img.usecurling.com/p/500/350?q=bmw,r1250gs,coast,ocean,road&seed=66',
-    'https://img.usecurling.com/p/500/350?q=bmw,motorcycles,biker,lifestyle&seed=77',
-  ]
+  const displayRides = rides.slice(0, 3).map((ride) => {
+    // ride.date vem no formato ISO "2026-04-18"; se for outro formato, tratamos com fallback.
+    let day = '--'
+    let month = '---'
+    const dateStr = (ride.date || '').trim()
+    if (dateStr) {
+      const parts = dateStr.split('-')
+      if (parts.length === 3) {
+        day = parts[2]
+        const mIdx = parseInt(parts[1], 10) - 1
+        if (!isNaN(mIdx) && mIdx >= 0 && mIdx < 12) month = MONTHS_PT[mIdx]
+      }
+    }
+    return {
+      id: ride.id,
+      day,
+      month,
+      name: ride.name || 'PASSEIO',
+      date: ride.date || '',
+      location: ride.destination || '',
+      time: ride.meeting_time ? `Saída: ${ride.meeting_time}` : '',
+      cover_image: ride.cover_image || '',
+      rawRide: ride,
+    }
+  })
 
   return (
     <div className="min-h-screen bg-[#05070d] text-[#e2e8f0] font-sans selection:bg-[#0066FF] selection:text-white">
@@ -346,12 +359,18 @@ export default function Index() {
                   >
                     <div>
                       {/* Banner Imagem + Badge de Data Azul */}
-                      <div className="relative h-28 overflow-hidden">
-                        <img
-                          src={item.cover_image}
-                          alt={item.name}
-                          className="w-full h-full object-cover saturate-[1.1] group-hover:scale-105 transition-transform duration-500"
-                        />
+                      <div className="relative h-28 overflow-hidden bg-[#0a0d14]">
+                        {item.cover_image ? (
+                          <img
+                            src={item.cover_image}
+                            alt={item.name}
+                            className="w-full h-full object-cover saturate-[1.1] group-hover:scale-105 transition-transform duration-500"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <Bike className="w-8 h-8 text-slate-700" />
+                          </div>
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-[#09101e] via-transparent to-transparent" />
 
                         {/* Date Badge Top Left Azul */}
@@ -460,14 +479,13 @@ export default function Index() {
                           PRÓXIMO PASSEIO
                         </span>
                         <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-1.5 flex gap-2 items-center">
-                          <img
-                            src={
-                              ride.cover_image ||
-                              'https://img.usecurling.com/p/200/200?q=motorcycle'
-                            }
-                            alt={ride.name}
-                            className="w-12 h-12 object-cover rounded-sm border border-slate-700/50 flex-shrink-0"
-                          />
+                          {ride.cover_image && (
+                            <img
+                              src={ride.cover_image}
+                              alt={ride.name}
+                              className="w-12 h-12 object-cover rounded-sm border border-slate-700/50 flex-shrink-0"
+                            />
+                          )}
                           <div className="space-y-0.5 min-w-0 flex-1">
                             <h4 className="text-[9.5px] font-extrabold text-white truncate font-montserrat">
                               {ride.name.toUpperCase()}
@@ -660,35 +678,43 @@ export default function Index() {
           </div>
 
           {/* GALERIA DE MOMENTOS */}
-          <div className="space-y-4 border-t border-[#121c2e] pt-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-extrabold text-slate-300 tracking-widest uppercase font-montserrat">
-                GALERIA DE MOMENTOS
-              </h2>
-              <Link
-                to="/galeria"
-                className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat transition-colors"
-              >
-                VER GALERIA COMPLETA <ChevronRight className="w-3 h-3 text-[#0066FF]" />
-              </Link>
-            </div>
-            {/* Faixa Horizontal de 7 Fotos - Vivid colors */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2">
-              {galleryPhotos.map((url, idx) => (
-                <div
-                  key={idx}
-                  className="relative h-24 sm:h-28 rounded-md overflow-hidden border border-[#142036] group cursor-pointer"
+          {galleryPhotos.length > 0 && (
+            <div className="space-y-4 border-t border-[#121c2e] pt-4">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xs font-extrabold text-slate-300 tracking-widest uppercase font-montserrat">
+                  GALERIA DE MOMENTOS
+                </h2>
+                <Link
+                  to="/galeria"
+                  className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat transition-colors"
                 >
-                  <img
-                    src={url}
-                    alt={`Galeria de Momentos ${idx + 1}`}
-                    className="w-full h-full object-cover saturate-[1.15] contrast-[1.05] group-hover:scale-110 transition-transform duration-500"
-                  />
-                  <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
-                </div>
-              ))}
-            </div>{' '}
-          </div>
+                  VER GALERIA COMPLETA <ChevronRight className="w-3 h-3 text-[#0066FF]" />
+                </Link>
+              </div>
+              {/* Faixa Horizontal - fotos reais vindas do backend */}
+              <div
+                className={`grid gap-2 ${
+                  galleryPhotos.length >= 7
+                    ? 'grid-cols-2 sm:grid-cols-4 lg:grid-cols-7'
+                    : 'grid-cols-2 sm:grid-cols-4'
+                }`}
+              >
+                {galleryPhotos.map((url, idx) => (
+                  <div
+                    key={idx}
+                    className="relative h-24 sm:h-28 rounded-md overflow-hidden border border-[#142036] group cursor-pointer"
+                  >
+                    <img
+                      src={url}
+                      alt={`Galeria de Momentos ${idx + 1}`}
+                      className="w-full h-full object-cover saturate-[1.15] contrast-[1.05] group-hover:scale-110 transition-transform duration-500"
+                    />
+                    <div className="absolute inset-0 bg-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity" />
+                  </div>
+                ))}
+              </div>{' '}
+            </div>
+          )}
 
           {/* FOOTER INTERNO DO CONTAINER ESCURO REPLICA EXACT */}
           <div className="pt-6 border-t border-[#121c2e] flex flex-col md:flex-row items-center justify-between gap-6">

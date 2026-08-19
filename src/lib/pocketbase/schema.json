@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-17T17:07:11.166Z",
+  "generatedAt": "2026-08-19T12:25:38.767Z",
   "collections": [
     {
       "name": "users",
@@ -828,6 +828,94 @@
         {
           "name": "admin_email",
           "type": "email",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
+    },
+    {
+      "name": "banners",
+      "type": "base",
+      "apiRules": {
+        "list": "",
+        "view": "",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "title",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "subtitle",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "description",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "image",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "button_text",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "button_link",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "sort_order",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "active",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "page",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "image_file",
+          "type": "file",
           "required": false,
           "system": false
         },
