@@ -64,6 +64,9 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
   const [guestBikeModel, setGuestBikeModel] = useState<string>('')
   const [guestBikeYear, setGuestBikeYear] = useState<string>('')
 
+  // Aceite de termos para MEMBRO LOGADO
+  const [memberAcceptedTerms, setMemberAcceptedTerms] = useState<boolean>(false)
+
   // Aceites para NÃO-MEMBRO
   const [guestAcceptedImage, setGuestAcceptedImage] = useState<boolean>(false)
   const [guestAcceptedPrivacy, setGuestAcceptedPrivacy] = useState<boolean>(false)
@@ -80,6 +83,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
         setPillionPhone(user.pillion_phone || '')
         setEmergencyName('')
         setEmergencyPhone('')
+        setMemberAcceptedTerms(false)
       } else {
         // Não-membro: limpa campos
         setHasPillion(false)
@@ -97,6 +101,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
         setGuestBikeYear('')
         setGuestAcceptedImage(false)
         setGuestAcceptedPrivacy(false)
+        setMemberAcceptedTerms(false)
       }
     }
   }, [user, isOpen])
@@ -128,7 +133,18 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
       return
     }
 
-    // 3. Validações adicionais para NÃO-MEMBRO
+    // 3. Validação de termos para MEMBRO LOGADO
+    if (isMember && !memberAcceptedTerms) {
+      toast({
+        title: 'Termo de Adesão',
+        description:
+          'Você precisa ler e aceitar os Termos de Adesão e Participação para confirmar sua vaga.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 4. Validações adicionais para NÃO-MEMBRO
     if (!isMember) {
       if (
         !guestName.trim() ||
@@ -576,6 +592,36 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
             </div>
           </div>
 
+          {/* ACEITE DE TERMO DE ADESÃO (APENAS PARA MEMBRO LOGADO) */}
+          {isMember && (
+            <div className="bg-[#0d121c] p-4 rounded-md border border-[#1a2334]">
+              <div className="flex items-start space-x-2.5">
+                <Checkbox
+                  id="member-terms"
+                  checked={memberAcceptedTerms}
+                  onCheckedChange={(checked) => setMemberAcceptedTerms(!!checked)}
+                  className="mt-0.5 border-[#0066FF] data-[state=checked]:bg-[#0066FF]"
+                />
+                <Label
+                  htmlFor="member-terms"
+                  className="cursor-pointer text-[11px] font-normal leading-relaxed text-slate-300"
+                >
+                  Li e aceito os{' '}
+                  <a
+                    href="/termos"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#0066FF] hover:text-blue-400 font-semibold underline underline-offset-2 transition-colors"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    Termos de Adesão e Participação
+                  </a>{' '}
+                  do Euromotors Motorrad Club. <span className="text-red-400 font-bold">*</span>
+                </Label>
+              </div>
+            </div>
+          )}
+
           {/* ACEITES DE IMAGEM E PRIVACIDADE (APENAS PARA NÃO-MEMBRO) */}
           {!isMember && (
             <div className="space-y-3">
@@ -652,7 +698,11 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={submitting || (!isMember && (!guestAcceptedImage || !guestAcceptedPrivacy))}
+              disabled={
+                submitting ||
+                (isMember && !memberAcceptedTerms) ||
+                (!isMember && (!guestAcceptedImage || !guestAcceptedPrivacy))
+              }
               className="bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider px-6 h-10 uppercase disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'PROCESSANDO...' : 'CONFIRMAR PARTICIPAÇÃO'}

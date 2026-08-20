@@ -17,6 +17,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { useToast } from '@/hooks/use-toast'
 import pb from '@/lib/pocketbase/client'
 
 /** Shape das configurações do site — definido LOCALMENTE (não importado). */
@@ -55,6 +56,7 @@ const EMPTY_SETTINGS: SiteSettings = {
 }
 
 const AdminSettings: React.FC = () => {
+  const { toast } = useToast()
   const [form, setForm] = useState<SiteSettings>(EMPTY_SETTINGS)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -211,15 +213,26 @@ const AdminSettings: React.FC = () => {
 
       if (ok) {
         console.log('AdminSettings: configurações salvas com sucesso.')
-        alert('Configurações salvas com sucesso!')
+        toast({
+          title: 'Configurações salvas',
+          description: 'As configurações do site foram atualizadas com sucesso.',
+        })
       } else {
         console.error('AdminSettings: falha ao salvar configurações:', errMsg)
-        alert('Não foi possível salvar as configurações. Tente novamente.')
+        toast({
+          title: 'Erro ao salvar',
+          description: 'Não foi possível salvar as configurações. Tente novamente.',
+          variant: 'destructive',
+        })
       }
     } catch (e: any) {
       // Qualquer exceção imprevista — feedback ao usuário sem quebrar a página.
       console.error('AdminSettings: erro inesperado ao salvar:', e)
-      alert('Erro inesperado ao salvar as configurações.')
+      toast({
+        title: 'Erro inesperado',
+        description: 'Ocorreu um erro ao salvar as configurações. Tente novamente.',
+        variant: 'destructive',
+      })
     } finally {
       setSaving(false)
     }

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
@@ -8,11 +8,37 @@ import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
 import { Phone, Mail, MapPin, Globe, Send, ChevronRight } from 'lucide-react'
+import { settingsService, SiteSettings } from '@/services/settings'
 
 export default function Contato() {
   const { toast } = useToast()
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  useEffect(() => {
+    loadSettings()
+  }, [])
+
+  const loadSettings = async () => {
+    try {
+      const data = await settingsService.getSettings()
+      if (data) {
+        setSettings(data)
+      }
+    } catch (err) {
+      console.warn('Contato: erro ao carregar configurações de contato:', err)
+    }
+  }
+
+  const address =
+    settings?.address || 'Av. Pref. Luis Latorre, 4501 - Loja A - Retiro, Jundiaí - SP, 13209-430'
+  const phone = settings?.phone || '(11) 4839-1010'
+  const contactEmail = settings?.contact_email || 'contato@euromotorsmotorrad.com.br'
+  const websiteUrl = settings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
+  const websiteDisplay = websiteUrl.replace(/^https?:\/\//, '')
+  const phoneHref = `tel:${phone.replace(/\D/g, '')}`
+  const mapQuery = encodeURIComponent(address)
 
   const validate = () => {
     const e: Record<string, string> = {}
@@ -92,28 +118,24 @@ export default function Contato() {
             </div>
 
             <div className="space-y-5">
-              <ContactItem
-                icon={<MapPin className="w-4 h-4" />}
-                label="Endereço"
-                value="Av. Pref. Luis Latorre, 4501 - Loja A - Retiro, Jundiaí - SP, 13209-430"
-              />
+              <ContactItem icon={<MapPin className="w-4 h-4" />} label="Endereço" value={address} />
               <ContactItem
                 icon={<Phone className="w-4 h-4" />}
                 label="Telefone"
-                value="(11) 4839-1010"
-                href="tel:+551148391010"
+                value={phone}
+                href={phoneHref}
               />
               <ContactItem
                 icon={<Mail className="w-4 h-4" />}
                 label="E-mail"
-                value="contato@euromotorsmotorrad.com.br"
-                href="mailto:contato@euromotorsmotorrad.com.br"
+                value={contactEmail}
+                href={`mailto:${contactEmail}`}
               />
               <ContactItem
                 icon={<Globe className="w-4 h-4" />}
                 label="Site oficial"
-                value="jundiai.bmwmotorrad.euromotors.com.br"
-                href="https://jundiai.bmwmotorrad.euromotors.com.br"
+                value={websiteDisplay}
+                href={websiteUrl}
                 external
               />
             </div>
@@ -126,7 +148,7 @@ export default function Contato() {
               <div className="rounded-lg overflow-hidden border border-[#1c2538] h-64">
                 <iframe
                   title="Mapa Euro Motors Jundiaí"
-                  src="https://www.google.com/maps?q=Av.+Pref.+Luis+Latorre,+4501+-+Loja+A+-+Retiro,+Jundiaí+-+SP,+13209-430&output=embed"
+                  src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
                   width="100%"
                   height="100%"
                   style={{ border: 0, filter: 'grayscale(0.3) invert(0.9) hue-rotate(180deg)' }}

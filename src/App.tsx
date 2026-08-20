@@ -69,8 +69,6 @@ const App = () => (
             <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/verificar/:id" element={<VerifyMember />} />
           </Route>
-          {/* Validação pública de carteirinha (sem autenticação) */}
-          <Route path="/verificar/:id" element={<VerifyMember />} />
           {/* Área do Membro (protegida) */}
           <Route
             path="/member"

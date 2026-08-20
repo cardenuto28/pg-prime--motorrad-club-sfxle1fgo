@@ -21,6 +21,7 @@ import {
   registrationService,
   galleryService,
 } from '@/services/api'
+import { settingsService, SiteSettings } from '@/services/settings'
 import {
   ChevronRight,
   Calendar,
@@ -58,6 +59,7 @@ export default function Index() {
 
   const [rides, setRides] = useState<Ride[]>([])
   const [galleryPhotos, setGalleryPhotos] = useState<string[]>([])
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null)
   const [, setLoading] = useState(true)
 
   // Modal de Inscrição na Ride
@@ -84,6 +86,13 @@ export default function Index() {
     try {
       const ridesData = await rideService.getAllRides()
       setRides(ridesData)
+
+      try {
+        const settingsData = await settingsService.getSettings()
+        setSiteSettings(settingsData)
+      } catch (settingsErr) {
+        console.error('Erro ao carregar configurações da Home:', settingsErr)
+      }
 
       // Galeria real — apenas cover_image reais vindas do backend, sem placeholders.
       try {
@@ -375,7 +384,7 @@ export default function Index() {
                   PRÓXIMOS PASSEIOS
                 </h2>
                 <Link
-                  to="/member/passeios"
+                  to="/passeios"
                   className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat transition-colors"
                 >
                   VER TODOS <ChevronRight className="w-3 h-3 text-[#0066FF]" />
@@ -758,48 +767,58 @@ export default function Index() {
 
           {/* FOOTER INTERNO DO CONTAINER ESCURO REPLICA EXACT */}
           <div className="pt-6 border-t border-[#121c2e] flex flex-col md:flex-row items-center justify-between gap-6">
-            {/* Esquerda: SIGA-NOS com ícones sociais idênticos à referência */}
+            {/* Esquerda: SIGA-NOS com ícones sociais lidos do admin_settings / settings */}
             <div className="flex items-center gap-3">
               <span className="text-[11px] font-extrabold text-slate-400 tracking-widest uppercase font-montserrat">
                 SIGA-NOS
               </span>
               <div className="flex items-center gap-2">
-                <a
-                  href="https://instagram.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
-                  aria-label="Instagram"
-                >
-                  <Instagram className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://facebook.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
-                  aria-label="Facebook"
-                >
-                  <Facebook className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://youtube.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
-                  aria-label="Youtube"
-                >
-                  <Youtube className="w-4 h-4" />
-                </a>
-                <a
-                  href="https://euromotorsmc.com.br"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
-                  aria-label="Website"
-                >
-                  <Globe className="w-4 h-4" />
-                </a>
+                {(siteSettings?.instagram_url || !siteSettings) && (
+                  <a
+                    href={siteSettings?.instagram_url || 'https://instagram.com/euromotorsmotorrad'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                    aria-label="Instagram"
+                  >
+                    <Instagram className="w-4 h-4" />
+                  </a>
+                )}
+                {(siteSettings?.facebook_url || !siteSettings) && (
+                  <a
+                    href={siteSettings?.facebook_url || 'https://facebook.com/euromotorsmotorrad'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                    aria-label="Facebook"
+                  >
+                    <Facebook className="w-4 h-4" />
+                  </a>
+                )}
+                {(siteSettings?.youtube_url || !siteSettings) && (
+                  <a
+                    href={siteSettings?.youtube_url || 'https://youtube.com/@euromotorsmotorrad'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                    aria-label="Youtube"
+                  >
+                    <Youtube className="w-4 h-4" />
+                  </a>
+                )}
+                {(siteSettings?.website_url || !siteSettings) && (
+                  <a
+                    href={
+                      siteSettings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
+                    }
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
+                    aria-label="Website"
+                  >
+                    <Globe className="w-4 h-4" />
+                  </a>
+                )}
               </div>
             </div>
 

@@ -1,9 +1,31 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, Mail, MapPin, Instagram, Facebook, Youtube, Globe } from 'lucide-react'
+import { Phone, MapPin, Instagram, Facebook, Youtube, Globe } from 'lucide-react'
 import logoImage from '@/assets/logo-e67e1.jpeg'
+import { settingsService, SiteSettings } from '@/services/settings'
 
 export const Footer: React.FC = () => {
+  const [settings, setSettings] = useState<SiteSettings | null>(null)
+
+  useEffect(() => {
+    settingsService
+      .getSettings()
+      .then((res) => {
+        if (res) setSettings(res)
+      })
+      .catch(() => {})
+  }, [])
+
+  const address =
+    settings?.address || 'Av. Pref. Luis Latorre, 4501 - Loja A - Retiro, Jundiaí - SP, 13209-430'
+  const phone = settings?.phone || '(11) 4839-1010'
+  const websiteUrl = settings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
+  const websiteDisplay = websiteUrl.replace(/^https?:\/\//, '')
+  const instagramUrl = settings?.instagram_url || 'https://instagram.com/euromotorsmotorrad'
+  const facebookUrl = settings?.facebook_url || 'https://facebook.com/euromotorsmotorrad'
+  const youtubeUrl = settings?.youtube_url || 'https://youtube.com/@euromotorsmotorrad'
+  const slogan = settings?.slogan || 'Mais que um clube. Uma tribo.'
+
   return (
     <footer id="contato" className="bg-[#05070d] border-t border-[#121c2e] text-slate-400">
       {/* Linha superior com 3 colunas */}
@@ -16,21 +38,27 @@ export const Footer: React.FC = () => {
             </span>
             <div className="flex items-center gap-3">
               <a
-                href="#"
+                href={instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Instagram"
                 className="w-9 h-9 rounded-full border border-[#1c2538] bg-[#0a0d14] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] hover:bg-[#0066FF]/10 transition-all"
               >
                 <Instagram className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href={facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="Facebook"
                 className="w-9 h-9 rounded-full border border-[#1c2538] bg-[#0a0d14] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] hover:bg-[#0066FF]/10 transition-all"
               >
                 <Facebook className="w-4 h-4" />
               </a>
               <a
-                href="#"
+                href={youtubeUrl}
+                target="_blank"
+                rel="noopener noreferrer"
                 aria-label="YouTube"
                 className="w-9 h-9 rounded-full border border-[#1c2538] bg-[#0a0d14] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] hover:bg-[#0066FF]/10 transition-all"
               >
@@ -51,10 +79,12 @@ export const Footer: React.FC = () => {
           {/* Direita: Slogan */}
           <div className="flex flex-col items-center md:items-end gap-1 order-3">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest font-montserrat">
-              MAIS QUE UM CLUBE.
+              {slogan.includes('.') ? slogan.split('.')[0] + '.' : slogan}
             </span>
             <span className="text-sm font-black text-white uppercase tracking-tight font-montserrat">
-              UMA TRIBO.
+              {slogan.includes('.')
+                ? slogan.split('.').slice(1).join('.').trim() || 'UMA TRIBO.'
+                : 'UMA TRIBO.'}
             </span>
           </div>
         </div>
@@ -63,30 +93,26 @@ export const Footer: React.FC = () => {
         <div className="mt-8 pt-6 border-t border-[#121c2e] grid grid-cols-1 sm:grid-cols-3 gap-4 text-[11px]">
           <div className="flex items-start gap-2 justify-center sm:justify-start">
             <MapPin className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0 mt-0.5" />
-            <span className="text-slate-400 leading-relaxed">
-              Av. Pref. Luis Latorre, 4501 - Loja A - Retiro,
-              <br />
-              Jundiaí - SP, 13209-430
-            </span>
+            <span className="text-slate-400 leading-relaxed whitespace-pre-line">{address}</span>
           </div>
           <div className="flex items-center gap-2 justify-center">
             <Phone className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
             <a
-              href="tel:+551148391010"
+              href={`tel:${phone.replace(/\D/g, '')}`}
               className="text-slate-400 hover:text-white transition-colors"
             >
-              (11) 4839-1010
+              {phone}
             </a>
           </div>
           <div className="flex items-center gap-2 justify-center sm:justify-end">
             <Globe className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
             <a
-              href="https://jundiai.bmwmotorrad.euromotors.com.br"
+              href={websiteUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-slate-400 hover:text-white transition-colors truncate"
             >
-              jundiai.bmwmotorrad.euromotors.com.br
+              {websiteDisplay}
             </a>
           </div>
         </div>
