@@ -40,6 +40,7 @@ import Passeios from './pages/Passeios'
 import Galeria from './pages/Galeria'
 import Contato from './pages/Contato'
 import Termos from './pages/Termos'
+import PoliticaPrivacidade from './pages/PoliticaPrivacidade'
 import { AuthProvider } from './context/AuthContext'
 import { PWAInstallBanner } from './components/PWAInstallBanner'
 
@@ -65,6 +66,7 @@ const App = () => (
             <Route path="/galeria" element={<Galeria />} />
             <Route path="/contato" element={<Contato />} />
             <Route path="/termos" element={<Termos />} />
+            <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/verificar/:id" element={<VerifyMember />} />
           </Route>
           {/* Validação pública de carteirinha (sem autenticação) */}
