@@ -183,7 +183,7 @@ export function exportAdminManualPdf() {
   const addSectionTitle = (title: string) => {
     ensureSpace(14)
     doc.setFillColor(15, 23, 42)
-    doc.roundedRect(margin, cursorY - 4, contentWidth, 8, 1, 1, 'F')
+    doc.rect(margin, cursorY - 4, contentWidth, 8, 'F')
     doc.setFillColor(0, 102, 255)
     doc.rect(margin, cursorY - 4, 2.5, 8, 'F')
 
