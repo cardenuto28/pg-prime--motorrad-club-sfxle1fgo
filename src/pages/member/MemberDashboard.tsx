@@ -12,8 +12,11 @@ import {
   ChevronRight,
   History,
   XCircle,
+  Download,
+  Smartphone,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import { usePWA } from '@/hooks/use-pwa'
 import {
   Ride,
   Registration,
@@ -49,6 +52,7 @@ import {
 const MemberDashboard: React.FC = () => {
   const { user } = useAuth()
   const navigate = useNavigate()
+  const { isInstallable, isInstalled, isIOS, promptInstall } = usePWA()
   const [rides, setRides] = useState<Ride[]>([])
   const [regs, setRegs] = useState<Registration[]>([])
   const [benefits, setBenefits] = useState<Benefit[]>([])
@@ -151,6 +155,36 @@ const MemberDashboard: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Banner de Instalação PWA no Dashboard */}
+      {!isInstalled && (isInstallable || isIOS) && (
+        <section className="bg-gradient-to-r from-[#0066FF]/15 via-[#0b1220] to-[#07090e] border border-[#0066FF]/40 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-lg shadow-blue-950/40 relative overflow-hidden">
+          <div className="flex items-center gap-4 relative z-10 min-w-0">
+            <div className="w-12 h-12 rounded-xl bg-[#0066FF]/20 border border-[#0066FF]/50 flex items-center justify-center text-[#0066FF] flex-shrink-0 shadow-md">
+              <Smartphone className="w-6 h-6 text-blue-400" />
+            </div>
+            <div className="space-y-0.5 min-w-0">
+              <span className="text-[9px] font-black tracking-widest text-blue-400 uppercase font-montserrat">
+                APLICATIVO PROGRESSIVO (PWA)
+              </span>
+              <h3 className="text-sm sm:text-base font-black text-white font-montserrat uppercase truncate">
+                Instale o App do Euro Motors Club no celular
+              </h3>
+              <p className="text-xs text-slate-300 truncate">
+                Acesso direto na sua tela inicial, funcionamento instantâneo e offline
+              </p>
+            </div>
+          </div>
+          {isInstallable && (
+            <Button
+              onClick={() => promptInstall()}
+              className="relative z-10 w-full sm:w-auto bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider uppercase font-montserrat px-5 shadow-lg shadow-blue-950/60 gap-1.5 flex-shrink-0"
+            >
+              <Download className="w-4 h-4" /> INSTALAR APP
+            </Button>
+          )}
+        </section>
+      )}
 
       {/* Banner de Acesso Rápido à Carteirinha Digital */}
       <section className="bg-gradient-to-r from-[#0d1524] via-[#09101d] to-[#0d1524] border border-blue-900/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">

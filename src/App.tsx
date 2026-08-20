@@ -40,6 +40,7 @@ import Passeios from './pages/Passeios'
 import Galeria from './pages/Galeria'
 import Contato from './pages/Contato'
 import { AuthProvider } from './context/AuthContext'
+import { PWAInstallBanner } from './components/PWAInstallBanner'
 
 // ONLY IMPORT AND RENDER WORKING PAGES, NEVER ADD PLACEHOLDER COMPONENTS OR PAGES IN THIS FILE
 // AVOID REMOVING ANY CONTEXT PROVIDERS FROM THIS FILE (e.g. TooltipProvider, Toaster, Sonner)
@@ -48,6 +49,7 @@ const App = () => (
   <BrowserRouter>
     <AuthProvider>
       <TooltipProvider>
+        <PWAInstallBanner />
         <Toaster />
         <Sonner />
         <Routes>

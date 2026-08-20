@@ -1,0 +1,68 @@
+{
+  "name": "Euro Motors Club",
+  "short_name": "EM Club",
+  "description": "Plataforma de relacionamento e comunidade Euro Motors Motorrad Jundiaí",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07090e",
+  "theme_color": "#0066FF",
+  "lang": "pt-BR",
+  "dir": "ltr",
+  "categories": ["lifestyle", "sports", "community"],
+  "icons": [
+    {
+      "src": "/icons/pwa-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/pwa-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/pwa-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Área do Membro",
+      "short_name": "Membro",
+      "description": "Acesse sua carteirinha e passeios",
+      "url": "/member/dashboard",
+      "icons": [{ "src": "/icons/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Passeios e Eventos",
+      "short_name": "Passeios",
+      "description": "Veja o calendário de passeios",
+      "url": "/passeios",
+      "icons": [{ "src": "/icons/pwa-192x192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Benefícios Exclusivos",
+      "short_name": "Benefícios",
+      "description": "Consulte vantagens de parceiros",
+      "url": "/beneficios",
+      "icons": [{ "src": "/icons/pwa-192x192.png", "sizes": "192x192" }]
+    }
+  ]
+}
