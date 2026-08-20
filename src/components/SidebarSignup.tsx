@@ -9,7 +9,7 @@ import {
   Calendar,
   Lock,
   ChevronRight,
-  CheckCircle2,
+  Clock,
   ShieldCheck,
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
@@ -108,9 +108,9 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
 
       setSuccessMsg(true)
       toast({
-        title: 'Solicitação Enviada com Sucesso!',
+        title: 'Cadastro solicitado com sucesso!',
         description:
-          'Seu cadastro foi realizado e está com status pendente para aprovação do clube.',
+          'O Euro Motors Motorrad Club é exclusivo para clientes Euro Motors. Seus dados foram enviados e serão analisados pela nossa equipe.',
       })
 
       if (onSuccess) onSuccess()
@@ -131,19 +131,21 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
   if (successMsg) {
     return (
       <div className="bg-[#0f141f] border border-[#1e273a] rounded-lg p-6 text-center space-y-4 shadow-xl">
-        <div className="w-12 h-12 bg-emerald-500/10 border border-emerald-500/30 rounded-full flex items-center justify-center mx-auto text-emerald-400">
-          <CheckCircle2 className="w-6 h-6" />
+        <div className="w-12 h-12 bg-blue-500/15 border border-[#0066FF]/40 rounded-full flex items-center justify-center mx-auto text-[#0066FF] shadow-lg shadow-blue-950/40">
+          <Clock className="w-6 h-6 animate-pulse" />
         </div>
-        <h3 className="font-bold text-white text-lg font-montserrat tracking-wide">
-          CADASTRO SOLICITADO!
-        </h3>
-        <p className="text-xs text-slate-300 leading-relaxed">
-          Obrigado por se juntar ao Euro Motors Motorrad Club. Seus dados foram salvos com status{' '}
-          <strong className="text-amber-400">pendente</strong>.
-        </p>
-        <p className="text-[11px] text-slate-400">
-          Nossa equipe irá validar seus dados e liberará o acesso completo em breve.
-        </p>
+        <div className="space-y-1">
+          <h3 className="font-bold text-white text-lg font-montserrat tracking-wide uppercase">
+            CADASTRO SOLICITADO!
+          </h3>
+          <p className="text-xs text-blue-400 font-semibold leading-snug">
+            O Euro Motors Motorrad Club é exclusivo para clientes Euro Motors.
+          </p>
+        </div>
+        <div className="bg-[#141a26] border border-[#202a3d] rounded p-3 text-xs text-slate-300 leading-relaxed">
+          Seus dados foram enviados e serão analisados pela nossa equipe. Você receberá a
+          confirmação em breve.
+        </div>
         <Button
           onClick={() => {
             setSuccessMsg(false)

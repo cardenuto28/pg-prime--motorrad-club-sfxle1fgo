@@ -3,6 +3,16 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { RideRegistrationModal } from '@/components/RideRegistrationModal'
+import { SidebarSignup } from '@/components/SidebarSignup'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+import { Input } from '@/components/ui/input'
 import { useAuth } from '@/context/AuthContext'
 import {
   Ride,
@@ -53,6 +63,14 @@ export default function Index() {
   // Modal de Inscrição na Ride
   const [selectedRide, setSelectedRide] = useState<Ride | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
+
+  // Modais de Cadastro e Login na Home
+  const [signupModalOpen, setSignupModalOpen] = useState(false)
+  const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [loginEmail, setLoginEmail] = useState('')
+  const [loginPassword, setLoginPassword] = useState('')
+  const [loginLoading, setLoginLoading] = useState(false)
+  const { login } = useAuth()
 
   // Inscrições do usuário logado (dados reais para o widget Área do Membro)
   const [userRegs, setUserRegs] = useState<Registration[]>([])
@@ -106,10 +124,32 @@ export default function Index() {
         title: 'Área do Membro',
         description: 'Faça login na Área do Membro para se inscrever nos passeios.',
       })
+      setLoginModalOpen(true)
       return
     }
     setSelectedRide(ride)
     setModalOpen(true)
+  }
+
+  const handleHomeLogin = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoginLoading(true)
+    const ok = await login(loginEmail, loginPassword)
+    setLoginLoading(false)
+    if (ok) {
+      toast({
+        title: 'Bem-vindo de volta!',
+        description: 'Login realizado com sucesso.',
+      })
+      setLoginModalOpen(false)
+      navigate('/member/dashboard')
+    } else {
+      toast({
+        title: 'Falha na autenticação',
+        description: 'E-mail ou senha incorretos. Tente novamente.',
+        variant: 'destructive',
+      })
+    }
   }
 
   // Passeios — SOMENTE dados reais vindos do backend (sem mesclar com dados fake).
@@ -583,21 +623,21 @@ export default function Index() {
                       <Lock className="w-4 h-4" />
                     </div>
                     <p className="text-[10px] text-slate-300 leading-snug">
-                      Faça login ou cadastre-se para acessar sua área exclusiva, ver seus passeios
-                      confirmados e benefícios do clube.
+                      Faça parte da nossa comunidade exclusiva ou faça login para acessar sua área,
+                      ver passeios confirmados e benefícios.
                     </p>
                   </div>
                   <Button
-                    onClick={() => navigate('/member/dashboard')}
-                    className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-[10px] tracking-wider h-8 rounded-sm uppercase"
+                    onClick={() => setSignupModalOpen(true)}
+                    className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-[10px] tracking-wider h-9 rounded-sm uppercase shadow-lg shadow-blue-950/50"
                   >
-                    ENTRAR NA ÁREA DO MEMBRO
+                    QUERO FAZER PARTE
                   </Button>
                   <button
-                    onClick={() => navigate('/member/dashboard')}
-                    className="w-full text-center text-[9px] font-bold text-slate-400 hover:text-white tracking-wider uppercase flex items-center justify-center gap-1"
+                    onClick={() => setLoginModalOpen(true)}
+                    className="w-full text-center text-[9px] font-bold text-slate-400 hover:text-white tracking-wider uppercase flex items-center justify-center gap-1 transition-colors"
                   >
-                    FAZER CADASTRO <ChevronRight className="w-3 h-3" />
+                    JÁ SOU MEMBRO / FAZER LOGIN <ChevronRight className="w-3 h-3 text-[#0066FF]" />
                   </button>
                 </div>
               )}
@@ -804,6 +844,84 @@ export default function Index() {
         onClose={() => setModalOpen(false)}
         onSuccess={loadData}
       />
+
+      {/* Modal de Cadastro (Quero Fazer Parte) */}
+      <Dialog open={signupModalOpen} onOpenChange={setSignupModalOpen}>
+        <DialogContent className="bg-[#0b0f17] border-[#1d2638] text-white w-full sm:max-w-xl max-h-[90vh] overflow-y-auto p-4 sm:p-6">
+          <DialogHeader className="space-y-1 text-left pb-2 border-b border-[#162032]">
+            <DialogTitle className="text-base sm:text-lg font-black text-white uppercase font-montserrat tracking-wide">
+              SOLICITAR CADASTRO NO CLUBE
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              O Euro Motors Motorrad Club é exclusivo para clientes Euro Motors.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="pt-2">
+            <SidebarSignup onSuccess={() => {}} />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal de Login na Home */}
+      <Dialog open={loginModalOpen} onOpenChange={setLoginModalOpen}>
+        <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-md p-6">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-bold tracking-wider text-center text-white font-montserrat uppercase">
+              ÁREA DO MEMBRO
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400 text-center">
+              Acesse sua conta para visualizar seus passeios e benefícios exclusivos.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleHomeLogin} className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-300 font-medium">E-mail</Label>
+              <Input
+                type="email"
+                required
+                placeholder="seu.email@exemplo.com"
+                value={loginEmail}
+                onChange={(e) => setLoginEmail(e.target.value)}
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs placeholder:text-slate-500 h-10"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+              <Input
+                type="password"
+                required
+                placeholder="••••••••"
+                value={loginPassword}
+                onChange={(e) => setLoginPassword(e.target.value)}
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs placeholder:text-slate-500 h-10"
+              />
+            </div>
+
+            <Button
+              type="submit"
+              disabled={loginLoading}
+              className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider h-10 mt-2 rounded-sm uppercase"
+            >
+              {loginLoading ? 'ENTRANDO...' : 'ENTRAR NA ÁREA DO MEMBRO'}
+            </Button>
+
+            <div className="text-center text-[11px] text-slate-400 pt-3 border-t border-[#1c2436] flex flex-col gap-1.5">
+              <span>Ainda não faz parte?</span>
+              <button
+                type="button"
+                onClick={() => {
+                  setLoginModalOpen(false)
+                  setSignupModalOpen(true)
+                }}
+                className="text-[#0066FF] hover:text-blue-400 font-bold uppercase tracking-wider text-xs underline"
+              >
+                Solicite seu cadastro aqui
+              </button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

@@ -17,7 +17,9 @@ import {
   Bike,
   Calendar,
   Shield,
+  ShieldPlus,
   Crown,
+  Info,
   ExternalLink,
 } from 'lucide-react'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
@@ -58,6 +60,11 @@ const AdminMembers: React.FC = () => {
   const [historyRegs, setHistoryRegs] = useState<Registration[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  // Modal rápido de Promover a Admin
+  const [promoteModalOpen, setPromoteModalOpen] = useState(false)
+  const [selectedMemberForAdmin, setSelectedMemberForAdmin] = useState<string>('')
+  const [promoting, setPromoting] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -102,6 +109,33 @@ const AdminMembers: React.FC = () => {
 
   const updateLocalUser = (id: string, patch: Partial<UserProfile>) => {
     setUsers((prev) => prev.map((u) => (u.id === id ? { ...u, ...patch } : u)))
+  }
+
+  const handlePromoteAdmin = async () => {
+    if (!selectedMemberForAdmin) return
+    const targetUser = users.find((u) => u.id === selectedMemberForAdmin)
+    if (!targetUser) return
+
+    setPromoting(true)
+    try {
+      await userService.updateUserProfile(targetUser.id, { role: 'admin' })
+      updateLocalUser(targetUser.id, { role: 'admin' })
+      toast({
+        title: 'Membro Promovido!',
+        description: `${targetUser.name || 'Membro'} agora possui privilégios de Administrador.`,
+      })
+      setPromoteModalOpen(false)
+      setSelectedMemberForAdmin('')
+    } catch (e) {
+      console.error(e)
+      toast({
+        title: 'Erro ao promover',
+        description: 'Não foi possível promover o membro para administrador.',
+        variant: 'destructive',
+      })
+    } finally {
+      setPromoting(false)
+    }
   }
 
   const handleStatusAction = async (user: UserProfile, status: Status, label: string) => {
@@ -152,12 +186,35 @@ const AdminMembers: React.FC = () => {
               Membros Cadastrados
             </h1>
           </div>
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Users className="w-4 h-4 text-blue-500" />
-            <span>
-              <span className="text-white font-bold">{users.length}</span> membros
-            </span>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2 text-xs text-slate-400">
+              <Users className="w-4 h-4 text-blue-500" />
+              <span>
+                <span className="text-white font-bold">{users.length}</span> membros
+              </span>
+            </div>
+            <Button
+              onClick={() => setPromoteModalOpen(true)}
+              className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs gap-1.5 h-9 rounded-sm shadow-md"
+            >
+              <ShieldPlus className="w-4 h-4" /> PROMOVER A ADMIN
+            </Button>
           </div>
+        </div>
+      </section>
+
+      {/* Dica Informativa Visual */}
+      <section className="bg-gradient-to-r from-blue-950/40 via-[#0e1728] to-purple-950/30 border border-blue-800/40 rounded-md p-3.5 flex items-start gap-3 text-xs text-slate-300">
+        <Info className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+        <div className="space-y-0.5">
+          <p className="font-semibold text-white">Como gerenciar e promover administradores:</p>
+          <p className="text-[11px] text-slate-400 leading-relaxed">
+            Você pode promover qualquer membro clicando no botão{' '}
+            <strong className="text-purple-300">"PROMOVER A ADMIN"</strong> acima ou clicando no
+            ícone de edição (<span className="text-blue-300 font-bold">✏️</span>) na linha do membro
+            e alterando o campo <em>"Tipo de Usuário (Permissões)"</em> para{' '}
+            <strong>Administrador</strong>.
+          </p>
         </div>
       </section>
 
@@ -347,6 +404,68 @@ const AdminMembers: React.FC = () => {
           setEditing(null)
         }}
       />
+
+      {/* Modal Promover a Admin */}
+      <Dialog open={promoteModalOpen} onOpenChange={setPromoteModalOpen}>
+        <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold tracking-wide text-white flex items-center gap-2 font-montserrat">
+              <ShieldPlus className="w-5 h-5 text-purple-400" />
+              Promover Membro a Administrador
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              Selecione um membro cadastrado para conceder acesso total ao painel administrativo.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 mt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-300 font-medium">Selecione o Membro</Label>
+              <Select value={selectedMemberForAdmin} onValueChange={setSelectedMemberForAdmin}>
+                <SelectTrigger className="bg-[#141b27] border-[#222c3f] text-white text-xs h-10">
+                  <SelectValue placeholder="Escolha um membro na lista..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white max-h-60">
+                  {users
+                    .filter((u) => u.role !== 'admin')
+                    .map((m) => (
+                      <SelectItem key={m.id} value={m.id} className="text-xs">
+                        {m.name} ({m.email})
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {users.filter((u) => u.role !== 'admin').length === 0 && (
+              <p className="text-xs text-amber-400 bg-amber-950/40 p-2.5 rounded border border-amber-800/50">
+                Todos os usuários atuais já são administradores ou não há membros elegíveis.
+              </p>
+            )}
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1c2538]">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setPromoteModalOpen(false)
+                  setSelectedMemberForAdmin('')
+                }}
+                className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+              >
+                Cancelar
+              </Button>
+              <Button
+                onClick={handlePromoteAdmin}
+                disabled={!selectedMemberForAdmin || promoting}
+                className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs gap-1.5"
+              >
+                <Shield className="w-3.5 h-3.5" />
+                {promoting ? 'PROMOVENDO...' : 'CONFIRMAR PROMOÇÃO'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* History Modal */}
       <Dialog open={!!historyUser} onOpenChange={(o) => !o && setHistoryUser(null)}>
