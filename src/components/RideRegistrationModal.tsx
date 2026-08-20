@@ -39,6 +39,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
   const [emergencyPhone, setEmergencyPhone] = useState<string>('')
   const [acceptedRules, setAcceptedRules] = useState<boolean>(false)
   const [acceptedTerms, setAcceptedTerms] = useState<boolean>(false)
+  const [acceptedImage, setAcceptedImage] = useState<boolean>(false)
   const [submitting, setSubmitting] = useState<boolean>(false)
 
   useEffect(() => {
@@ -54,11 +55,11 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!acceptedRules || !acceptedTerms) {
+    if (!acceptedTerms || !acceptedImage) {
       toast({
-        title: 'Atenção',
+        title: 'Termos obrigatórios',
         description:
-          'Você precisa aceitar o regulamento e o termo de responsabilidade para se inscrever.',
+          'É obrigatório aceitar os Termos de Adesão e a Autorização de Uso de Imagem para participar do passeio.',
         variant: 'destructive',
       })
       return
@@ -84,6 +85,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
 
     setSubmitting(true)
     try {
+      const nowIso = new Date().toISOString()
       await registrationService.registerForRide({
         ride: ride.id,
         user: user.id,
@@ -94,6 +96,8 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
         emergency_contact_phone: emergencyPhone,
         accepted_rules: acceptedRules,
         accepted_terms: acceptedTerms,
+        accepted_terms_at: nowIso,
+        accepted_image_at: nowIso,
       })
 
       toast({
@@ -285,35 +289,54 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
           </div>
 
           {/* Aceites de Termos */}
-          <div className="space-y-3 bg-slate-950/60 p-4 rounded-lg border border-slate-800 text-xs text-slate-300">
-            <div className="flex items-start space-x-2">
-              <Checkbox
-                id="rules"
-                checked={acceptedRules}
-                onCheckedChange={(checked) => setAcceptedRules(!!checked)}
-                className="mt-0.5 border-blue-500 data-[state=checked]:bg-blue-600"
-              />
-              <Label
-                htmlFor="rules"
-                className="cursor-pointer text-xs font-normal leading-relaxed text-slate-300"
-              >
-                Li e aceito as regras do passeio, incluindo formação em comboio e uso obrigatório de
-                equipamentos de proteção completos.
-              </Label>
-            </div>
-            <div className="flex items-start space-x-2">
+          <div className="space-y-3.5 bg-slate-950/60 p-4 rounded-lg border border-slate-800 text-xs text-slate-300">
+            {/* 1. Termos de Adesão e Participação */}
+            <div className="flex items-start space-x-2.5">
               <Checkbox
                 id="terms"
                 checked={acceptedTerms}
                 onCheckedChange={(checked) => setAcceptedTerms(!!checked)}
-                className="mt-0.5 border-blue-500 data-[state=checked]:bg-blue-600"
+                className={`mt-0.5 border-blue-500 data-[state=checked]:bg-blue-600 ${
+                  !acceptedTerms ? 'border-blue-500/80' : ''
+                }`}
               />
               <Label
                 htmlFor="terms"
                 className="cursor-pointer text-xs font-normal leading-relaxed text-slate-300"
               >
-                Li e concordo com o Termo de Responsabilidade e isenção de riscos na pilotagem
-                durante o percurso organizado.
+                Li e aceito os{' '}
+                <a
+                  href="/termos"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#0066FF] hover:text-blue-400 font-semibold underline underline-offset-2 transition-colors"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Termos de Adesão e Participação
+                </a>{' '}
+                do Euromotors Motorrad Club. <span className="text-red-400 font-bold">*</span>
+              </Label>
+            </div>
+
+            {/* 2. Autorização de Uso de Imagem e Voz */}
+            <div className="flex items-start space-x-2.5">
+              <Checkbox
+                id="image-voice"
+                checked={acceptedImage}
+                onCheckedChange={(checked) => setAcceptedImage(!!checked)}
+                className={`mt-0.5 border-blue-500 data-[state=checked]:bg-blue-600 ${
+                  !acceptedImage ? 'border-blue-500/80' : ''
+                }`}
+              />
+              <Label
+                htmlFor="image-voice"
+                className="cursor-pointer text-xs font-normal leading-relaxed text-slate-300"
+              >
+                Li, compreendi e autorizo o uso da minha imagem e voz exclusivamente em fotos do
+                passeio, fotos do grupo, vídeos do passeio e demais registros vinculados às
+                atividades do Euromotors Motorrad Club, estando ciente de que essa autorização é
+                condição para minha participação no Club.{' '}
+                <span className="text-red-400 font-bold">*</span>
               </Label>
             </div>
           </div>
@@ -329,8 +352,8 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
             </Button>
             <Button
               type="submit"
-              disabled={submitting}
-              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6"
+              disabled={submitting || !acceptedTerms || !acceptedImage}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? 'Inscrevendo...' : 'CONFIRMAR PARTICIPAÇÃO'}
             </Button>

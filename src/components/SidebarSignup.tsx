@@ -14,6 +14,8 @@ import {
 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
 import { userService } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
 
@@ -37,9 +39,11 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
     passwordConfirm: '',
   })
 
+  const [acceptedPrivacy, setAcceptedPrivacy] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [successMsg, setSuccessMsg] = useState(false)
   const [passwordError, setPasswordError] = useState('')
+  const [privacyError, setPrivacyError] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -91,6 +95,19 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
       return
     }
 
+    // Validação obrigatória da Política de Privacidade
+    if (!acceptedPrivacy) {
+      setPrivacyError(true)
+      toast({
+        title: 'Política de Privacidade',
+        description:
+          'É necessário aceitar a Política de Privacidade e o tratamento de dados pessoais conforme a LGPD.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setPrivacyError(false)
+
     setSubmitting(true)
 
     try {
@@ -104,6 +121,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         bike_model: formData.bike_model.trim(),
         bike_year: parseInt(formData.bike_year, 10) || new Date().getFullYear(),
         password: formData.password,
+        accepted_privacy_at: new Date().toISOString(),
       })
 
       setSuccessMsg(true)
@@ -149,6 +167,8 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         <Button
           onClick={() => {
             setSuccessMsg(false)
+            setAcceptedPrivacy(false)
+            setPrivacyError(false)
             setFormData({
               name: '',
               phone: '',
@@ -322,11 +342,55 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         </div>
         {passwordError && <p className="text-[10px] text-red-400 -mt-1.5">{passwordError}</p>}
 
+        {/* Checkbox Política de Privacidade */}
+        <div
+          className={`p-2.5 rounded-sm bg-[#141a26] border ${
+            privacyError ? 'border-red-500/80 bg-red-950/20' : 'border-[#202a3d]'
+          } transition-colors`}
+        >
+          <div className="flex items-start space-x-2.5">
+            <Checkbox
+              id="privacy"
+              checked={acceptedPrivacy}
+              onCheckedChange={(checked) => {
+                const isChecked = !!checked
+                setAcceptedPrivacy(isChecked)
+                if (isChecked) setPrivacyError(false)
+              }}
+              className={`mt-0.5 border-[#0066FF] data-[state=checked]:bg-[#0066FF] ${
+                privacyError ? 'border-red-500 ring-1 ring-red-500/50' : ''
+              }`}
+            />
+            <Label
+              htmlFor="privacy"
+              className="cursor-pointer text-[11px] font-normal leading-relaxed text-slate-300"
+            >
+              Li e estou ciente da{' '}
+              <a
+                href="/politica-de-privacidade"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#0066FF] hover:text-blue-400 font-semibold underline underline-offset-2 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Política de Privacidade
+              </a>{' '}
+              e do tratamento dos meus dados pessoais conforme a LGPD.{' '}
+              <span className="text-red-400 font-bold">*</span>
+            </Label>
+          </div>
+          {privacyError && (
+            <p className="text-[10px] text-red-400 mt-1 pl-6">
+              Você precisa aceitar a Política de Privacidade para se cadastrar.
+            </p>
+          )}
+        </div>
+
         {/* Botão Fazer Cadastro */}
         <Button
           type="submit"
-          disabled={submitting}
-          className="w-full bg-[#2563eb] hover:bg-blue-600 text-white font-bold text-xs tracking-wider h-11 rounded-sm mt-3 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 transition-all"
+          disabled={submitting || !acceptedPrivacy}
+          className="w-full bg-[#2563eb] hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs tracking-wider h-11 rounded-sm mt-3 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 transition-all"
         >
           {submitting ? 'PROCESSANDO...' : 'FAZER CADASTRO'}
           {!submitting && <ChevronRight className="w-4 h-4" />}

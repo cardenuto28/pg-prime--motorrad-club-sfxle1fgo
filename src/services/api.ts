@@ -30,6 +30,7 @@ export interface UserProfile {
   pillion_name?: string
   pillion_phone?: string
   status: 'pendente' | 'ativo' | 'inativo' | 'bloqueado'
+  accepted_privacy_at?: string
   created: string
   updated: string
 }
@@ -81,6 +82,8 @@ export interface Registration {
   emergency_contact_phone?: string
   accepted_rules: boolean
   accepted_terms: boolean
+  accepted_terms_at?: string
+  accepted_image_at?: string
   status: 'confirmada' | 'cancelada' | 'pendente'
   created: string
   updated: string
@@ -225,6 +228,7 @@ export const userService = {
     bike_year: number
     pillion_name?: string
     pillion_phone?: string
+    accepted_privacy_at?: string
   }): Promise<UserProfile> {
     const passwordToUse = data.password
     if (!passwordToUse || passwordToUse.length < 6) {
@@ -236,6 +240,7 @@ export const userService = {
       passwordConfirm: passwordToUse,
       role: 'member',
       status: 'pendente',
+      accepted_privacy_at: data.accepted_privacy_at || new Date().toISOString(),
     })
     // Tenta autenticar após cadastro
     try {
@@ -323,9 +328,14 @@ export const registrationService = {
     emergency_contact_phone: string
     accepted_rules: boolean
     accepted_terms: boolean
+    accepted_terms_at?: string
+    accepted_image_at?: string
   }): Promise<Registration> {
+    const nowIso = new Date().toISOString()
     const record = await pb.collection('registrations').create({
       ...data,
+      accepted_terms_at: data.accepted_terms_at || nowIso,
+      accepted_image_at: data.accepted_image_at || nowIso,
       status: 'confirmada',
     })
     return record as unknown as Registration
