@@ -112,6 +112,30 @@ export function statusLabel(status: UserProfile['status']): string {
   return (STATUS_META[status] || STATUS_META.pendente).label
 }
 
+/** Formats a member's visual ID, e.g. "EMC-02458" */
+export function formatMemberId(user?: UserProfile | null): string {
+  if (!user) return 'EMC-00000'
+  if (user.member_id && user.member_id.trim()) {
+    return user.member_id.toUpperCase().startsWith('EMC-')
+      ? user.member_id.toUpperCase()
+      : `EMC-${user.member_id.toUpperCase()}`
+  }
+  // Deterministic numeric ID generated from PocketBase user id
+  let hash = 0
+  const idStr = user.id || '0000'
+  for (let i = 0; i < idStr.length; i++) {
+    hash = (hash * 31 + idStr.charCodeAt(i)) >>> 0
+  }
+  const numericCode = String((hash % 90000) + 10000).padStart(5, '0')
+  return `EMC-${numericCode}`
+}
+
+/** Returns the member category name with fallback to "Membro Premium" */
+export function getMemberCategory(user?: UserProfile | null): string {
+  if (!user) return 'Membro Premium'
+  return user.category && user.category.trim() ? user.category : 'Membro Premium'
+}
+
 /* ---------- Partner category helpers ---------- */
 
 export type PartnerCategory =

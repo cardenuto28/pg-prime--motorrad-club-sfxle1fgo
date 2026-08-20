@@ -8,6 +8,7 @@ import {
   Images,
   Megaphone,
   User,
+  CreditCard,
   LogOut,
   Menu,
   X,
@@ -26,6 +27,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/member/dashboard', label: 'Meu Club', icon: LayoutDashboard },
+  { to: '/member/card', label: 'Carteirinha Digital', icon: CreditCard },
   { to: '/member/passeios', label: 'Próximos Passeios', icon: Calendar },
   { to: '/member/inscricoes', label: 'Minhas Inscrições', icon: ClipboardList },
   { to: '/member/beneficios', label: 'Benefícios', icon: Gift },

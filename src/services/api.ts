@@ -19,6 +19,8 @@ export interface UserProfile {
   email: string
   name: string
   role: 'admin' | 'member'
+  category?: string
+  member_id?: string
   phone?: string
   cpf?: string
   city?: string
@@ -190,6 +192,15 @@ export const userService = {
   async getAllUsers(): Promise<UserProfile[]> {
     const records = await pb.collection('users').getFullList({ sort: '-created' })
     return records as unknown as UserProfile[]
+  },
+
+  async getUserById(id: string): Promise<UserProfile | null> {
+    try {
+      const record = await pb.collection('users').getOne(id)
+      return record as unknown as UserProfile
+    } catch {
+      return null
+    }
   },
 
   async updateUserStatus(id: string, status: UserProfile['status']): Promise<UserProfile> {

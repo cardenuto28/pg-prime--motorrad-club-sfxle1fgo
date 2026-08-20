@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-19T12:25:38.767Z",
+  "generatedAt": "2026-08-20T01:23:07.618Z",
   "collections": [
     {
       "name": "users",
@@ -99,6 +99,18 @@
           "required": false,
           "system": false,
           "selectValues": ["pendente", "ativo", "inativo", "bloqueado"]
+        },
+        {
+          "name": "category",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "member_id",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [

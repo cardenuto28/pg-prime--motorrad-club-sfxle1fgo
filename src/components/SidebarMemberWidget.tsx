@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react'
 import { useAuth } from '@/context/AuthContext'
 import { Registration, Ride, registrationService, rideService } from '@/services/api'
-import { Shield, ChevronRight, Calendar, MapPin, CheckCircle2 } from 'lucide-react'
+import { Shield, ChevronRight, Calendar, MapPin, CheckCircle2, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { formatMemberId, getMemberCategory } from '@/lib/member'
 
 export const SidebarMemberWidget: React.FC = () => {
   const { user } = useAuth()
@@ -76,9 +77,21 @@ export const SidebarMemberWidget: React.FC = () => {
               : 'bg-amber-900/60 text-amber-300 border border-amber-700/50'
           }`}
         >
-          {isPremium ? 'MEMBRO PREMIUM' : 'STATUS: PENDENTE'}
+          {isPremium ? getMemberCategory(user).toUpperCase() : 'STATUS: PENDENTE'}
         </span>
       </div>
+
+      {/* Carteirinha Digital Button */}
+      <Link to="/member/card" className="block">
+        <Button
+          variant="outline"
+          size="sm"
+          className="w-full bg-[#141d2d] hover:bg-blue-600 border-blue-500/40 hover:border-blue-500 text-white font-bold text-[10px] tracking-wider h-8 uppercase flex items-center justify-center gap-1.5 transition-all"
+        >
+          <CreditCard className="w-3.5 h-3.5 text-blue-400 group-hover:text-white" />
+          CARTEIRINHA DIGITAL ({formatMemberId(user)})
+        </Button>
+      </Link>
 
       {/* Próximo Passeio Section */}
       {nextRide && (

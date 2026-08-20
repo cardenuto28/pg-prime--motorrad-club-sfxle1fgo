@@ -455,6 +455,14 @@ export default function Index() {
                     </span>
                   </div>
 
+                  {/* Carteirinha Digital link */}
+                  <Link
+                    to="/member/card"
+                    className="block bg-[#121d30] hover:bg-blue-600 border border-blue-500/30 hover:border-blue-400 rounded-sm p-1.5 text-center text-white font-bold text-[8.5px] uppercase tracking-wider transition-colors font-montserrat shadow-sm"
+                  >
+                    VER CARTEIRINHA DIGITAL
+                  </Link>
+
                   {/* Moto do membro */}
                   {((user.bike_brand && user.bike_model) || user.bike_model) && (
                     <div className="bg-[#0e1728] border border-[#1c2e4d] rounded-sm p-1.5 flex items-center gap-1.5 text-[8.5px] text-slate-300">

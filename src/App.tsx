@@ -22,6 +22,8 @@ import MemberBeneficios from './pages/member/MemberBeneficios'
 import MemberGaleria from './pages/member/MemberGaleria'
 import MemberComunicados from './pages/member/MemberComunicados'
 import MemberPerfil from './pages/member/MemberPerfil'
+import MemberCard from './pages/member/MemberCard'
+import VerifyMember from './pages/VerifyMember'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminMembers from './pages/admin/AdminMembers'
 import AdminRides from './pages/admin/AdminRides'
@@ -59,7 +61,10 @@ const App = () => (
             <Route path="/passeios/:id" element={<RideDetail />} />
             <Route path="/galeria" element={<Galeria />} />
             <Route path="/contato" element={<Contato />} />
+            <Route path="/verificar/:id" element={<VerifyMember />} />
           </Route>
+          {/* Validação pública de carteirinha (sem autenticação) */}
+          <Route path="/verificar/:id" element={<VerifyMember />} />
           {/* Área do Membro (protegida) */}
           <Route
             path="/member"
@@ -74,6 +79,8 @@ const App = () => (
             <Route path="passeios" element={<MemberPasseios />} />
             <Route path="inscricoes" element={<MemberInscricoes />} />
             <Route path="beneficios" element={<MemberBeneficios />} />
+            <Route path="card" element={<MemberCard />} />
+            <Route path="carteirinha" element={<MemberCard />} />
             <Route path="galeria" element={<MemberGaleria />} />
             <Route path="comunicados" element={<MemberComunicados />} />
             <Route path="perfil" element={<MemberPerfil />} />

@@ -16,8 +16,12 @@ import {
   MapPin,
   Bike,
   Calendar,
+  Shield,
+  Crown,
+  ExternalLink,
 } from 'lucide-react'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
+import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -175,7 +179,8 @@ const AdminMembers: React.FC = () => {
             <thead>
               <tr className="border-b border-[#1c2538] bg-[#0a0d14]">
                 <Th>Nome</Th>
-                <Th>E-mail</Th>
+                <Th>Tipo / Nível</Th>
+                <Th>Categoria</Th>
                 <Th>Telefone</Th>
                 <Th>Cidade</Th>
                 <Th>Moto</Th>
@@ -186,7 +191,7 @@ const AdminMembers: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center">
+                  <td colSpan={8} className="py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -194,7 +199,7 @@ const AdminMembers: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={8} className="py-12 text-center text-xs text-slate-500">
                     Nenhum membro encontrado.
                   </td>
                 </tr>
@@ -209,10 +214,28 @@ const AdminMembers: React.FC = () => {
                         <div className="w-8 h-8 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-xs flex-shrink-0">
                           {u.name ? u.name.charAt(0).toUpperCase() : '?'}
                         </div>
-                        <span className="text-xs font-bold text-white">{u.name || '—'}</span>
+                        <div className="min-w-0">
+                          <span className="text-xs font-bold text-white block">
+                            {u.name || '—'}
+                          </span>
+                          <span className="text-[10px] text-slate-500 block">{u.email || '—'}</span>
+                        </div>
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{u.email || '—'}</td>
+                    <td className="px-4 py-3">
+                      {u.role === 'admin' ? (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-purple-950/80 text-purple-300 border border-purple-700/60 uppercase">
+                          <Shield className="w-3 h-3" /> Admin
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-blue-950/60 text-blue-300 border border-blue-700/40 uppercase">
+                          Membro
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-300 font-medium">
+                      {u.category || 'Membro Premium'}
+                    </td>
                     <td className="px-4 py-3 text-xs text-slate-400">{u.phone || '—'}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">{u.city || '—'}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">
@@ -223,6 +246,15 @@ const AdminMembers: React.FC = () => {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
+                        <Link
+                          to={`/verificar/${u.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          title="Verificar carteirinha pública"
+                          className="w-7 h-7 rounded-md flex items-center justify-center transition-colors text-slate-400 hover:text-white hover:bg-[#1b2536]"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </Link>
                         <ActionBtn
                           title="Editar cadastro"
                           onClick={() => setEditing(u)}
@@ -447,6 +479,9 @@ const EditMemberModal: React.FC<{
       setForm({
         name: user.name || '',
         email: user.email || '',
+        role: user.role || 'member',
+        category: user.category || 'Membro Premium',
+        member_id: user.member_id || '',
         phone: user.phone || '',
         cpf: user.cpf || '',
         city: user.city || '',
@@ -468,6 +503,9 @@ const EditMemberModal: React.FC<{
     try {
       const data: Partial<UserProfile> = {
         name: form.name,
+        role: form.role,
+        category: form.category || 'Membro Premium',
+        member_id: form.member_id,
         phone: form.phone,
         cpf: form.cpf,
         city: form.city,
@@ -546,7 +584,7 @@ const EditMemberModal: React.FC<{
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
-          <Field label="Status" icon={null}>
+          <Field label="Status de Cadastro" icon={null}>
             <Select
               value={(form.status as string) || 'pendente'}
               onValueChange={(v) => set('status', v)}
@@ -562,6 +600,52 @@ const EditMemberModal: React.FC<{
                 ))}
               </SelectContent>
             </Select>
+          </Field>
+
+          <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
+            <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest font-montserrat mb-3 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" /> Nível de Acesso e Carteirinha
+            </p>
+          </div>
+
+          <Field
+            label="Tipo de Usuário (Permissões)"
+            icon={<Shield className="w-3 h-3 text-purple-400" />}
+          >
+            <Select value={(form.role as string) || 'member'} onValueChange={(v) => set('role', v)}>
+              <SelectTrigger className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white">
+                <SelectItem value="member" className="text-xs">
+                  Membro (Área do Membro)
+                </SelectItem>
+                <SelectItem value="admin" className="text-xs font-bold text-purple-300">
+                  Administrador (Acesso Total ao Painel Admin)
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </Field>
+
+          <Field
+            label="Categoria na Carteirinha"
+            icon={<Crown className="w-3 h-3 text-amber-400" />}
+          >
+            <Input
+              value={(form.category as string) || ''}
+              onChange={(e) => set('category', e.target.value)}
+              placeholder="Ex.: Membro Premium, Membro VIP, Sócio Fundador"
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+
+          <Field label="ID Customizado (Opcional)" icon={null}>
+            <Input
+              value={(form.member_id as string) || ''}
+              onChange={(e) => set('member_id', e.target.value)}
+              placeholder="Ex.: EMC-02458 (deixe em branco para auto)"
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
           </Field>
 
           <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">

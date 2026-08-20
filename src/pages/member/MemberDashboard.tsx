@@ -25,9 +25,26 @@ import {
   announcementService,
 } from '@/services/api'
 import { Button } from '@/components/ui/button'
-import { StatusBadge, formatDate, isRidePast, coverFallback, resolveFileUrl } from '@/lib/member'
+import {
+  StatusBadge,
+  formatDate,
+  isRidePast,
+  coverFallback,
+  resolveFileUrl,
+  formatMemberId,
+  getMemberCategory,
+} from '@/lib/member'
 import pb from '@/lib/pocketbase/client'
-import { Gift, Store, Megaphone, AlertTriangle, AlertCircle, ChevronDown } from 'lucide-react'
+import {
+  Gift,
+  Store,
+  Megaphone,
+  AlertTriangle,
+  AlertCircle,
+  ChevronDown,
+  CreditCard,
+  QrCode,
+} from 'lucide-react'
 
 const MemberDashboard: React.FC = () => {
   const { user } = useAuth()
@@ -121,9 +138,48 @@ const MemberDashboard: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Link to="/member/card">
+              <Button
+                variant="outline"
+                size="sm"
+                className="border-blue-500/50 bg-blue-950/40 text-blue-300 hover:text-white hover:bg-blue-900/60 text-xs font-bold gap-1.5"
+              >
+                <CreditCard className="w-4 h-4" /> CARTEIRINHA DIGITAL
+              </Button>
+            </Link>
             <StatusBadge status={user?.status || 'pendente'} />
           </div>
         </div>
+      </section>
+
+      {/* Banner de Acesso Rápido à Carteirinha Digital */}
+      <section className="bg-gradient-to-r from-[#0d1524] via-[#09101d] to-[#0d1524] border border-blue-900/50 rounded-xl p-4 sm:p-5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-full bg-blue-600/10 blur-2xl pointer-events-none" />
+        <div className="flex items-center gap-4 relative z-10 min-w-0">
+          <div className="w-12 h-12 rounded-xl bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 flex-shrink-0 shadow-lg">
+            <QrCode className="w-6 h-6" />
+          </div>
+          <div className="space-y-0.5 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] font-black tracking-widest text-blue-400 uppercase font-montserrat">
+                IDENTIFICAÇÃO OFICIAL
+              </span>
+              <span className="text-[9px] text-slate-400 font-mono">{formatMemberId(user)}</span>
+            </div>
+            <h3 className="text-sm sm:text-base font-black text-white font-montserrat uppercase truncate">
+              Sua Carteirinha Digital de Membro está disponível
+            </h3>
+            <p className="text-xs text-slate-400 truncate">
+              Categoria: <strong className="text-slate-200">{getMemberCategory(user)}</strong> •
+              Validação via QR Code em tempo real
+            </p>
+          </div>
+        </div>
+        <Link to="/member/card" className="relative z-10 w-full sm:w-auto flex-shrink-0">
+          <Button className="w-full sm:w-auto bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wider uppercase font-montserrat px-5 shadow-lg shadow-blue-950/60 gap-1.5">
+            <CreditCard className="w-4 h-4" /> VER CARTEIRINHA <ChevronRight className="w-4 h-4" />
+          </Button>
+        </Link>
       </section>
 
       {/* Cards de resumo rápido */}
