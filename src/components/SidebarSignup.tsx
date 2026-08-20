@@ -18,6 +18,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
 import { userService } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
+import { extractFieldErrors } from '@/lib/pocketbase/errors'
 
 interface SidebarSignupProps {
   onSuccess?: () => void
@@ -78,11 +79,11 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
     }
 
     // Validação de senha definida pelo usuário.
-    if (formData.password.length < 6) {
-      setPasswordError('A senha deve ter no mínimo 6 caracteres.')
+    if (formData.password.length < 8) {
+      setPasswordError('A senha deve ter no mínimo 8 caracteres.')
       toast({
         title: 'Senha inválida',
-        description: 'A senha deve ter no mínimo 6 caracteres.',
+        description: 'A senha deve ter no mínimo 8 caracteres.',
         variant: 'destructive',
       })
       return
@@ -150,11 +151,48 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
       if (onSuccess) onSuccess()
     } catch (err: any) {
       console.error('Erro de cadastro:', err)
+
+      let errorMessage =
+        err?.message ||
+        'Ocorreu um erro ao enviar seu cadastro. Verifique se o e-mail já está em uso.'
+
+      // Tenta extrair mensagens detalhadas de erro de validação por campo do PocketBase
+      const fieldErrors = extractFieldErrors(err)
+      const fieldErrorEntries = Object.entries(fieldErrors)
+
+      if (fieldErrorEntries.length > 0) {
+        const fieldTranslations: Record<string, string> = {
+          email: 'E-mail',
+          password: 'Senha',
+          passwordConfirm: 'Confirmação de senha',
+          cpf: 'CPF',
+          phone: 'Telefone',
+          name: 'Nome',
+          city: 'Cidade',
+          bike_brand: 'Marca da moto',
+          bike_model: 'Modelo da moto',
+          bike_year: 'Ano da moto',
+        }
+        const detailedErrors = fieldErrorEntries.map(
+          ([field, msg]) => `${fieldTranslations[field] || field}: ${msg}`,
+        )
+        errorMessage = detailedErrors.join('\n')
+
+        if (fieldErrors.password || fieldErrors.passwordConfirm) {
+          setPasswordError(fieldErrors.password || fieldErrors.passwordConfirm)
+        }
+      } else if (err?.data?.data && typeof err.data.data === 'object') {
+        const rawErrors = Object.entries(err.data.data)
+          .map(([k, v]: [string, any]) => `${k}: ${v?.message || JSON.stringify(v)}`)
+          .filter(Boolean)
+        if (rawErrors.length > 0) {
+          errorMessage = rawErrors.join('\n')
+        }
+      }
+
       toast({
         title: 'Erro ao cadastrar',
-        description:
-          err?.message ||
-          'Ocorreu um erro ao enviar seu cadastro. Verifique se o e-mail já está em uso.',
+        description: errorMessage,
         variant: 'destructive',
       })
     } finally {
@@ -332,7 +370,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
           <Input
             type="password"
             name="password"
-            placeholder="Crie uma senha (mín. 6 caracteres)"
+            placeholder="Crie uma senha (mín. 8 caracteres)"
             value={formData.password}
             onChange={handleChange}
             required

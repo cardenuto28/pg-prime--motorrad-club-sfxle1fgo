@@ -244,8 +244,8 @@ export const userService = {
     accepted_image_at?: string
   }): Promise<UserProfile> {
     const passwordToUse = data.password
-    if (!passwordToUse || passwordToUse.length < 6) {
-      throw new Error('A senha deve ter no mínimo 6 caracteres.')
+    if (!passwordToUse || passwordToUse.length < 8) {
+      throw new Error('A senha deve ter no mínimo 8 caracteres.')
     }
     const nowIso = new Date().toISOString()
     const record = await pb.collection('users').create({
