@@ -1,8 +1,5 @@
-// Hook para validar check-in de visita na loja (store_visits)
-// Regras:
-// 1. O usuário precisa ser membro ativo (status = 'ativo' ou role = 'admin' ou categoria != 'INATIVO')
-// 2. Permitir apenas 1 check-in de loja por dia por membro (verificar se já existe visita hoje)
-
+// Hook para validar criação de registros em store_visits
+// Garante segurança caso alguém tente chamar diretamente a API do PocketBase sem o endpoint /api/club/store-checkin
 onRecordCreate((e) => {
   const record = e.record
   if (!record) {
@@ -14,6 +11,10 @@ onRecordCreate((e) => {
   if (!userId) {
     throw new BadRequestError('Membro não especificado.')
   }
+
+  // Se a requisição veio de um admin, permite criar visita normalmente
+  const authRecord = e.auth
+  const isAdmin = authRecord && authRecord.getString('role') === 'admin'
 
   // 1. Busca os dados do usuário para verificar status
   let userRecord
@@ -29,7 +30,7 @@ onRecordCreate((e) => {
   const categoria = userRecord.getString('categoria') || userRecord.getString('category') || ''
 
   // Validação de membro ativo
-  const isSuper = role === 'admin'
+  const isSuper = role === 'admin' || isAdmin
   const isStatusAtivo = status === 'ativo' || statusMembro === 'ATIVO' || statusMembro === 'ATENCAO'
   const isInactive =
     status === 'inativo' ||
@@ -49,7 +50,6 @@ onRecordCreate((e) => {
   }
 
   // 2. Validação de apenas 1 visita por dia
-  // Calcula o início do dia atual em UTC / formato ISO comparável
   const now = new Date()
   const year = now.getUTCFullYear()
   const month = String(now.getUTCMonth() + 1).padStart(2, '0')
@@ -76,7 +76,6 @@ onRecordCreate((e) => {
     if (err && err.message && err.message.includes('Você já fez check-in na loja hoje')) {
       throw err
     }
-    // Caso de erro de busca vazio, segue fluxo
   }
 
   // Preenche created_at se vazio

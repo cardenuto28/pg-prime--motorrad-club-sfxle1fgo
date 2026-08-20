@@ -1,18 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import {
   Store,
   CheckCircle2,
   AlertTriangle,
   Clock,
-  Sparkles,
   MapPin,
   Trophy,
   ArrowRight,
   User,
   Lock,
   Loader2,
-  Calendar,
+  QrCode,
+  ShieldAlert,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { storeVisitService, userService, UserProfile } from '@/services/api'
@@ -25,9 +25,11 @@ import { CategoryBadge } from '@/components/CategoryBadge'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 export const StoreCheckIn: React.FC = () => {
-  const { user, loading: authLoading, login, refreshUser } = useAuth()
+  const [searchParams] = useSearchParams()
+  const token = (searchParams.get('token') || '').trim()
+
+  const { user, loading: authLoading, login } = useAuth()
   const { toast } = useToast()
-  const navigate = useNavigate()
 
   // Login form state (if not logged in)
   const [email, setEmail] = useState('')
@@ -37,7 +39,7 @@ export const StoreCheckIn: React.FC = () => {
   // Check-in processing state
   const [processing, setProcessing] = useState(false)
   const [resultStatus, setResultStatus] = useState<
-    'idle' | 'success' | 'already_checked' | 'inactive' | 'pending' | 'error'
+    'idle' | 'success' | 'already_checked' | 'inactive' | 'pending' | 'invalid_token' | 'error'
   >('idle')
   const [resultMessage, setResultMessage] = useState<string>('')
   const [pointsData, setPointsData] = useState<{
@@ -56,6 +58,15 @@ export const StoreCheckIn: React.FC = () => {
 
   const performCheckIn = useCallback(
     async (currentUser: UserProfile) => {
+      // 1. Validação prévia de Token
+      if (!token) {
+        setResultStatus('invalid_token')
+        setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.')
+        const pts = await storeVisitService.getMemberPoints(currentUser.id)
+        setPointsData(pts)
+        return
+      }
+
       setProcessing(true)
       try {
         // Validação de status ativo
@@ -97,9 +108,9 @@ export const StoreCheckIn: React.FC = () => {
           return
         }
 
-        // Tenta registrar a visita via service (backend hook valida regra de 1 por dia)
+        // Tenta registrar a visita via endpoint com token diário
         try {
-          await storeVisitService.recordStoreVisit(currentUser.id)
+          await storeVisitService.performStoreCheckInWithToken(token)
           const pts = await storeVisitService.getMemberPoints(currentUser.id)
           setPointsData(pts)
           setResultStatus('success')
@@ -109,11 +120,24 @@ export const StoreCheckIn: React.FC = () => {
             description: '+10 pontos creditados na sua conta.',
           })
         } catch (err: any) {
-          const errMsg = err?.message || ''
+          const rawErr = err?.response?.data || err?.data || {}
+          const errMsg = rawErr.error || err?.message || ''
+          const errCode = rawErr.code || ''
           const pts = await storeVisitService.getMemberPoints(currentUser.id)
           setPointsData(pts)
 
           if (
+            errCode === 'TOKEN_INVALID' ||
+            errCode === 'TOKEN_MISSING' ||
+            errMsg.includes('QR Code inválido') ||
+            errMsg.includes('expirado')
+          ) {
+            setResultStatus('invalid_token')
+            setResultMessage(
+              'QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.',
+            )
+          } else if (
+            errCode === 'ALREADY_CHECKED' ||
             errMsg.includes('já fez check-in na loja hoje') ||
             errMsg.includes('já fez check-in')
           ) {
@@ -121,7 +145,13 @@ export const StoreCheckIn: React.FC = () => {
             setResultMessage(
               'Você já registrou seu check-in na loja hoje. É permitido 1 check-in de visita por dia.',
             )
+          } else if (errCode === 'MEMBER_PENDING' || errMsg.includes('ainda está em aprovação')) {
+            setResultStatus('pending')
+            setResultMessage(
+              'Seu cadastro ainda está em aprovação pela equipe Euro Motors. O check-in presencial é exclusivo para membros com cadastro aprovado.',
+            )
           } else if (
+            errCode === 'MEMBER_INACTIVE' ||
             errMsg.includes('exclusivo para membros ativos') ||
             errMsg.includes('não está ativo')
           ) {
@@ -139,15 +169,24 @@ export const StoreCheckIn: React.FC = () => {
         setProcessing(false)
       }
     },
-    [toast],
+    [token, toast],
   )
 
-  // Ao carregar ou após login bem sucedido, se usuário estiver logado, dispara check-in automaticamente
+  // Dispara automaticamente para usuário autenticado
   useEffect(() => {
     if (!authLoading && user && resultStatus === 'idle' && !processing) {
-      performCheckIn(user)
+      if (!token) {
+        setResultStatus('invalid_token')
+        setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.')
+        storeVisitService
+          .getMemberPoints(user.id)
+          .then(setPointsData)
+          .catch(() => {})
+      } else {
+        performCheckIn(user)
+      }
     }
-  }, [authLoading, user, resultStatus, processing, performCheckIn])
+  }, [authLoading, user, resultStatus, processing, performCheckIn, token])
 
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -231,55 +270,73 @@ export const StoreCheckIn: React.FC = () => {
               </p>
             </div>
 
-            <form onSubmit={handleLoginSubmit} className="space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-montserrat">
-                  E-mail
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="email"
-                    required
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="seu.email@exemplo.com"
-                    className="bg-[#141b27] border-[#222c3f] text-white text-xs h-10 pl-9 focus:border-blue-500"
-                  />
-                  <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+            {!token ? (
+              <div className="bg-red-950/40 border border-red-500/40 rounded-xl p-4 text-center space-y-3">
+                <div className="w-12 h-12 rounded-full bg-red-950/80 border border-red-500/50 flex items-center justify-center text-red-400 mx-auto">
+                  <ShieldAlert className="w-6 h-6" />
                 </div>
+                <h3 className="text-sm font-black text-white uppercase font-montserrat">
+                  QR Code Obrigatório
+                </h3>
+                <p className="text-xs text-red-300 leading-relaxed">
+                  QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.
+                </p>
+                <p className="text-[11px] text-slate-400">
+                  O check-in presencial só pode ser realizado através do QR Code físico localizado
+                  no balcão da concessionária.
+                </p>
               </div>
-
-              <div className="space-y-1.5">
-                <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-montserrat">
-                  Senha
-                </Label>
-                <div className="relative">
-                  <Input
-                    type="password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="bg-[#141b27] border-[#222c3f] text-white text-xs h-10 pl-9 focus:border-blue-500"
-                  />
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+            ) : (
+              <form onSubmit={handleLoginSubmit} className="space-y-4">
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-montserrat">
+                    E-mail
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="seu.email@exemplo.com"
+                      className="bg-[#141b27] border-[#222c3f] text-white text-xs h-10 pl-9 focus:border-blue-500"
+                    />
+                    <User className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  </div>
                 </div>
-              </div>
 
-              <Button
-                type="submit"
-                disabled={loginSubmitting}
-                className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider font-montserrat h-10 shadow-lg shadow-blue-950/60 mt-2"
-              >
-                {loginSubmitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" /> Entrando...
-                  </>
-                ) : (
-                  'Entrar e Registrar Visita'
-                )}
-              </Button>
-            </form>
+                <div className="space-y-1.5">
+                  <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-montserrat">
+                    Senha
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      type="password"
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="bg-[#141b27] border-[#222c3f] text-white text-xs h-10 pl-9 focus:border-blue-500"
+                    />
+                    <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-3" />
+                  </div>
+                </div>
+
+                <Button
+                  type="submit"
+                  disabled={loginSubmitting}
+                  className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs uppercase tracking-wider font-montserrat h-10 shadow-lg shadow-blue-950/60 mt-2"
+                >
+                  {loginSubmitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin mr-2" /> Entrando...
+                    </>
+                  ) : (
+                    'Entrar e Registrar Visita'
+                  )}
+                </Button>
+              </form>
+            )}
 
             <div className="pt-4 border-t border-[#1c2538] text-center space-y-2 text-xs text-slate-400">
               <p>
@@ -349,21 +406,22 @@ export const StoreCheckIn: React.FC = () => {
                 <AlertTriangle className="w-9 h-9" />
               </div>
             )}
-            {resultStatus === 'error' && (
+            {(resultStatus === 'error' || resultStatus === 'invalid_token') && (
               <div className="w-16 h-16 rounded-full bg-red-950/80 border border-red-500/50 flex items-center justify-center text-red-400 mx-auto shadow-lg shadow-red-950/40">
-                <AlertTriangle className="w-9 h-9" />
+                <ShieldAlert className="w-9 h-9" />
               </div>
             )}
 
             <div>
               <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400 font-montserrat">
-                <MapPin className="w-3 h-3 text-blue-400" /> Euro Motors São José do Rio Preto
+                <MapPin className="w-3 h-3 text-blue-400" /> Euro Motors Concessionária
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-white font-montserrat uppercase tracking-tight mt-1">
                 {resultStatus === 'success' && '✅ Visita Registrada!'}
                 {resultStatus === 'already_checked' && 'Check-in de Hoje Já Realizado'}
                 {resultStatus === 'pending' && 'Cadastro em Análise'}
                 {resultStatus === 'inactive' && 'Cadastro Inativo'}
+                {resultStatus === 'invalid_token' && 'QR Code Inválido'}
                 {resultStatus === 'error' && 'Não foi possível registrar'}
               </h1>
             </div>

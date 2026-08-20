@@ -36,6 +36,7 @@ interface SiteSettings {
   whatsapp_number: string
   eligibility_criteria: string
   admin_email: string
+  daily_token_secret: string
 }
 
 const EMPTY_SETTINGS: SiteSettings = {
@@ -53,6 +54,7 @@ const EMPTY_SETTINGS: SiteSettings = {
   whatsapp_number: '',
   eligibility_criteria: '',
   admin_email: '',
+  daily_token_secret: 'EUROMOTORS2026',
 }
 
 const AdminSettings: React.FC = () => {
@@ -100,6 +102,7 @@ const AdminSettings: React.FC = () => {
             whatsapp_number: rec?.whatsapp_number || '',
             eligibility_criteria: rec?.eligibility_criteria || '',
             admin_email: rec?.admin_email || '',
+            daily_token_secret: rec?.daily_token_secret || 'EUROMOTORS2026',
           }
         }
       }
@@ -132,6 +135,7 @@ const AdminSettings: React.FC = () => {
         whatsapp_number: form.whatsapp_number || '',
         eligibility_criteria: form.eligibility_criteria || '',
         admin_email: form.admin_email || '',
+        daily_token_secret: form.daily_token_secret || 'EUROMOTORS2026',
       }
 
       let ok = false
@@ -449,6 +453,33 @@ const AdminSettings: React.FC = () => {
             onChange={(e) => set('admin_email', e.target.value)}
             placeholder="motorradclub@euromotors.com.br"
             className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+          />
+        </Field>
+      </section>
+
+      {/* Segurança & Check-in Presencial (Token Diário) */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-4">
+        <div className="flex items-center gap-2 pb-3 border-b border-[#1c2538]">
+          <div className="w-8 h-8 rounded-md bg-blue-600/15 border border-blue-500/30 flex items-center justify-center text-blue-400">
+            <CheckCircle2 className="w-4 h-4" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold text-white font-montserrat tracking-wide uppercase">
+              Segurança do Check-in Presencial (QR Code Diário)
+            </h2>
+            <p className="text-[11px] text-slate-500">
+              Segredo fixo usado no cálculo HMAC-SHA256 do token diário de presença.
+            </p>
+          </div>
+        </div>
+
+        <Field label="Daily Token Secret (Chave Secreta)">
+          <Input
+            type="text"
+            value={form.daily_token_secret}
+            onChange={(e) => set('daily_token_secret', e.target.value)}
+            placeholder="EUROMOTORS2026"
+            className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-mono"
           />
         </Field>
       </section>

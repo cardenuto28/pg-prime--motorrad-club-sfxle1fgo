@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T15:28:43.604Z",
+  "generatedAt": "2026-08-20T18:21:04.788Z",
   "collections": [
     {
       "name": "users",
@@ -1027,6 +1027,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "daily_token_secret",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []

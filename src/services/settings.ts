@@ -15,6 +15,7 @@ export interface SiteSettings {
   whatsapp_number: string
   eligibility_criteria: string
   admin_email: string
+  daily_token_secret?: string
 }
 
 export const settingsService = {
@@ -34,7 +35,7 @@ export const settingsService = {
 
   /** Cria ou atualiza o documento único de configurações. */
   async saveSettings(data: Partial<SiteSettings>): Promise<SiteSettings> {
-    const payload = {
+    const payload: Record<string, any> = {
       key: data.key || 'site',
       club_name: data.club_name || '',
       slogan: data.slogan || '',
@@ -48,6 +49,9 @@ export const settingsService = {
       whatsapp_number: data.whatsapp_number || '',
       eligibility_criteria: data.eligibility_criteria || '',
       admin_email: data.admin_email || '',
+    }
+    if (data.daily_token_secret !== undefined) {
+      payload.daily_token_secret = data.daily_token_secret
     }
 
     // Se já temos o id, atualiza direto.

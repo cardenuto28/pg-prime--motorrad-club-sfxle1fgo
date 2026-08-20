@@ -1,26 +1,59 @@
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useState, useEffect, useCallback } from 'react'
 import {
   Printer,
   QrCode,
   Store,
-  ExternalLink,
   Copy,
-  Sparkles,
   ShieldCheck,
-  Download,
   Info,
+  Calendar,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { storeVisitService } from '@/services/api'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 import memberCardLogo from '@/assets/image-ae9a6.png'
 
 export const AdminStoreQrCode: React.FC = () => {
   const { toast } = useToast()
-  const [styleMode, setStyleMode] = useState<'dark' | 'print-clean'>('dark')
+  const [loading, setLoading] = useState(true)
+  const [dailyData, setDailyData] = useState<{
+    date: string
+    token: string
+    targetUrl: string
+  }>({
+    date: new Date().toISOString().split('T')[0],
+    token: '',
+    targetUrl: 'https://euromotorsclub.goskip.app/checkin-loja',
+  })
 
-  // URL exata especificada no briefing
-  const targetUrl = 'https://euromotorsclub.goskip.app/checkin-loja'
+  const loadDailyToken = useCallback(async () => {
+    setLoading(true)
+    try {
+      const data = await storeVisitService.getAdminDailyToken()
+      if (data && data.token) {
+        setDailyData(data)
+      }
+    } catch (err) {
+      console.error('Erro ao carregar token diário do admin:', err)
+      toast({
+        title: 'Erro ao obter token do dia',
+        description: 'Não foi possível buscar o token atualizado.',
+        variant: 'destructive',
+      })
+    } finally {
+      setLoading(false)
+    }
+  }, [toast])
+
+  useEffect(() => {
+    loadDailyToken()
+  }, [loadDailyToken])
+
+  const targetUrl =
+    dailyData.targetUrl || `https://euromotorsclub.goskip.app/checkin-loja?token=${dailyData.token}`
 
   // Geração do QR Code em alta resolução
   const qrCodeImageUrl = useMemo(() => {
@@ -63,6 +96,15 @@ export const AdminStoreQrCode: React.FC = () => {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button
+              onClick={loadDailyToken}
+              variant="outline"
+              size="sm"
+              disabled={loading}
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 font-montserrat font-bold"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} /> ATUALIZAR
+            </Button>
+            <Button
               onClick={handleCopyLink}
               variant="outline"
               size="sm"
@@ -85,15 +127,23 @@ export const AdminStoreQrCode: React.FC = () => {
         <Info className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
         <div className="space-y-1">
           <p className="font-bold text-white font-montserrat uppercase tracking-wider text-[11px]">
-            Dica para recepção e balcão:
+            Token Diário Anti-Fraude Ativo:
           </p>
           <p className="text-slate-400 text-[11px] leading-relaxed">
-            Imprima esta folha em tamanho A4 ou formato display de mesa. Ao escanear a placa com a
-            câmera do smartphone, o membro ativo é autenticado e pontua <strong>+10 pontos</strong>{' '}
-            automaticamente (limite de 1 check-in de loja por dia por membro).
+            O QR Code abaixo é gerado dinamicamente com o <strong>token único do dia</strong> (
+            {dailyData.date}). Ele muda automaticamente a cada 24 horas para garantir que apenas
+            pessoas que estejam fisicamente na loja consigam pontuar.
           </p>
-          <div className="pt-1 text-[11px] text-blue-400 font-mono flex items-center gap-1">
-            Destino do QR Code: <strong>{targetUrl}</strong>
+          <div className="pt-2 flex flex-wrap items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono text-[11px] font-bold">
+              <Calendar className="w-3.5 h-3.5" /> Data: {dailyData.date}
+            </span>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-mono text-[11px] font-bold">
+              Token: {dailyData.token || '...'}
+            </span>
+          </div>
+          <div className="pt-1.5 text-[11px] text-slate-400 font-mono break-all">
+            URL Completa: <strong className="text-blue-400">{targetUrl}</strong>
           </div>
         </div>
       </section>
@@ -174,15 +224,15 @@ export const AdminStoreQrCode: React.FC = () => {
                 Abra a câmera do seu celular, aponte para o QR Code e confirme sua presença na loja.
               </p>
             </div>
-
             {/* Rodapé com detalhes de benefícios */}
             <div className="pt-4 border-t border-[#1a2538] flex flex-col sm:flex-row items-center justify-between gap-2 text-[10px] text-slate-400 font-montserrat uppercase tracking-wider">
               <div className="flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-blue-400" />
                 <span>EXCLUSIVO PARA MEMBROS ATIVOS</span>
               </div>
+              <div className="text-blue-400 font-mono font-bold">VALIDADE: {dailyData.date}</div>
               <div className="text-blue-400 font-bold">1 CHECK-IN POR DIA</div>
-            </div>
+            </div>{' '}
           </div>
         </div>
       </div>

@@ -833,6 +833,30 @@ export const storeVisitService = {
     return record as unknown as StoreVisit
   },
 
+  async performStoreCheckInWithToken(token: string): Promise<{
+    success: boolean
+    pointsAwarded: number
+    visitId: string
+    message: string
+  }> {
+    const res = await pb.send('/api/club/store-checkin', {
+      method: 'POST',
+      body: { token },
+    })
+    return res
+  },
+
+  async getAdminDailyToken(): Promise<{
+    date: string
+    token: string
+    targetUrl: string
+  }> {
+    const res = await pb.send('/api/club/store-daily-token', {
+      method: 'GET',
+    })
+    return res
+  },
+
   async getMemberPoints(userId: string): Promise<{
     rideCheckins: number
     storeVisits: number

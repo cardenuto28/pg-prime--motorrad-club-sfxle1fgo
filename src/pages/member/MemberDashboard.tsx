@@ -298,24 +298,19 @@ const MemberDashboard: React.FC = () => {
           </div>
         </div>
 
-        {/* Link para Check-in de Loja */}
+        {/* Orientações sobre Check-in Presencial na Loja */}
         <div className="mt-4 pt-4 border-t border-[#182236] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400">
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              Está na concessionária Euro Motors? Escaneie a placa no balcão ou faça check-in pelo
-              link:
+              Está na concessionária Euro Motors? Aponte a câmera do celular para a{' '}
+              <strong>placa com QR Code</strong> no balcão da recepção para registrar sua presença e
+              ganhar +10 pontos.
             </span>
           </div>
-          <Link to="/checkin-loja">
-            <Button
-              size="sm"
-              variant="outline"
-              className="border-blue-500/50 bg-blue-950/40 text-blue-300 hover:text-white hover:bg-blue-900/60 text-xs font-bold gap-1.5 font-montserrat"
-            >
-              <Store className="w-3.5 h-3.5" /> FAZER CHECK-IN NA LOJA
-            </Button>
-          </Link>
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded bg-blue-950/60 border border-blue-600/40 text-blue-300 text-[10px] font-black uppercase tracking-wider font-montserrat shrink-0">
+            <QrCode className="w-3.5 h-3.5 text-blue-400" /> ESCANEIE NA LOJA
+          </span>
         </div>
       </section>
 
