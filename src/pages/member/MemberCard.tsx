@@ -274,8 +274,24 @@ export const MemberCard: React.FC = () => {
                     </p>
                   </div>
                 </div>
-              </div>
 
+                {/* 5. Chassi da Moto (se cadastrado) */}
+                {user?.bike_chassi && (
+                  <div className="flex items-start gap-2.5 sm:gap-3">
+                    <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
+                      <CreditCard className="w-4 h-4" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="block text-[8px] sm:text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat">
+                        CHASSI
+                      </span>
+                      <p className="text-xs sm:text-sm font-bold text-slate-200 tracking-wider font-mono">
+                        {user.bike_chassi}
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
               {/* Right Col: QR Code + Exclusive Tag (Col 3) */}
               <div className="col-span-12 sm:col-span-3 flex flex-col items-center justify-center space-y-2 border-t sm:border-t-0 sm:border-l border-[#1a2538] pt-3 sm:pt-0 sm:pl-4">
                 <span className="text-[8px] sm:text-[8.5px] font-black tracking-[0.15em] text-blue-400 uppercase font-montserrat text-center leading-tight">

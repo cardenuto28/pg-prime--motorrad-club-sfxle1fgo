@@ -21,7 +21,10 @@ import {
   Crown,
   Info,
   ExternalLink,
+  FileText,
+  Download,
 } from 'lucide-react'
+import { exportMembersPdf } from '@/lib/pdfExport'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
 import { Link } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -194,6 +197,27 @@ const AdminMembers: React.FC = () => {
               </span>
             </div>
             <Button
+              onClick={() => {
+                if (filtered.length === 0) {
+                  toast({
+                    title: 'Sem dados',
+                    description: 'Nenhum membro para exportar.',
+                    variant: 'destructive',
+                  })
+                  return
+                }
+                exportMembersPdf(filtered)
+                toast({
+                  title: 'PDF Gerado',
+                  description: 'Lista de membros exportada em PDF.',
+                })
+              }}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
+            >
+              <FileText className="w-4 h-4 text-blue-400" /> EXPORTAR PDF
+            </Button>
+            <Button
               onClick={() => setPromoteModalOpen(true)}
               className="bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs gap-1.5 h-9 rounded-sm shadow-md"
             >
@@ -241,6 +265,7 @@ const AdminMembers: React.FC = () => {
                 <Th>Telefone</Th>
                 <Th>Cidade</Th>
                 <Th>Moto</Th>
+                <Th>Chassi</Th>
                 <Th>Status</Th>
                 <Th className="text-right">Ações</Th>
               </tr>
@@ -248,7 +273,7 @@ const AdminMembers: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center">
+                  <td colSpan={9} className="py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -256,7 +281,7 @@ const AdminMembers: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={9} className="py-12 text-center text-xs text-slate-500">
                     Nenhum membro encontrado.
                   </td>
                 </tr>
@@ -297,6 +322,9 @@ const AdminMembers: React.FC = () => {
                     <td className="px-4 py-3 text-xs text-slate-400">{u.city || '—'}</td>
                     <td className="px-4 py-3 text-xs text-slate-400">
                       {[u.bike_brand, u.bike_model, u.bike_year].filter(Boolean).join(' ') || '—'}
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-300 font-mono">
+                      {u.bike_chassi || '—'}
                     </td>
                     <td className="px-4 py-3">
                       <StatusBadge status={u.status} />
@@ -607,17 +635,51 @@ const EditMemberModal: React.FC<{
         bike_brand: user.bike_brand || '',
         bike_model: user.bike_model || '',
         bike_year: user.bike_year || 0,
+        bike_chassi: user.bike_chassi || '',
         pillion_name: user.pillion_name || '',
         pillion_phone: user.pillion_phone || '',
         status: user.status,
       })
+      setChassiError('')
     }
   }, [user])
 
-  const set = (k: keyof UserProfile, v: string | number) => setForm((f) => ({ ...f, [k]: v }))
+  const [chassiError, setChassiError] = useState('')
+
+  const validateChassi = (chassi: string): boolean => {
+    if (!chassi || !chassi.trim()) return true
+    const pattern = /^[A-Za-z]-\d{6}$/
+    return pattern.test(chassi.trim())
+  }
+
+  const set = (k: keyof UserProfile, v: string | number) => {
+    if (k === 'bike_chassi' && typeof v === 'string') {
+      const upper = v.toUpperCase()
+      setForm((f) => ({ ...f, [k]: upper }))
+      if (upper.trim() && !validateChassi(upper)) {
+        setChassiError('Formato inválido. Use 1 letra + traço + 6 dígitos (Ex: F-123456)')
+      } else {
+        setChassiError('')
+      }
+    } else {
+      setForm((f) => ({ ...f, [k]: v }))
+    }
+  }
 
   const handleSave = async () => {
     if (!user) return
+
+    const chassiVal = (form.bike_chassi as string) || ''
+    if (chassiVal.trim() && !validateChassi(chassiVal)) {
+      setChassiError('Formato inválido. Use 1 letra + traço + 6 dígitos (Ex: F-123456)')
+      toast({
+        title: 'Chassi inválido',
+        description: 'O chassi deve seguir o formato 1 letra + traço + 6 dígitos (Ex: F-123456).',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setSaving(true)
     try {
       const data: Partial<UserProfile> = {
@@ -631,6 +693,7 @@ const EditMemberModal: React.FC<{
         bike_brand: form.bike_brand,
         bike_model: form.bike_model,
         bike_year: Number(form.bike_year) || 0,
+        bike_chassi: chassiVal.trim().toUpperCase() || '',
         pillion_name: form.pillion_name,
         pillion_phone: form.pillion_phone,
         status: form.status,
@@ -793,6 +856,15 @@ const EditMemberModal: React.FC<{
               onChange={(e) => set('bike_year', e.target.value)}
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
+          </Field>
+          <Field label="Chassi (última letra + 6 números)" icon={null}>
+            <Input
+              value={(form.bike_chassi as string) || ''}
+              onChange={(e) => set('bike_chassi', e.target.value)}
+              placeholder="Ex: F-123456"
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+            {chassiError && <p className="text-[10px] text-red-400 mt-1">{chassiError}</p>}
           </Field>
 
           <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">

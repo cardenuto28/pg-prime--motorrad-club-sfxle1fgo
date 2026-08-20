@@ -7,6 +7,9 @@ import {
   ClipboardList,
   Download,
   CalendarRange,
+  Trophy,
+  BarChart3,
+  FileText,
 } from 'lucide-react'
 import {
   UserProfile,
@@ -21,6 +24,7 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/member'
 import { RideStatusBadge } from '@/lib/ride'
+import { exportActiveRankingPdf } from '@/lib/pdfExport'
 
 const AdminReports: React.FC = () => {
   const { toast } = useToast()
@@ -138,6 +142,114 @@ const AdminReports: React.FC = () => {
       .map(([bike, count]) => ({ bike, count }))
       .sort((a, b) => b.count - a.count)
   }, [filteredUsers])
+
+  // Ranking de Membros Mais Ativos (Top 10 ou mais)
+  const activeRanking = useMemo(() => {
+    const ridesMap = new Map<string, Ride>()
+    rides.forEach((r) => ridesMap.set(r.id, r))
+
+    const map = new Map<
+      string,
+      {
+        user: UserProfile
+        totalRegistered: number
+        totalAttended: number
+        lastRideName: string
+        lastRideDate: string
+      }
+    >()
+
+    users.forEach((u) => {
+      map.set(u.id, {
+        user: u,
+        totalRegistered: 0,
+        totalAttended: 0,
+        lastRideName: '—',
+        lastRideDate: '',
+      })
+    })
+
+    registrations.forEach((reg) => {
+      if (reg.user && map.has(reg.user) && reg.status === 'confirmada') {
+        const item = map.get(reg.user)!
+        item.totalRegistered += 1
+        if (reg.checked_in) {
+          item.totalAttended += 1
+          const rideObj = ridesMap.get(reg.ride)
+          if (rideObj) {
+            const rideTs = new Date(rideObj.date).getTime() || 0
+            const currentLastTs = item.lastRideDate ? new Date(item.lastRideDate).getTime() || 0 : 0
+            if (rideTs >= currentLastTs) {
+              item.lastRideName = rideObj.name
+              item.lastRideDate = rideObj.date
+            }
+          }
+        }
+      }
+    })
+
+    return Array.from(map.values())
+      .filter((m) => m.totalRegistered > 0 || m.totalAttended > 0)
+      .map((m) => {
+        const rate =
+          m.totalRegistered > 0 ? Math.round((m.totalAttended / m.totalRegistered) * 100) : 0
+        return {
+          ...m,
+          rate,
+          bikeLabel: [m.user.bike_brand, m.user.bike_model].filter(Boolean).join(' ') || '—',
+        }
+      })
+      .sort((a, b) => {
+        if (b.totalAttended !== a.totalAttended) {
+          return b.totalAttended - a.totalAttended
+        }
+        return b.rate - a.rate
+      })
+  }, [users, registrations, rides])
+
+  // Frequência mensal nos últimos 12 meses
+  const monthlyFrequency = useMemo(() => {
+    const months: { key: string; label: string; count: number; riders: number }[] = []
+    const now = new Date()
+
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthKey = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const label = d.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+      months.push({ key: monthKey, label: label.toUpperCase(), count: 0, riders: 0 })
+    }
+
+    const monthMap = new Map<string, { count: number; riders: number }>()
+    months.forEach((m) => monthMap.set(m.key, { count: 0, riders: 0 }))
+
+    // Count rides in month
+    rides.forEach((r) => {
+      if (!r.date) return
+      const d = new Date(r.date)
+      if (isNaN(d.getTime())) return
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      if (monthMap.has(key)) {
+        monthMap.get(key)!.count += 1
+      }
+    })
+
+    // Count confirmed check-ins or registrations
+    registrations.forEach((reg) => {
+      if (!reg.created || reg.status !== 'confirmada') return
+      const d = new Date(reg.created)
+      if (isNaN(d.getTime())) return
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      if (monthMap.has(key)) {
+        monthMap.get(key)!.riders += 1
+      }
+    })
+
+    return months.map((m) => ({
+      ...m,
+      count: monthMap.get(m.key)?.count || 0,
+      riders: monthMap.get(m.key)?.riders || 0,
+    }))
+  }, [rides, registrations])
 
   // Rides with registrations
   const ridesWithRegs = useMemo(() => {
@@ -272,6 +384,156 @@ const AdminReports: React.FC = () => {
             />
           </section>
 
+          {/* 🏆 RANKING DE MEMBROS MAIS ATIVOS */}
+          <ReportTable
+            title="🏆 Ranking de Membros Mais Ativos"
+            headers={[
+              'Posição',
+              'Membro',
+              'Moto',
+              'Total Comparecido',
+              'Taxa Presença',
+              'Último Passeio',
+            ]}
+            onExportPdf={() => {
+              if (activeRanking.length === 0) {
+                toast({
+                  title: 'Sem dados',
+                  description: 'Não há dados de ranking para exportar.',
+                  variant: 'destructive',
+                })
+                return
+              }
+              exportActiveRankingPdf(activeRanking)
+              toast({
+                title: 'PDF Gerado',
+                description: 'Ranking de membros mais ativos exportado em PDF.',
+              })
+            }}
+            onExport={() =>
+              exportCsv(
+                [
+                  [
+                    'Posição',
+                    'Nome',
+                    'Email',
+                    'Moto',
+                    'Total Comparecido',
+                    'Total Inscrito',
+                    'Taxa Comparecimento (%)',
+                    'Último Passeio',
+                    'Data Último Passeio',
+                  ],
+                  ...activeRanking.map((item, idx) => [
+                    idx + 1,
+                    item.user.name,
+                    item.user.email,
+                    item.bikeLabel,
+                    item.totalAttended,
+                    item.totalRegistered,
+                    `${item.rate}%`,
+                    item.lastRideName,
+                    item.lastRideDate ? formatDate(item.lastRideDate) : '—',
+                  ]),
+                ],
+                'ranking-membros-mais-ativos.csv',
+              )
+            }
+          >
+            {' '}
+            {activeRanking.length === 0 ? (
+              <EmptyRow colSpan={6} />
+            ) : (
+              activeRanking.map((item, idx) => {
+                const medals = ['🥇 1º', '🥈 2º', '🥉 3º']
+                const posLabel = idx < 3 ? medals[idx] : `${idx + 1}º`
+                return (
+                  <tr
+                    key={item.user.id}
+                    className={`border-b border-[#161e2c] last:border-0 hover:bg-[#11172250] ${
+                      idx === 0 ? 'bg-amber-950/15' : ''
+                    }`}
+                  >
+                    <td className="px-4 py-3 text-xs font-bold text-white font-mono">{posLabel}</td>
+                    <td className="px-4 py-3">
+                      <span className="text-xs font-bold text-white block">{item.user.name}</span>
+                      <span className="text-[10px] text-slate-500 block">{item.user.email}</span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-300">{item.bikeLabel}</td>
+                    <td className="px-4 py-3 text-xs text-emerald-400 font-bold font-mono">
+                      {item.totalAttended} passeios ({item.totalRegistered} inscritos)
+                    </td>
+                    <td className="px-4 py-3 text-xs">
+                      <span
+                        className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] ${
+                          item.rate >= 80
+                            ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/60'
+                            : item.rate >= 50
+                              ? 'bg-blue-950/80 text-blue-300 border border-blue-700/60'
+                              : 'bg-slate-800 text-slate-400'
+                        }`}
+                      >
+                        {item.rate}%
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-xs text-slate-400">
+                      <span className="block text-slate-300 font-medium truncate max-w-xs">
+                        {item.lastRideName}
+                      </span>
+                      {item.lastRideDate && (
+                        <span className="text-[10px] text-slate-500 font-mono">
+                          {formatDate(item.lastRideDate)}
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                )
+              })
+            )}
+          </ReportTable>
+
+          {/* 📊 FREQUÊNCIA MENSAL (ÚLTIMOS 12 MESES) */}
+          <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-blue-500" />
+                <h2 className="text-xs font-extrabold text-white uppercase tracking-widest font-montserrat">
+                  Frequência Mensal de Passeios (Últimos 12 meses)
+                </h2>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() =>
+                  exportCsv(
+                    [
+                      ['Mês', 'Passeios Realizados', 'Total Inscrições'],
+                      ...monthlyFrequency.map((m) => [m.label, m.count, m.riders]),
+                    ],
+                    'frequencia-mensal-passeios.csv',
+                  )
+                }
+                className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-[11px] h-8 gap-1.5"
+              >
+                <Download className="w-3.5 h-3.5" /> CSV
+              </Button>
+            </div>
+
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+              {monthlyFrequency.map((m) => (
+                <div
+                  key={m.key}
+                  className="bg-[#0a0d14] border border-[#1c2538] rounded-md p-3 text-center space-y-1 hover:border-blue-600/40 transition-colors"
+                >
+                  <span className="text-[10px] font-bold text-slate-400 tracking-wider block font-montserrat">
+                    {m.label}
+                  </span>
+                  <p className="text-xl font-black text-white font-mono">{m.count}</p>
+                  <span className="text-[9px] text-slate-500 block">{m.riders} inscrições</span>
+                </div>
+              ))}
+            </div>
+          </section>
           {/* Members by city */}
           <ReportTable
             title="Membros por cidade"
@@ -398,22 +660,35 @@ const ReportTable: React.FC<{
   title: string
   headers: string[]
   onExport: () => void
+  onExportPdf?: () => void
   children: React.ReactNode
-}> = ({ title, headers, onExport, children }) => (
+}> = ({ title, headers, onExport, onExportPdf, children }) => (
   <section className="bg-[#0e131d] border border-[#1c2538] rounded-md overflow-hidden">
     <div className="flex items-center justify-between px-4 py-3 border-b border-[#1c2538]">
       <h2 className="text-xs font-extrabold text-white uppercase tracking-widest font-montserrat">
         {title}
       </h2>
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={onExport}
-        className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-[11px] h-8 gap-1.5"
-      >
-        <Download className="w-3.5 h-3.5" /> CSV
-      </Button>
-    </div>
+      <div className="flex items-center gap-1.5">
+        {onExportPdf && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportPdf}
+            className="border-[#222c3f] bg-[#101622] text-blue-300 hover:text-white text-[11px] h-8 gap-1.5"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" /> PDF
+          </Button>
+        )}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onExport}
+          className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-[11px] h-8 gap-1.5"
+        >
+          <Download className="w-3.5 h-3.5" /> CSV
+        </Button>
+      </div>
+    </div>{' '}
     <div className="overflow-x-auto">
       <table className="w-full text-left">
         <thead>

@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T02:40:05.577Z",
+  "generatedAt": "2026-08-20T12:16:53.388Z",
   "collections": [
     {
       "name": "users",
@@ -121,6 +121,12 @@
         {
           "name": "accepted_image_at",
           "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "bike_chassi",
+          "type": "text",
           "required": false,
           "system": false
         }
@@ -456,6 +462,31 @@
         {
           "name": "accepted_privacy_at",
           "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "checked_in",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "checked_in_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "payment_status",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["pendente", "pago"]
+        },
+        {
+          "name": "payment_notes",
+          "type": "text",
           "required": false,
           "system": false
         }

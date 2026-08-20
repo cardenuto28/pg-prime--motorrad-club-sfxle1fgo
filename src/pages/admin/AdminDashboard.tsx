@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   ChevronRight,
   MapPin,
+  Trophy,
+  Medal,
 } from 'lucide-react'
 import {
   UserProfile,
@@ -121,6 +123,54 @@ const AdminDashboard: React.FC = () => {
 
     const ridesDone = rides.filter((r) => r.status === 'realizado' || isRidePast(r.date)).length
 
+    // Top 5 active members ranking (by checked_in rides count)
+    const membersMap = new Map<
+      string,
+      {
+        user: UserProfile
+        attendedCount: number
+        lastRideName: string
+        lastRideDate: string
+      }
+    >()
+
+    // Prepopulate registered member users
+    users.forEach((u) => {
+      membersMap.set(u.id, {
+        user: u,
+        attendedCount: 0,
+        lastRideName: '—',
+        lastRideDate: '',
+      })
+    })
+
+    // Map rides for fast lookup
+    const ridesMap = new Map<string, Ride>()
+    rides.forEach((r) => ridesMap.set(r.id, r))
+
+    regs.forEach((r) => {
+      if (r.user && membersMap.has(r.user)) {
+        const item = membersMap.get(r.user)!
+        if (r.checked_in) {
+          item.attendedCount += 1
+          const rideObj = ridesMap.get(r.ride)
+          if (rideObj) {
+            const rideTs = new Date(rideObj.date).getTime() || 0
+            const currentLastTs = item.lastRideDate ? new Date(item.lastRideDate).getTime() || 0 : 0
+            if (rideTs >= currentLastTs) {
+              item.lastRideName = rideObj.name
+              item.lastRideDate = rideObj.date
+            }
+          }
+        }
+      }
+    })
+
+    const topActiveMembers = Array.from(membersMap.values())
+      .filter((m) => m.attendedCount > 0)
+      .sort((a, b) => b.attendedCount - a.attendedCount)
+      .slice(0, 5)
+
     return {
       totalMembers,
       newMembers,
@@ -131,6 +181,7 @@ const AdminDashboard: React.FC = () => {
       nextRideAvailable,
       ridesDone,
       upcomingRides,
+      topActiveMembers,
     }
   }, [users, rides, regs])
 
@@ -236,6 +287,90 @@ const AdminDashboard: React.FC = () => {
           </div>
         ) : (
           <p className="text-xs text-slate-500">Nenhum passeio agendado no momento.</p>
+        )}
+      </section>
+
+      {/* 🏆 MEMBROS MAIS ATIVOS - TOP 5 */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Trophy className="w-5 h-5 text-amber-400" />
+            <h2 className="text-xs font-bold text-slate-300 font-montserrat tracking-widest uppercase">
+              🏆 Membros Mais Ativos (Top 5)
+            </h2>
+          </div>
+          <Link
+            to="/admin/reports"
+            className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+          >
+            VER RANKING COMPLETO <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        {stats.topActiveMembers.length === 0 ? (
+          <div className="bg-[#0a0d14] border border-dashed border-[#1c2538] rounded-md p-6 text-center">
+            <p className="text-xs text-slate-500">
+              Nenhum check-in confirmado em passeios ainda. Os dados aparecerão conforme os
+              check-ins forem realizados.
+            </p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+            {stats.topActiveMembers.map((item, idx) => {
+              const medals = ['🥇', '🥈', '🥉', '4º', '5º']
+              const bikeLabel =
+                [item.user.bike_brand, item.user.bike_model].filter(Boolean).join(' ') ||
+                'Moto não inf.'
+
+              return (
+                <div
+                  key={item.user.id}
+                  className={`p-3.5 rounded-md border flex flex-col justify-between space-y-3 transition-all ${
+                    idx === 0
+                      ? 'bg-amber-950/20 border-amber-500/50 hover:border-amber-400'
+                      : idx === 1
+                        ? 'bg-slate-800/30 border-slate-600/50 hover:border-slate-400'
+                        : idx === 2
+                          ? 'bg-amber-900/15 border-amber-700/40 hover:border-amber-500'
+                          : 'bg-[#0a0d14] border-[#1c2538] hover:border-blue-500/40'
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <span className="text-xl leading-none font-bold">{medals[idx]}</span>
+                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-800/50 font-mono">
+                      {item.attendedCount} {item.attendedCount === 1 ? 'passeio' : 'passeios'}
+                    </span>
+                  </div>
+
+                  <div>
+                    <h3
+                      className="text-xs font-bold text-white font-montserrat truncate"
+                      title={item.user.name}
+                    >
+                      {item.user.name}
+                    </h3>
+                    <p className="text-[10px] text-slate-400 truncate mt-0.5" title={bikeLabel}>
+                      🏍️ {bikeLabel}
+                    </p>
+                  </div>
+
+                  <div className="pt-2 border-t border-[#1c2538] text-[9px] text-slate-500">
+                    <span
+                      className="block text-slate-400 font-medium truncate"
+                      title={item.lastRideName}
+                    >
+                      Último: {item.lastRideName}
+                    </span>
+                    {item.lastRideDate && (
+                      <span className="font-mono text-slate-500">
+                        {formatDate(item.lastRideDate)}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
         )}
       </section>
 

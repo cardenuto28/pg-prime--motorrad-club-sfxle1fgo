@@ -27,6 +27,7 @@ export interface UserProfile {
   bike_brand?: string
   bike_model?: string
   bike_year?: number
+  bike_chassi?: string
   pillion_name?: string
   pillion_phone?: string
   status: 'pendente' | 'ativo' | 'inativo' | 'bloqueado'
@@ -96,6 +97,10 @@ export interface Registration {
   guest_bike_model?: string
   guest_bike_year?: number
   accepted_privacy_at?: string
+  checked_in?: boolean
+  checked_in_at?: string
+  payment_status?: 'pendente' | 'pago'
+  payment_notes?: string
   status: 'confirmada' | 'cancelada' | 'pendente'
   created: string
   updated: string
@@ -238,6 +243,7 @@ export const userService = {
     bike_brand: string
     bike_model: string
     bike_year: number
+    bike_chassi?: string
     pillion_name?: string
     pillion_phone?: string
     accepted_privacy_at?: string
@@ -397,10 +403,70 @@ export const registrationService = {
 
   async updateRegistrationStatus(
     id: string,
-    status: 'confirmada' | 'cancelada',
+    status: 'confirmada' | 'cancelada' | 'pendente',
   ): Promise<Registration> {
     const updated = await pb.collection('registrations').update(id, { status })
     return updated as unknown as Registration
+  },
+
+  async updateRegistration(id: string, data: Partial<Registration>): Promise<Registration> {
+    const updated = await pb.collection('registrations').update(id, data)
+    return updated as unknown as Registration
+  },
+
+  async checkInMember(
+    rideId: string,
+    userId: string,
+  ): Promise<{
+    success: boolean
+    message: string
+    registration?: Registration
+    memberName?: string
+  }> {
+    try {
+      // Find registration for this user and ride
+      const records = await pb.collection('registrations').getFullList({
+        filter: `ride='${rideId}' && user='${userId}'`,
+        expand: 'user',
+      })
+
+      if (!records || records.length === 0) {
+        return {
+          success: false,
+          message: 'Membro não inscrito neste passeio',
+        }
+      }
+
+      const reg = records[0] as unknown as Registration
+      const memberName = reg.expand?.user?.name || 'Membro'
+
+      if (reg.checked_in) {
+        return {
+          success: true,
+          message: `${memberName} — Check-in já havia sido realizado!`,
+          registration: reg,
+          memberName,
+        }
+      }
+
+      const nowIso = new Date().toISOString()
+      const updated = await pb.collection('registrations').update(reg.id, {
+        checked_in: true,
+        checked_in_at: nowIso,
+      })
+
+      return {
+        success: true,
+        message: `${memberName} — PRESENÇA CONFIRMADA`,
+        registration: { ...reg, ...updated, expand: reg.expand },
+        memberName,
+      }
+    } catch (err: any) {
+      return {
+        success: false,
+        message: err?.message || 'Erro ao processar check-in',
+      }
+    }
   },
 }
 

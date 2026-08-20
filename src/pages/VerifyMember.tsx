@@ -243,15 +243,22 @@ export const VerifyMember: React.FC = () => {
                 {((member.bike_brand && member.bike_model) || member.bike_model) && (
                   <div className="sm:col-span-2 bg-[#0f1422] border border-[#202c42] rounded-lg p-3 flex items-start gap-3">
                     <Bike className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
-                    <div>
+                    <div className="flex-1">
                       <span className="block text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat">
                         MOTOCICLETA REGISTRADA
                       </span>
-                      <span className="text-xs font-bold text-white uppercase font-montserrat">
-                        {[member.bike_brand, member.bike_model, member.bike_year]
-                          .filter(Boolean)
-                          .join(' ')}
-                      </span>
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="text-xs font-bold text-white uppercase font-montserrat">
+                          {[member.bike_brand, member.bike_model, member.bike_year]
+                            .filter(Boolean)
+                            .join(' ')}
+                        </span>
+                        {member.bike_chassi && (
+                          <span className="text-[11px] text-blue-300 font-mono bg-blue-950/60 px-2 py-0.5 rounded border border-blue-800/40">
+                            Chassi: {member.bike_chassi}
+                          </span>
+                        )}
+                      </div>
                     </div>
                   </div>
                 )}

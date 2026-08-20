@@ -36,6 +36,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
     bike_brand: '',
     bike_model: '',
     bike_year: '',
+    bike_chassi: '',
     password: '',
     passwordConfirm: '',
   })
@@ -48,9 +49,28 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
   const [imageError, setImageError] = useState(false)
   const [privacyError, setPrivacyError] = useState(false)
 
+  const [chassiError, setChassiError] = useState('')
+
+  const validateChassi = (chassi: string): boolean => {
+    if (!chassi || !chassi.trim()) return true
+    // Formato: 1 letra + traço + 6 números (ex: F-123456 ou f-123456)
+    const pattern = /^[A-Za-z]-\d{6}$/
+    return pattern.test(chassi.trim())
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setFormData((prev) => ({ ...prev, [name]: value }))
+    if (name === 'bike_chassi') {
+      // Auto formata ou salva em maiúsculo
+      setFormData((prev) => ({ ...prev, [name]: value.toUpperCase() }))
+      if (value.trim() && !validateChassi(value.toUpperCase())) {
+        setChassiError('Formato inválido. Use 1 letra + traço + 6 dígitos (Ex: F-123456)')
+      } else {
+        setChassiError('')
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }))
+    }
     // Limpa o erro de senha quando o usuário edita os campos de senha.
     if (name === 'password' || name === 'passwordConfirm') {
       setPasswordError('')
@@ -77,6 +97,18 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
       })
       return
     }
+
+    // Validação de chassi se preenchido
+    if (formData.bike_chassi.trim() && !validateChassi(formData.bike_chassi)) {
+      setChassiError('Formato inválido. Use 1 letra + traço + 6 dígitos (Ex: F-123456)')
+      toast({
+        title: 'Chassi inválido',
+        description: 'O chassi deve seguir o formato 1 letra + traço + 6 dígitos (Ex: F-123456).',
+        variant: 'destructive',
+      })
+      return
+    }
+    setChassiError('')
 
     // Validação de senha definida pelo usuário.
     if (formData.password.length < 8) {
@@ -136,6 +168,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         bike_brand: formData.bike_brand.trim(),
         bike_model: formData.bike_model.trim(),
         bike_year: parseInt(formData.bike_year, 10) || new Date().getFullYear(),
+        bike_chassi: formData.bike_chassi.trim().toUpperCase() || undefined,
         password: formData.password,
         accepted_privacy_at: new Date().toISOString(),
         accepted_image_at: new Date().toISOString(),
@@ -234,6 +267,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
               bike_brand: '',
               bike_model: '',
               bike_year: '',
+              bike_chassi: '',
               password: '',
               passwordConfirm: '',
             })
@@ -363,6 +397,25 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
             className="bg-[#141a26] border-[#202a3d] focus:border-blue-500 text-white placeholder:text-slate-500 text-xs h-10 pr-9 rounded-sm"
           />
           <Calendar className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+        </div>
+
+        {/* Chassi */}
+        <div className="space-y-1">
+          <div className="relative">
+            <Input
+              name="bike_chassi"
+              placeholder="Chassi (última letra + últimos 6 números do chassi) — Ex: F-123456"
+              value={formData.bike_chassi}
+              onChange={handleChange}
+              className={`bg-[#141a26] ${
+                chassiError
+                  ? 'border-red-500/70 focus:border-red-500'
+                  : 'border-[#202a3d] focus:border-blue-500'
+              } text-white placeholder:text-slate-500 text-xs h-10 pr-9 rounded-sm`}
+            />
+            <CreditCard className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
+          </div>
+          {chassiError && <p className="text-[10px] text-red-400">{chassiError}</p>}
         </div>
 
         {/* Crie uma senha */}

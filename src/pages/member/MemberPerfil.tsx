@@ -30,6 +30,7 @@ interface ProfileForm {
   bike_brand: string
   bike_model: string
   bike_year: string
+  bike_chassi: string
   pillion_name: string
   pillion_phone: string
 }
@@ -51,6 +52,7 @@ const MemberPerfil: React.FC = () => {
       bike_brand: '',
       bike_model: '',
       bike_year: '',
+      bike_chassi: '',
       pillion_name: '',
       pillion_phone: '',
     }
@@ -67,15 +69,34 @@ const MemberPerfil: React.FC = () => {
         bike_brand: user.bike_brand || '',
         bike_model: user.bike_model || '',
         bike_year: user.bike_year ? String(user.bike_year) : '',
+        bike_chassi: user.bike_chassi || '',
         pillion_name: user.pillion_name || '',
         pillion_phone: user.pillion_phone || '',
       })
     }
   }, [user])
 
+  const [chassiError, setChassiError] = useState('')
+
+  const validateChassi = (chassi: string): boolean => {
+    if (!chassi || !chassi.trim()) return true
+    const pattern = /^[A-Za-z]-\d{6}$/
+    return pattern.test(chassi.trim())
+  }
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    if (name === 'bike_chassi') {
+      const upper = value.toUpperCase()
+      setForm((prev) => ({ ...prev, [name]: upper }))
+      if (upper.trim() && !validateChassi(upper)) {
+        setChassiError('Formato inválido. Use 1 letra + traço + 6 dígitos (Ex: F-123456)')
+      } else {
+        setChassiError('')
+      }
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   const handleSave = async (e: React.FormEvent) => {
@@ -86,6 +107,16 @@ const MemberPerfil: React.FC = () => {
       toast({
         title: 'Campos obrigatórios',
         description: 'Nome e e-mail são obrigatórios.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    if (form.bike_chassi.trim() && !validateChassi(form.bike_chassi)) {
+      setChassiError('Formato inválido. Use 1 letra + traço + 6 dígitos (Ex: F-123456)')
+      toast({
+        title: 'Chassi inválido',
+        description: 'O chassi deve seguir o formato 1 letra + traço + 6 dígitos (Ex: F-123456).',
         variant: 'destructive',
       })
       return
@@ -102,6 +133,7 @@ const MemberPerfil: React.FC = () => {
         bike_brand: form.bike_brand.trim(),
         bike_model: form.bike_model.trim(),
         bike_year: form.bike_year ? parseInt(form.bike_year, 10) : null,
+        bike_chassi: form.bike_chassi.trim().toUpperCase() || '',
         pillion_name: form.pillion_name.trim(),
         pillion_phone: form.pillion_phone.trim(),
       }
@@ -136,10 +168,12 @@ const MemberPerfil: React.FC = () => {
         bike_brand: user.bike_brand || '',
         bike_model: user.bike_model || '',
         bike_year: user.bike_year ? String(user.bike_year) : '',
+        bike_chassi: user.bike_chassi || '',
         pillion_name: user.pillion_name || '',
         pillion_phone: user.pillion_phone || '',
       })
     }
+    setChassiError('')
     setEditing(false)
   }
 
@@ -246,6 +280,17 @@ const MemberPerfil: React.FC = () => {
               value={form.bike_year}
               onChange={handleChange}
             />
+            <div className="space-y-1.5">
+              <Field
+                label="Chassi (última letra + últimos 6 números do chassi)"
+                name="bike_chassi"
+                placeholder="Ex: F-123456"
+                icon={CreditCard}
+                value={form.bike_chassi}
+                onChange={handleChange}
+              />
+              {chassiError && <p className="text-[10px] text-red-400">{chassiError}</p>}
+            </div>
           </ProfileSection>
 
           <ProfileSection title="Garupa">
@@ -301,6 +346,7 @@ const MemberPerfil: React.FC = () => {
               value={user.bike_year ? String(user.bike_year) : ''}
               icon={Calendar}
             />
+            <ViewField label="Chassi" value={user.bike_chassi} icon={CreditCard} />
           </ProfileSection>
 
           <ProfileSection title="Garupa">
@@ -367,9 +413,10 @@ const Field: React.FC<{
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
   type?: string
+  placeholder?: string
   icon: React.ComponentType<{ className?: string }>
   required?: boolean
-}> = ({ label, name, value, onChange, type = 'text', icon: Icon, required }) => (
+}> = ({ label, name, value, onChange, type = 'text', placeholder, icon: Icon, required }) => (
   <div className="space-y-1.5">
     <Label className="text-[11px] text-slate-300 font-medium flex items-center gap-1.5">
       <Icon className="w-3 h-3 text-slate-500" /> {label}
@@ -378,6 +425,7 @@ const Field: React.FC<{
     <Input
       type={type}
       name={name}
+      placeholder={placeholder}
       value={value}
       onChange={onChange}
       required={required}

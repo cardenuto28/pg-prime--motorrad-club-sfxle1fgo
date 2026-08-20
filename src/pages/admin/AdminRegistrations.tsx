@@ -1,5 +1,13 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react'
-import { Search, Download, CheckCircle2, Ban, ChevronLeft, ChevronRight } from 'lucide-react'
+import {
+  Search,
+  Download,
+  CheckCircle2,
+  Ban,
+  ChevronLeft,
+  ChevronRight,
+  MessageCircle,
+} from 'lucide-react'
 import { Registration, registrationService } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -287,6 +295,8 @@ const AdminRegistrations: React.FC = () => {
                 <Th>Data do passeio</Th>
                 <Th>Garupa</Th>
                 <Th>Pessoas</Th>
+                <Th>Check-in</Th>
+                <Th>Pagamento</Th>
                 <Th>Status</Th>
                 <Th>Inscrito em</Th>
                 <Th className="text-right">Ações</Th>
@@ -295,7 +305,7 @@ const AdminRegistrations: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center">
+                  <td colSpan={10} className="py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -303,7 +313,7 @@ const AdminRegistrations: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={10} className="py-12 text-center text-xs text-slate-500">
                     Nenhuma inscrição encontrada.
                   </td>
                 </tr>
@@ -375,6 +385,28 @@ const AdminRegistrations: React.FC = () => {
                         {reg.has_pillion ? 2 : 1}
                       </td>
                       <td className="px-4 py-3">
+                        {reg.checked_in ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 uppercase">
+                            ✅ Presente
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 uppercase">
+                            ⏳ Aguardando
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {reg.payment_status === 'pago' ? (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 uppercase">
+                            🟢 Pago
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-700/60 uppercase">
+                            🟡 Pendente
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
                         <RegStatusBadge status={reg.status} />
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">
@@ -401,6 +433,17 @@ const AdminRegistrations: React.FC = () => {
                             >
                               <Ban className="w-3.5 h-3.5" />
                             </ActionBtn>
+                          )}
+                          {isGuest && reg.guest_phone && (
+                            <a
+                              href={`https://wa.me/55${reg.guest_phone.replace(/\D/g, '').replace(/^55/, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Entrar em contato via WhatsApp"
+                              className="w-7 h-7 rounded-md flex items-center justify-center transition-colors text-emerald-400 hover:text-white hover:bg-emerald-900/60"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
                           )}
                         </div>
                       </td>

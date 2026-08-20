@@ -19,7 +19,15 @@ import {
   Star,
   ArrowUp,
   ArrowDown,
+  Camera,
+  QrCode,
+  FileText,
+  Clock,
+  DollarSign,
+  MessageCircle,
 } from 'lucide-react'
+import { QrCheckInModal } from '@/components/QrCheckInModal'
+import { exportRideRegistrationsPdf } from '@/lib/pdfExport'
 import {
   Ride,
   Registration,
@@ -62,6 +70,11 @@ const AdminRideDetail: React.FC = () => {
   const [addImageOpen, setAddImageOpen] = useState(false)
   const [newImageUrls, setNewImageUrls] = useState('')
   const [newImageTitle, setNewImageTitle] = useState('')
+  const [qrModalOpen, setQrModalOpen] = useState(false)
+  const [paymentModalReg, setPaymentModalReg] = useState<Registration | null>(null)
+  const [paymentStatusForm, setPaymentStatusForm] = useState<'pendente' | 'pago'>('pendente')
+  const [paymentNotesForm, setPaymentNotesForm] = useState('')
+  const [savingPayment, setSavingPayment] = useState(false)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -249,6 +262,9 @@ const AdminRideDetail: React.FC = () => {
   const confirmedRegs = regs.filter((r) => r.status === 'confirmada')
   const bikesCount = confirmedRegs.length
   const peopleCount = confirmedRegs.reduce((acc, r) => acc + (r.has_pillion ? 2 : 1), 0)
+  const checkedInRegs = confirmedRegs.filter((r) => r.checked_in)
+  const checkedInBikes = checkedInRegs.length
+  const checkedInParticipants = checkedInRegs.reduce((acc, r) => acc + (r.has_pillion ? 2 : 1), 0)
   const maxBikes = ride?.max_bikes || 0
   const vacancies = Math.max(0, maxBikes - bikesCount)
   const progress = maxBikes > 0 ? Math.min(100, (bikesCount / maxBikes) * 100) : 0
@@ -377,17 +393,47 @@ const AdminRideDetail: React.FC = () => {
               <RideStatusBadge status={ride.status} />
             </div>
           </div>
-          <Button
-            onClick={handleExportCSV}
-            variant="outline"
-            className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
-          >
-            <Download className="w-4 h-4" /> EXPORTAR CSV
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => setQrModalOpen(true)}
+              className="bg-[#0066FF] hover:bg-blue-600 text-white font-extrabold text-xs tracking-wider gap-1.5 h-9 shadow-lg shadow-blue-900/30 font-montserrat"
+            >
+              <Camera className="w-4 h-4 animate-pulse" /> 📷 INICIAR CHECK-IN
+            </Button>
+            <Button
+              onClick={() => {
+                if (!ride) return
+                if (regs.length === 0) {
+                  toast({
+                    title: 'Sem inscritos',
+                    description: 'Não há inscritos neste passeio para exportar.',
+                    variant: 'destructive',
+                  })
+                  return
+                }
+                exportRideRegistrationsPdf(ride, regs)
+                toast({
+                  title: 'PDF Gerado',
+                  description: 'Lista de inscritos e check-in exportada em PDF.',
+                })
+              }}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
+            >
+              <FileText className="w-4 h-4 text-blue-400" /> EXPORTAR PDF
+            </Button>
+            <Button
+              onClick={handleExportCSV}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
+            >
+              <Download className="w-4 h-4" /> EXPORTAR CSV
+            </Button>
+          </div>
         </div>
 
         {/* Summary cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-5">
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 mt-5">
           <SummaryCard
             icon={<Bike className="w-4 h-4" />}
             label="Motos inscritas"
@@ -402,6 +448,12 @@ const AdminRideDetail: React.FC = () => {
           />
           <SummaryCard
             icon={<CheckCircle2 className="w-4 h-4" />}
+            label="Presença Confirmada"
+            value={`${checkedInBikes}/${bikesCount} (${checkedInParticipants} part.)`}
+            tone="emerald"
+          />
+          <SummaryCard
+            icon={<Clock className="w-4 h-4" />}
             label="Vagas disponíveis"
             value={String(vacancies)}
             tone="amber"
@@ -411,17 +463,17 @@ const AdminRideDetail: React.FC = () => {
         {/* Progress bar */}
         {maxBikes > 0 && (
           <div className="mt-5">
-            <div className="flex items-center justify-between mb-1.5">
-              <span className="text-[10px] text-slate-400 uppercase tracking-widest font-montserrat">
-                Ocupação de vagas
+            <div className="flex items-center justify-between mb-1.5 text-[10px] text-slate-400 font-montserrat">
+              <span className="uppercase tracking-widest">
+                Ocupação de vagas & Check-in ({checkedInBikes} presentes)
               </span>
-              <span className="text-[10px] text-slate-400 font-bold">
+              <span className="font-bold">
                 {bikesCount}/{maxBikes} ({Math.round(progress)}%)
               </span>
             </div>
             <div className="h-2 rounded-full bg-[#141b27] overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-blue-600 to-blue-400 rounded-full transition-all"
+                className="h-full bg-gradient-to-r from-blue-600 to-emerald-400 rounded-full transition-all"
                 style={{ width: `${progress}%` }}
               />
             </div>
@@ -430,16 +482,31 @@ const AdminRideDetail: React.FC = () => {
       </section>
 
       {/* Totalizer */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400">
-        <span>
-          Motos inscritas:{' '}
-          <span className="text-white font-bold">
-            {bikesCount}/{maxBikes}
+      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-slate-400 bg-[#0e131d] border border-[#1c2538] p-3 rounded-md">
+        <div className="flex flex-wrap items-center gap-4">
+          <span>
+            Motos inscritas:{' '}
+            <span className="text-white font-bold">
+              {bikesCount}/{maxBikes}
+            </span>
           </span>
-        </span>
-        <span>
-          Participantes: <span className="text-white font-bold">{peopleCount}</span>
-        </span>
+          <span>
+            Participantes: <span className="text-white font-bold">{peopleCount}</span>
+          </span>
+          <span>
+            Check-ins realizados:{' '}
+            <span className="text-emerald-400 font-bold font-mono">
+              {checkedInBikes} motos ({checkedInParticipants} pessoas)
+            </span>
+          </span>
+        </div>
+        <Button
+          onClick={() => setQrModalOpen(true)}
+          size="sm"
+          className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5 h-8"
+        >
+          <Camera className="w-3.5 h-3.5" /> Abrir Leitor QR
+        </Button>
       </div>
 
       {/* Search */}
@@ -466,6 +533,8 @@ const AdminRideDetail: React.FC = () => {
                 <Th>Ano</Th>
                 <Th>Garupa</Th>
                 <Th>Pessoas</Th>
+                <Th>Check-in</Th>
+                <Th>Pagamento</Th>
                 <Th>Status</Th>
                 <Th className="text-right">Ações</Th>
               </tr>
@@ -473,7 +542,7 @@ const AdminRideDetail: React.FC = () => {
             <tbody>
               {pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={11} className="py-12 text-center text-xs text-slate-500">
                     Nenhum inscrito encontrado.
                   </td>
                 </tr>
@@ -489,6 +558,7 @@ const AdminRideDetail: React.FC = () => {
                     : [u?.bike_brand, u?.bike_model].filter(Boolean).join(' ') || '—'
                   const bikeYear = isGuest ? reg.guest_bike_year || '—' : u?.bike_year || '—'
                   const people = reg.has_pillion ? 2 : 1
+                  const cleanPhone = phone.replace(/\D/g, '')
 
                   return (
                     <tr
@@ -526,6 +596,45 @@ const AdminRideDetail: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">{people}</td>
                       <td className="px-4 py-3">
+                        {reg.checked_in ? (
+                          <span
+                            title={
+                              reg.checked_in_at
+                                ? `Check-in às ${new Date(reg.checked_in_at).toLocaleTimeString('pt-BR')}`
+                                : 'Presente'
+                            }
+                            className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 uppercase"
+                          >
+                            <CheckCircle2 className="w-3 h-3 text-emerald-400" /> Presente
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 uppercase">
+                            <Clock className="w-3 h-3" /> Aguardando
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPaymentModalReg(reg)
+                            setPaymentStatusForm(reg.payment_status || 'pendente')
+                            setPaymentNotesForm(reg.payment_notes || '')
+                          }}
+                          className="text-left"
+                        >
+                          {reg.payment_status === 'pago' ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 uppercase hover:ring-1 hover:ring-emerald-400">
+                              🟢 Pago
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-700/60 uppercase hover:ring-1 hover:ring-amber-400">
+                              🟡 Pendente
+                            </span>
+                          )}
+                        </button>
+                      </td>
+                      <td className="px-4 py-3">
                         <RegStatusBadge status={reg.status} />
                       </td>
                       <td className="px-4 py-3">
@@ -550,8 +659,19 @@ const AdminRideDetail: React.FC = () => {
                               <Ban className="w-3.5 h-3.5" />
                             </ActionBtn>
                           )}
+                          {isGuest && cleanPhone && (
+                            <a
+                              href={`https://wa.me/55${cleanPhone.replace(/^55/, '')}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Entrar em contato via WhatsApp"
+                              className="w-7 h-7 rounded-md flex items-center justify-center transition-colors text-emerald-400 hover:text-white hover:bg-emerald-900/60"
+                            >
+                              <MessageCircle className="w-3.5 h-3.5" />
+                            </a>
+                          )}
                           <ActionBtn
-                            title="Ver detalhes de contato"
+                            title="Ver detalhes e editar pagamento"
                             onClick={() => setPhoneInfo(reg)}
                             className="text-blue-300 hover:text-blue-200 hover:bg-blue-950/50"
                           >
@@ -731,6 +851,22 @@ const AdminRideDetail: React.FC = () => {
               }
             />
             <ContactRow
+              label="Check-in no passeio"
+              value={
+                phoneInfo?.checked_in
+                  ? `Presente ✅ (${phoneInfo.checked_in_at ? new Date(phoneInfo.checked_in_at).toLocaleTimeString('pt-BR') : 'Confirmado'})`
+                  : '⏳ Aguardando check-in'
+              }
+            />
+            <ContactRow
+              label="Status de Pagamento"
+              value={
+                phoneInfo?.payment_status === 'pago'
+                  ? `🟢 Pago ${phoneInfo.payment_notes ? '— ' + phoneInfo.payment_notes : ''}`
+                  : `🟡 Pendente ${phoneInfo?.payment_notes ? '— ' + phoneInfo?.payment_notes : ''}`
+              }
+            />
+            <ContactRow
               label="Nome"
               value={
                 phoneInfo?.is_guest || !phoneInfo?.user
@@ -867,6 +1003,125 @@ const AdminRideDetail: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal Pagamento / Detalhes não-membro */}
+      <Dialog open={!!paymentModalReg} onOpenChange={(o) => !o && setPaymentModalReg(null)}>
+        <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold tracking-wide text-white flex items-center gap-2">
+              <DollarSign className="w-4 h-4 text-emerald-400" /> Status do Pagamento
+            </DialogTitle>
+            <DialogDescription className="text-xs text-slate-400">
+              {paymentModalReg?.is_guest
+                ? paymentModalReg?.guest_name
+                : paymentModalReg?.expand?.user?.name}{' '}
+              · Inscrição #{paymentModalReg?.id}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-300">Status do Pagamento</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPaymentStatusForm('pendente')}
+                  className={`text-xs h-9 justify-center gap-1.5 ${
+                    paymentStatusForm === 'pendente'
+                      ? 'bg-amber-950/80 border-amber-500 text-amber-200 font-bold ring-1 ring-amber-500'
+                      : 'border-[#222c3f] bg-[#141b27] text-slate-400'
+                  }`}
+                >
+                  🟡 Pendente
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setPaymentStatusForm('pago')}
+                  className={`text-xs h-9 justify-center gap-1.5 ${
+                    paymentStatusForm === 'pago'
+                      ? 'bg-emerald-950/80 border-emerald-500 text-emerald-200 font-bold ring-1 ring-emerald-500'
+                      : 'border-[#222c3f] bg-[#141b27] text-slate-400'
+                  }`}
+                >
+                  🟢 Pago
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label className="text-xs text-slate-300">Anotações / Valor pago (opcional)</Label>
+              <Input
+                value={paymentNotesForm}
+                onChange={(e) => setPaymentNotesForm(e.target.value)}
+                placeholder="Ex: R$ 150,00 via PIX / comprovante recebido"
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+              />
+            </div>
+
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1c2538]">
+              <Button
+                variant="outline"
+                onClick={() => setPaymentModalReg(null)}
+                className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+              >
+                Cancelar
+              </Button>
+              <Button
+                disabled={savingPayment}
+                onClick={async () => {
+                  if (!paymentModalReg) return
+                  setSavingPayment(true)
+                  try {
+                    await registrationService.updateRegistration(paymentModalReg.id, {
+                      payment_status: paymentStatusForm,
+                      payment_notes: paymentNotesForm,
+                    })
+                    updateLocalReg(paymentModalReg.id, {
+                      payment_status: paymentStatusForm,
+                      payment_notes: paymentNotesForm,
+                    })
+                    toast({
+                      title: 'Pagamento atualizado',
+                      description: `Status marcado como ${paymentStatusForm}.`,
+                    })
+                    setPaymentModalReg(null)
+                  } catch (e: any) {
+                    toast({
+                      title: 'Erro ao salvar',
+                      description: e?.message || 'Falha ao atualizar pagamento.',
+                      variant: 'destructive',
+                    })
+                  } finally {
+                    setSavingPayment(false)
+                  }
+                }}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs gap-1.5"
+              >
+                {savingPayment ? 'SALVANDO...' : 'SALVAR PAGAMENTO'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* QR Code Scanner Check-in Modal */}
+      {ride && (
+        <QrCheckInModal
+          rideId={ride.id}
+          rideName={ride.name}
+          isOpen={qrModalOpen}
+          onClose={() => setQrModalOpen(false)}
+          registrations={regs}
+          onCheckInSuccess={(updatedReg) => {
+            updateLocalReg(updatedReg.id, {
+              checked_in: true,
+              checked_in_at: updatedReg.checked_in_at || new Date().toISOString(),
+            })
+          }}
+        />
+      )}
     </div>
   )
 }
