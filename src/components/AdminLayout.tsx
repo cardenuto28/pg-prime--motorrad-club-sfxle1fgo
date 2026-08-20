@@ -19,6 +19,7 @@ import {
   AlertTriangle,
   Image,
   QrCode,
+  BookOpen,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { announcementService } from '@/services/api'
@@ -43,6 +44,7 @@ const NAV_ITEMS: NavItem[] = [
   { to: '/admin/reports', label: 'Relatórios', icon: BarChart3 },
   { to: '/admin/banners', label: 'Banners', icon: Image },
   { to: '/admin/qrcode-loja', label: 'QR Code Loja', icon: QrCode },
+  { to: '/admin/manual', label: 'Manual', icon: BookOpen },
   { to: '/admin/settings', label: 'Configurações', icon: Settings },
 ]
 

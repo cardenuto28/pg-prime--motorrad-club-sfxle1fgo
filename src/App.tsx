@@ -38,6 +38,7 @@ import AdminSettings from './pages/admin/AdminSettings'
 import AdminBanners from './pages/admin/AdminBanners'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
 import AdminStoreQrCode from './pages/admin/AdminStoreQrCode'
+import AdminManual from './pages/admin/AdminManual'
 import StoreCheckIn from './pages/StoreCheckIn'
 import Passeios from './pages/Passeios'
 import Galeria from './pages/Galeria'
@@ -116,6 +117,7 @@ const App = () => (
             <Route path="reports" element={<AdminReports />} />
             <Route path="banners" element={<AdminBanners />} />
             <Route path="qrcode-loja" element={<AdminStoreQrCode />} />
+            <Route path="manual" element={<AdminManual />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />
