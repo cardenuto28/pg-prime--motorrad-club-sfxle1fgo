@@ -14,12 +14,23 @@ export function getFileUrl(record: { id: string } | null | undefined, filename?:
   return `${pb.baseUrl}/api/files/galleries/${record.id}/${filename}`
 }
 
+export type MemberCategory = 'PLATINUM' | 'GOLD' | 'SILVER' | 'BRONZE' | 'INATIVO'
+export type MemberStatusType = 'ATIVO' | 'INATIVO' | 'ATENCAO' | 'PENDENTE' | 'PRE_CADASTRADO'
+
 export interface UserProfile {
   id: string
   email: string
   name: string
   role: 'admin' | 'member'
   category?: string
+  categoria?: MemberCategory | string
+  status_membro?: MemberStatusType | string
+  quantidade_motos_compradas?: number
+  data_primeira_compra?: string
+  data_ultima_compra?: string
+  data_ultima_passagem_oficina?: string
+  data_categoria_atualizada?: string
+  motivo_categoria?: string
   member_id?: string
   phone?: string
   cpf?: string
@@ -33,6 +44,49 @@ export interface UserProfile {
   status: 'pendente' | 'ativo' | 'inativo' | 'bloqueado'
   accepted_privacy_at?: string
   accepted_image_at?: string
+  created: string
+  updated: string
+}
+
+export interface HistoricoCategoria {
+  id: string
+  membro_id: string
+  categoria_anterior?: string
+  categoria_nova: string
+  data_alteracao: string
+  motivo: string
+  origem: 'automatico' | 'admin'
+  justificativa?: string
+  created: string
+  updated: string
+  expand?: {
+    membro_id?: UserProfile
+  }
+}
+
+export interface HistoricoComprasMotos {
+  id: string
+  membro_id?: string
+  cpf?: string
+  modelo?: string
+  ano?: number
+  chassi?: string
+  data_compra?: string
+  status_venda?: 'FATURADA' | 'ENTREGUE' | 'CANCELADA'
+  created_at?: string
+  created: string
+  updated: string
+}
+
+export interface HistoricoOficina {
+  id: string
+  membro_id?: string
+  cpf?: string
+  data_passagem?: string
+  tipo_servico?: string
+  ordem_servico?: string
+  status?: 'CONCLUIDA' | 'CANCELADA'
+  created_at?: string
   created: string
   updated: string
 }
@@ -231,6 +285,89 @@ export const userService = {
   async updateUserProfile(id: string, data: Partial<UserProfile>): Promise<UserProfile> {
     const updated = await pb.collection('users').update(id, data)
     return updated as unknown as UserProfile
+  },
+
+  async adjustMemberCategory(
+    id: string,
+    newCategory: MemberCategory,
+    justificativa: string,
+    newStatusMembro?: MemberStatusType,
+  ): Promise<UserProfile> {
+    const currentUser = await pb.collection('users').getOne(id)
+    const oldCat = currentUser.categoria || currentUser.category || ''
+
+    const updateData: Partial<UserProfile> = {
+      categoria: newCategory,
+      category: newCategory,
+      status_membro: newStatusMembro || (newCategory === 'INATIVO' ? 'INATIVO' : 'ATIVO'),
+      status: newCategory === 'INATIVO' ? 'inativo' : 'ativo',
+      motivo_categoria: 'AJUSTE_ADMINISTRATIVO',
+      data_categoria_atualizada: new Date().toISOString(),
+    }
+
+    const updated = await pb.collection('users').update(id, updateData)
+
+    // Grava no histórico de auditoria
+    try {
+      await pb.collection('historico_categoria').create({
+        membro_id: id,
+        categoria_anterior: oldCat || null,
+        categoria_nova: newCategory,
+        data_alteracao: new Date().toISOString(),
+        motivo: 'AJUSTE_ADMINISTRATIVO',
+        origem: 'admin',
+        justificativa: justificativa.trim(),
+      })
+    } catch (err) {
+      console.error('Erro ao registrar histórico de categoria:', err)
+    }
+
+    return updated as unknown as UserProfile
+  },
+
+  async getCategoryHistory(memberId?: string): Promise<HistoricoCategoria[]> {
+    try {
+      const filter = memberId ? `membro_id='${memberId}'` : ''
+      const records = await pb.collection('historico_categoria').getFullList({
+        filter,
+        sort: '-data_alteracao,-created',
+        expand: 'membro_id',
+      })
+      return records as unknown as HistoricoCategoria[]
+    } catch {
+      return []
+    }
+  },
+
+  async findPreRegistration(search: string): Promise<any> {
+    const response = await fetch(`${pb.baseUrl}/api/club/find-pre-registration`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ search }),
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro ao buscar pré-cadastro')
+    }
+    return data
+  },
+
+  async activatePreRegistration(payload: {
+    memberId: string
+    password: string
+    acceptImage: boolean
+    acceptTerms: boolean
+  }): Promise<any> {
+    const response = await fetch(`${pb.baseUrl}/api/club/activate-pre-registration`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await response.json()
+    if (!response.ok) {
+      throw new Error(data.error || 'Erro ao ativar cadastro')
+    }
+    return data
   },
 
   async registerCustomer(data: {

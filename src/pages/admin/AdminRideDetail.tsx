@@ -50,6 +50,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { formatDate, resolveFileUrl } from '@/lib/member'
 import { RideStatusBadge, RegStatusBadge } from '@/lib/ride'
+import { CategoryBadge } from '@/components/CategoryBadge'
 
 const PAGE_SIZE = 10
 
@@ -572,10 +573,12 @@ const AdminRideDetail: React.FC = () => {
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2 flex-wrap">
                           <span className="text-xs font-bold text-white">{name}</span>
-                          {isGuest && (
+                          {isGuest ? (
                             <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500 text-slate-950 shadow-sm font-montserrat">
                               NÃO-MEMBRO
                             </span>
+                          ) : (
+                            <CategoryBadge category={u?.categoria || u?.category} size="sm" />
                           )}
                         </div>
                       </td>

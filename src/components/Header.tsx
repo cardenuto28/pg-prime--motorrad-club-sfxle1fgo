@@ -337,8 +337,20 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               {loading ? 'ENTRANDO...' : 'ENTRAR NA ÁREA DO MEMBRO'}
             </Button>
 
-            <div className="text-center text-[11px] text-slate-400 pt-2 border-t border-[#1c2436]">
-              Ainda não é membro? Cadastre-se na página principal!
+            <div className="text-center text-xs text-slate-400 pt-3 border-t border-[#1c2436] space-y-1.5">
+              <p>
+                Já comprou sua BMW ou fez revisão?{' '}
+                <Link
+                  to="/validar-cadastro"
+                  onClick={() => setLoginModalOpen(false)}
+                  className="text-blue-400 hover:text-blue-300 font-bold underline"
+                >
+                  Ativar meu pré-cadastro
+                </Link>
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Ainda não é membro? Cadastre-se no formulário da página principal!
+              </p>
             </div>
           </form>
         </DialogContent>

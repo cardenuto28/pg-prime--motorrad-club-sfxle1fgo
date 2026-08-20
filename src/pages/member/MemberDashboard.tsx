@@ -37,6 +37,8 @@ import {
   formatMemberId,
   getMemberCategory,
 } from '@/lib/member'
+import { CategoryBadge, getCategoryMessage } from '@/components/CategoryBadge'
+import { calcularCategoriaMembro } from '@/lib/membership'
 import pb from '@/lib/pocketbase/client'
 import {
   Gift,
@@ -85,6 +87,21 @@ const MemberDashboard: React.FC = () => {
     load()
   }, [load])
 
+  const categoryCalc = user
+    ? calcularCategoriaMembro({
+        quantidade_motos_compradas: user.quantidade_motos_compradas,
+        data_ultima_passagem_oficina: user.data_ultima_passagem_oficina,
+        status_membro_atual: user.status_membro || user.status,
+      })
+    : null
+
+  const categoryMessage = getCategoryMessage({
+    category: user?.categoria || user?.category || categoryCalc?.categoria,
+    motos: user?.quantidade_motos_compradas,
+    diasParaVencerBronze: categoryCalc?.diasParaVencerBronze,
+    isAtencao: user?.status_membro === 'ATENCAO',
+  })
+
   const confirmedRegs = regs.filter((r) => r.status === 'confirmada')
   const registeredRideIds = new Set(confirmedRegs.map((r) => r.ride))
 
@@ -129,29 +146,66 @@ const MemberDashboard: React.FC = () => {
               <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight">
                 {user?.name}
               </h1>
-              <div className="flex items-center gap-2 mt-1">
-                <Bike className="w-3.5 h-3.5 text-blue-400" />
-                <span className="text-xs text-slate-300">
-                  {user?.bike_brand || user?.bike_model
-                    ? `${user?.bike_brand || ''} ${user?.bike_model || ''} ${
-                        user?.bike_year || ''
-                      }`.trim()
-                    : 'Moto não cadastrada'}
-                </span>
+              <div className="flex flex-wrap items-center gap-3 mt-1.5">
+                <div className="flex items-center gap-1.5">
+                  <Bike className="w-3.5 h-3.5 text-blue-400" />
+                  <span className="text-xs text-slate-300">
+                    {user?.bike_brand || user?.bike_model
+                      ? `${user?.bike_brand || ''} ${user?.bike_model || ''} ${
+                          user?.bike_year || ''
+                        }`.trim()
+                      : 'Moto não cadastrada'}
+                  </span>
+                </div>
+                {user?.quantidade_motos_compradas !== undefined && (
+                  <span className="text-xs text-slate-400 bg-slate-900 px-2 py-0.5 rounded border border-slate-800">
+                    Motos Compradas:{' '}
+                    <strong className="text-blue-400">{user.quantidade_motos_compradas}</strong>
+                  </span>
+                )}
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            <CategoryBadge
+              category={user?.categoria || user?.category || getMemberCategory(user)}
+              size="md"
+            />
             <Link to="/member/card">
               <Button
                 variant="outline"
                 size="sm"
                 className="border-blue-500/50 bg-blue-950/40 text-blue-300 hover:text-white hover:bg-blue-900/60 text-xs font-bold gap-1.5"
               >
-                <CreditCard className="w-4 h-4" /> CARTEIRINHA DIGITAL
+                <CreditCard className="w-4 h-4" /> CARTEIRINHA
               </Button>
             </Link>
             <StatusBadge status={user?.status || 'pendente'} />
+          </div>
+        </div>
+
+        {/* Card de Mensagem da Categoria */}
+        <div
+          className={`mt-5 p-4 rounded-lg border text-xs flex items-start gap-3 ${
+            categoryMessage.type === 'warning'
+              ? 'bg-amber-950/40 border-amber-600/50 text-amber-200'
+              : categoryMessage.type === 'success'
+                ? 'bg-blue-950/40 border-blue-600/50 text-blue-200'
+                : 'bg-slate-900/80 border-slate-700/60 text-slate-300'
+          }`}
+        >
+          {categoryMessage.type === 'warning' ? (
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+          ) : categoryMessage.type === 'success' ? (
+            <CheckCircle2 className="w-5 h-5 text-blue-400 shrink-0 mt-0.5" />
+          ) : (
+            <ShieldCheck className="w-5 h-5 text-slate-400 shrink-0 mt-0.5" />
+          )}
+          <div className="space-y-0.5 flex-1">
+            <h4 className="font-bold text-sm tracking-wide text-white font-montserrat">
+              {categoryMessage.title}
+            </h4>
+            <p className="leading-relaxed opacity-90">{categoryMessage.message}</p>
           </div>
         </div>
       </section>

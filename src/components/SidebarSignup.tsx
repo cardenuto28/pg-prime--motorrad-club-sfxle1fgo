@@ -498,7 +498,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
           )}
         </div>
 
-        {/* Checkbox Política de Privacidade */}
+        {/* Checkbox Política de Privacidade e Termos de Adesão */}
         <div
           className={`p-2.5 rounded-sm bg-[#141a26] border ${
             privacyError ? 'border-red-500/80 bg-red-950/20' : 'border-[#202a3d]'
@@ -521,7 +521,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
               htmlFor="privacy"
               className="cursor-pointer text-[11px] font-normal leading-relaxed text-slate-300"
             >
-              Li e estou ciente da{' '}
+              Aceito a{' '}
               <a
                 href="/politica-de-privacidade"
                 target="_blank"
@@ -531,13 +531,23 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
               >
                 Política de Privacidade
               </a>{' '}
-              e do tratamento dos meus dados pessoais conforme a LGPD.{' '}
+              e os{' '}
+              <a
+                href="/termos"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[#0066FF] hover:text-blue-400 font-semibold underline underline-offset-2 transition-colors"
+                onClick={(e) => e.stopPropagation()}
+              >
+                Termos de Adesão
+              </a>
+              , estando ciente do tratamento de dados pessoais conforme a LGPD.{' '}
               <span className="text-red-400 font-bold">*</span>
             </Label>
           </div>
           {privacyError && (
             <p className="text-[10px] text-red-400 mt-1 pl-6">
-              Você precisa aceitar a Política de Privacidade para se cadastrar.
+              Você precisa aceitar a Política de Privacidade e Termos de Adesão para se cadastrar.
             </p>
           )}
         </div>

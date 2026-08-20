@@ -20,6 +20,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { StatusBadge } from '@/lib/member'
+import { CategoryBadge } from '@/components/CategoryBadge'
+import { formatDate } from '@/lib/member'
 
 interface ProfileForm {
   name: string
@@ -201,7 +203,7 @@ const MemberPerfil: React.FC = () => {
       </div>
 
       {/* Status banner */}
-      <div className="bg-[#0f131c] border border-[#1d2638] rounded-md p-4 flex items-center justify-between">
+      <div className="bg-[#0f131c] border border-[#1d2638] rounded-md p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="w-12 h-12 rounded-full bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400 font-bold text-lg">
             {user.name ? user.name.charAt(0).toUpperCase() : 'M'}
@@ -211,7 +213,10 @@ const MemberPerfil: React.FC = () => {
             <p className="text-[11px] text-slate-400">{user.email}</p>
           </div>
         </div>
-        <StatusBadge status={user.status} />
+        <div className="flex items-center gap-2 self-start sm:self-auto">
+          <CategoryBadge category={user.categoria || user.category} size="md" />
+          <StatusBadge status={user.status} />
+        </div>
       </div>
 
       {editing ? (

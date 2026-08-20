@@ -96,6 +96,60 @@ const STATUS_META: Record<
   },
 }
 
+export const MemberStatusBadge: React.FC<{
+  status?: string | null
+  statusMembro?: string | null
+}> = ({ status, statusMembro }) => {
+  const norm = (statusMembro || status || 'pendente').toUpperCase()
+
+  if (norm === 'PRE_CADASTRADO' || norm === 'PRÉ-CADASTRADO') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded uppercase border bg-blue-950/70 text-blue-300 border-blue-700/50">
+        <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
+        Pré-cadastrado
+      </span>
+    )
+  }
+
+  if (norm === 'ATENCAO' || norm === 'ATENÇÃO') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded uppercase border bg-amber-950/80 text-amber-300 border-amber-600 animate-pulse">
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-400" />
+        Atenção (Renovação)
+      </span>
+    )
+  }
+
+  if (norm === 'ATIVO') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded uppercase border bg-emerald-950/70 text-emerald-300 border-emerald-700/50">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+        Ativo
+      </span>
+    )
+  }
+
+  if (norm === 'INATIVO') {
+    return (
+      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded uppercase border bg-slate-800/70 text-slate-400 border-slate-700">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+        Inativo
+      </span>
+    )
+  }
+
+  const key = (status || 'pendente').toLowerCase() as UserProfile['status']
+  const meta = STATUS_META[key] || STATUS_META.pendente
+  return (
+    <span
+      className={`inline-flex items-center gap-1.5 text-[10px] font-bold tracking-wider px-2.5 py-1 rounded uppercase border ${meta.className}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+      {meta.label}
+    </span>
+  )
+}
+
 export const StatusBadge: React.FC<{ status: UserProfile['status'] }> = ({ status }) => {
   const meta = STATUS_META[status] || STATUS_META.pendente
   return (
@@ -130,10 +184,12 @@ export function formatMemberId(user?: UserProfile | null): string {
   return `EMC-${numericCode}`
 }
 
-/** Returns the member category name with fallback to "Membro Premium" */
+/** Returns the member category name with fallback */
 export function getMemberCategory(user?: UserProfile | null): string {
-  if (!user) return 'Membro Premium'
-  return user.category && user.category.trim() ? user.category : 'Membro Premium'
+  if (!user) return 'Membro'
+  if (user.categoria && user.categoria.trim()) return user.categoria.toUpperCase()
+  if (user.category && user.category.trim()) return user.category.toUpperCase()
+  return 'SILVER'
 }
 
 /* ---------- Partner category helpers ---------- */

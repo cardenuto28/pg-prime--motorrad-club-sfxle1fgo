@@ -24,6 +24,7 @@ import MemberComunicados from './pages/member/MemberComunicados'
 import MemberPerfil from './pages/member/MemberPerfil'
 import MemberCard from './pages/member/MemberCard'
 import VerifyMember from './pages/VerifyMember'
+import ValidarCadastro from './pages/ValidarCadastro'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminMembers from './pages/admin/AdminMembers'
 import AdminRides from './pages/admin/AdminRides'
@@ -67,6 +68,8 @@ const App = () => (
             <Route path="/contato" element={<Contato />} />
             <Route path="/termos" element={<Termos />} />
             <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+            <Route path="/validar-cadastro" element={<ValidarCadastro />} />
             <Route path="/verificar/:id" element={<VerifyMember />} />
           </Route>
           {/* Área do Membro (protegida) */}

@@ -19,6 +19,8 @@ import { formatMemberId, getMemberCategory, statusLabel } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import memberCardLogo from '@/assets/image-ae9a6.png'
+import { CategoryBadge } from '@/components/CategoryBadge'
+import { normalizeCategory } from '@/lib/membership'
 
 export const MemberCard: React.FC = () => {
   const { user } = useAuth()
@@ -227,34 +229,42 @@ export const MemberCard: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 2. Categoria */}
+                {/* 2. Categoria com Badge e Selo */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
                     <Crown className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
-                    <span className="block text-[8px] sm:text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat">
+                    <span className="block text-[8px] sm:text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat mb-0.5">
                       CATEGORIA
                     </span>
-                    <p className="text-xs sm:text-sm font-extrabold text-white tracking-wide font-montserrat">
-                      {categoryFormatted}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <CategoryBadge
+                        category={user?.categoria || user?.category || categoryFormatted}
+                        size="sm"
+                      />
+                    </div>
                   </div>
                 </div>
 
-                {/* 3. Validade */}
+                {/* 3. Status de Associação */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
                   <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
                     <span className="block text-[8px] sm:text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat">
-                      VALIDADE
+                      STATUS
                     </span>
-                    <p className="text-xs sm:text-sm font-extrabold text-emerald-400 tracking-wider font-montserrat flex items-center gap-1.5">
-                      <span>MEMBRO ATIVO</span>
-                      <span className="text-[10px] text-slate-400 font-normal">
-                        (INDETERMINADA)
+                    <p
+                      className={`text-xs sm:text-sm font-extrabold tracking-wider font-montserrat flex items-center gap-1.5 ${
+                        isAtivo ? 'text-emerald-400' : 'text-amber-400'
+                      }`}
+                    >
+                      <span>
+                        {isAtivo
+                          ? 'MEMBRO ATIVO'
+                          : statusLabel(user?.status || 'pendente').toUpperCase()}
                       </span>
                     </p>
                   </div>

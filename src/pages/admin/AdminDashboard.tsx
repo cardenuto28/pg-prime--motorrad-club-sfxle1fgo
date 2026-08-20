@@ -23,6 +23,9 @@ import {
   registrationService,
 } from '@/services/api'
 import { formatDate, isRidePast } from '@/lib/member'
+import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
+import { CategoryBadge } from '@/components/CategoryBadge'
+import { Shield, Diamond, Crown, Star, AlertTriangle, ShieldAlert, UserX } from 'lucide-react'
 
 interface RideStatusBadgeProps {
   status: Ride['status']
@@ -104,6 +107,39 @@ const AdminDashboard: React.FC = () => {
     }).length
     const activeMembers = users.filter((u) => u.status === 'ativo').length
 
+    // Contagem detalhada por categoria
+    let platinumCount = 0
+    let goldCount = 0
+    let silverCount = 0
+    let bronzeActiveCount = 0
+    let bronzeExpiringCount = 0
+    let bronzeInactiveCount = 0
+
+    users.forEach((u) => {
+      const calc = calcularCategoriaMembro({
+        quantidade_motos_compradas: u.quantidade_motos_compradas,
+        data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
+        status_membro_atual: u.status_membro || u.status,
+      })
+
+      const effectiveCat = normalizeCategory(u.categoria || u.category || calc.categoria)
+
+      if (effectiveCat === 'PLATINUM') platinumCount++
+      else if (effectiveCat === 'GOLD') goldCount++
+      else if (effectiveCat === 'SILVER') silverCount++
+      else if (effectiveCat === 'BRONZE') {
+        if (calc.status_membro === 'ATENCAO' || u.status_membro === 'ATENCAO') {
+          bronzeExpiringCount++
+        } else if (calc.status_membro === 'INATIVO' || u.status_membro === 'INATIVO') {
+          bronzeInactiveCount++
+        } else {
+          bronzeActiveCount++
+        }
+      } else {
+        bronzeInactiveCount++
+      }
+    })
+
     const upcomingRides = rides
       .filter((r) => !isRidePast(r.date) && r.status !== 'cancelado' && r.status !== 'realizado')
       .sort((a, b) => {
@@ -175,6 +211,12 @@ const AdminDashboard: React.FC = () => {
       totalMembers,
       newMembers,
       activeMembers,
+      platinumCount,
+      goldCount,
+      silverCount,
+      bronzeActiveCount,
+      bronzeExpiringCount,
+      bronzeInactiveCount,
       nextRide,
       nextRideBikes,
       nextRideParticipants,
@@ -216,7 +258,7 @@ const AdminDashboard: React.FC = () => {
         />
         <MetricCard
           icon={UserPlus}
-          label="Novos Membros (30d)"
+          label="Novos Membros no Mês"
           value={String(stats.newMembers)}
           tone="emerald"
         />
@@ -232,6 +274,94 @@ const AdminDashboard: React.FC = () => {
           value={String(stats.ridesDone)}
           tone="amber"
         />
+      </section>
+
+      {/* Indicadores de Categorias Euro Motors Club */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Crown className="w-5 h-5 text-amber-400" />
+            <h2 className="text-xs font-bold text-slate-300 font-montserrat tracking-widest uppercase">
+              Categorização de Membros
+            </h2>
+          </div>
+          <Link
+            to="/admin/members"
+            className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+          >
+            GERENCIAR MEMBROS <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          <div className="bg-[#0a0d14] border border-blue-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-blue-400">
+              <Diamond className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Platinum (5+)
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">{stats.platinumCount}</p>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-amber-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-amber-400">
+              <Crown className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Gold (3-4)
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">{stats.goldCount}</p>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-slate-700/50 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-slate-300">
+              <Star className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Prata (1-2)
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">{stats.silverCount}</p>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-orange-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-orange-400">
+              <Shield className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Bronze Ativos
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.bronzeActiveCount}
+            </p>
+          </div>
+
+          <div className="bg-amber-950/30 border border-amber-600/50 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-amber-400">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Bronze Atenção
+              </span>
+            </div>
+            <p className="text-xl font-black text-amber-300 font-montserrat">
+              {stats.bronzeExpiringCount}
+            </p>
+            <span className="text-[9px] text-amber-400/80">Vence em &le;30d</span>
+          </div>
+
+          <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-slate-400">
+              <UserX className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Bronze Inativos
+              </span>
+            </div>
+            <p className="text-xl font-black text-slate-400 font-montserrat">
+              {stats.bronzeInactiveCount}
+            </p>
+            <span className="text-[9px] text-slate-500">&gt;6 meses sem oficina</span>
+          </div>
+        </div>
       </section>
 
       {/* Próximo passeio — destaque */}

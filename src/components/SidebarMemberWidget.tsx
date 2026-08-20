@@ -5,6 +5,7 @@ import { Shield, ChevronRight, Calendar, MapPin, CheckCircle2, CreditCard } from
 import { Button } from '@/components/ui/button'
 import { useNavigate, Link } from 'react-router-dom'
 import { formatMemberId, getMemberCategory } from '@/lib/member'
+import { CategoryBadge } from '@/components/CategoryBadge'
 
 export const SidebarMemberWidget: React.FC = () => {
   const { user } = useAuth()
@@ -70,15 +71,16 @@ export const SidebarMemberWidget: React.FC = () => {
             </span>
           </div>
         </div>
-        <span
-          className={`text-[9px] font-bold tracking-wider px-2 py-0.5 rounded uppercase ${
-            isPremium
-              ? 'bg-blue-900/60 text-blue-300 border border-blue-700/50'
-              : 'bg-amber-900/60 text-amber-300 border border-amber-700/50'
-          }`}
-        >
-          {isPremium ? getMemberCategory(user).toUpperCase() : 'STATUS: PENDENTE'}
-        </span>
+        {isPremium ? (
+          <CategoryBadge
+            category={user.categoria || user.category || getMemberCategory(user)}
+            size="sm"
+          />
+        ) : (
+          <span className="text-[9px] font-bold tracking-wider px-2 py-0.5 rounded uppercase bg-amber-900/60 text-amber-300 border border-amber-700/50">
+            STATUS: PENDENTE
+          </span>
+        )}
       </div>
 
       {/* Carteirinha Digital Button */}

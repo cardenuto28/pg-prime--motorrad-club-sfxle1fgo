@@ -25,6 +25,9 @@ import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/member'
 import { RideStatusBadge } from '@/lib/ride'
 import { exportActiveRankingPdf } from '@/lib/pdfExport'
+import { CategoryBadge } from '@/components/CategoryBadge'
+import { Sparkles, Crown, Star, ArrowUpRight } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const AdminReports: React.FC = () => {
   const { toast } = useToast()
@@ -116,6 +119,17 @@ const AdminReports: React.FC = () => {
   const activeMembers = users.filter((u) => u.status === 'ativo').length
   const totalRidesDone = rides.filter((r) => r.status === 'realizado').length
   const totalRegistrations = filteredRegistrations.length
+
+  // 🎯 Oportunidades de Upgrade:
+  // 1. "PRATA próximo do GOLD": membros com 2 motos compradas
+  // 2. "GOLD próximo do PLATINUM": membros com 4 motos compradas
+  const prataProximoGold = useMemo(() => {
+    return users.filter((u) => Number(u.quantidade_motos_compradas) === 2)
+  }, [users])
+
+  const goldProximoPlatinum = useMemo(() => {
+    return users.filter((u) => Number(u.quantidade_motos_compradas) === 4)
+  }, [users])
 
   // Members by city
   const byCity = useMemo(() => {
@@ -382,6 +396,111 @@ const AdminReports: React.FC = () => {
               label="Inscrições"
               value={totalRegistrations}
             />
+          </section>
+
+          {/* 🎯 RELATÓRIO DE OPORTUNIDADES COMERCIAIS */}
+          <section className="space-y-4">
+            <div className="flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-400" />
+              <h2 className="text-sm font-extrabold text-white uppercase tracking-widest font-montserrat">
+                🎯 Relatório de Oportunidades de Upgrade de Categoria
+              </h2>
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              {/* Card Oportunidade 1: Prata -> Gold */}
+              <div className="bg-[#0e131d] border border-amber-500/30 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-[#1c2538] pb-3">
+                  <div className="flex items-center gap-2">
+                    <Star className="w-4 h-4 text-slate-300" />
+                    <span className="text-xs font-bold text-slate-200 uppercase tracking-wider font-montserrat">
+                      Prata Próximo do Gold
+                    </span>
+                  </div>
+                  <span className="text-xs font-black px-2.5 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-600/50">
+                    {prataProximoGold.length} clientes (2 motos)
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Clientes com 2 motocicletas adquiridas. Falta apenas{' '}
+                  <strong>1 motocicleta</strong> para atingir a categoria <strong>GOLD</strong>.
+                </p>
+
+                {prataProximoGold.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-3 text-center">
+                    Nenhum membro elegível no momento.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {prataProximoGold.map((u) => (
+                      <div
+                        key={u.id}
+                        className="p-2.5 rounded bg-[#0a0d14] border border-[#1c2538] flex items-center justify-between text-xs hover:border-amber-500/40"
+                      >
+                        <div>
+                          <p className="font-bold text-white">{u.name}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {u.email} · {u.phone || 'Sem tel'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-amber-400 font-bold bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/40">
+                            +1 para GOLD
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              {/* Card Oportunidade 2: Gold -> Platinum */}
+              <div className="bg-[#0e131d] border border-blue-500/30 rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between border-b border-[#1c2538] pb-3">
+                  <div className="flex items-center gap-2">
+                    <Crown className="w-4 h-4 text-amber-400" />
+                    <span className="text-xs font-bold text-slate-200 uppercase tracking-wider font-montserrat">
+                      Gold Próximo do Platinum
+                    </span>
+                  </div>
+                  <span className="text-xs font-black px-2.5 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-600/50">
+                    {goldProximoPlatinum.length} clientes (4 motos)
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-400">
+                  Clientes com 4 motocicletas adquiridas. Falta apenas{' '}
+                  <strong>1 motocicleta</strong> para atingir o nível máximo{' '}
+                  <strong>PLATINUM</strong>.
+                </p>
+
+                {goldProximoPlatinum.length === 0 ? (
+                  <p className="text-xs text-slate-500 py-3 text-center">
+                    Nenhum membro elegível no momento.
+                  </p>
+                ) : (
+                  <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                    {goldProximoPlatinum.map((u) => (
+                      <div
+                        key={u.id}
+                        className="p-2.5 rounded bg-[#0a0d14] border border-[#1c2538] flex items-center justify-between text-xs hover:border-blue-500/40"
+                      >
+                        <div>
+                          <p className="font-bold text-white">{u.name}</p>
+                          <p className="text-[10px] text-slate-400">
+                            {u.email} · {u.phone || 'Sem tel'}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] text-blue-400 font-bold bg-blue-950/50 px-2 py-0.5 rounded border border-blue-800/40">
+                            +1 para PLATINUM
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
           </section>
 
           {/* 🏆 RANKING DE MEMBROS MAIS ATIVOS */}

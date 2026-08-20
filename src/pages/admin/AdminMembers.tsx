@@ -45,7 +45,17 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { StatusBadge, formatDate, statusLabel } from '@/lib/member'
+import { StatusBadge, MemberStatusBadge, formatDate, statusLabel } from '@/lib/member'
+import { CategoryBadge } from '@/components/CategoryBadge'
+import { calcularCategoriaMembro, normalizeCategory, formatCPF } from '@/lib/membership'
+import { ImportMembersModal } from '@/components/ImportMembersModal'
+import {
+  Upload,
+  SlidersHorizontal,
+  ShieldAlert,
+  AlertTriangle,
+  FileSpreadsheet,
+} from 'lucide-react'
 
 const PAGE_SIZE = 10
 
@@ -58,11 +68,21 @@ const AdminMembers: React.FC = () => {
   const [search, setSearch] = useState('')
   const [page, setPage] = useState(1)
 
+  // Filtros avançados
+  const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [statusFilter, setStatusFilter] = useState<string>('all')
+  const [expiringBronzeFilter, setExpiringBronzeFilter] = useState(false)
+  const [minBikesFilter, setMinBikesFilter] = useState<string>('all')
+
+  const [importModalOpen, setImportModalOpen] = useState(false)
   const [editing, setEditing] = useState<UserProfile | null>(null)
   const [historyUser, setHistoryUser] = useState<UserProfile | null>(null)
   const [historyRegs, setHistoryRegs] = useState<Registration[]>([])
   const [historyLoading, setHistoryLoading] = useState(false)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
+
+  // Modal de Ajuste Manual de Categoria
+  const [adjustCatUser, setAdjustCatUser] = useState<UserProfile | null>(null)
 
   // Modal rápido de Promover a Admin
   const [promoteModalOpen, setPromoteModalOpen] = useState(false)
@@ -92,15 +112,58 @@ const AdminMembers: React.FC = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return users
+
     return users.filter((u) => {
-      return (
-        (u.name || '').toLowerCase().includes(q) ||
-        (u.email || '').toLowerCase().includes(q) ||
-        (u.cpf || '').toLowerCase().includes(q)
-      )
+      // 1. Busca textual
+      if (q) {
+        const matches =
+          (u.name || '').toLowerCase().includes(q) ||
+          (u.email || '').toLowerCase().includes(q) ||
+          (u.cpf || '').toLowerCase().includes(q) ||
+          (u.bike_model || '').toLowerCase().includes(q) ||
+          (u.bike_chassi || '').toLowerCase().includes(q)
+        if (!matches) return false
+      }
+
+      const calc = calcularCategoriaMembro({
+        quantidade_motos_compradas: u.quantidade_motos_compradas,
+        data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
+        status_membro_atual: u.status_membro || u.status,
+      })
+
+      const effectiveCat = normalizeCategory(u.categoria || u.category || calc.categoria)
+      const effectiveStatus = (u.status_membro || u.status || calc.status_membro).toUpperCase()
+
+      // 2. Filtro de categoria
+      if (categoryFilter !== 'all' && effectiveCat !== categoryFilter) {
+        return false
+      }
+
+      // 3. Filtro de status
+      if (statusFilter === 'ativos') {
+        if (effectiveStatus !== 'ATIVO') return false
+      } else if (statusFilter === 'inativos') {
+        if (effectiveStatus !== 'INATIVO') return false
+      } else if (statusFilter === 'pre_cadastrado') {
+        if (effectiveStatus !== 'PRE_CADASTRADO' && effectiveStatus !== 'PENDENTE') return false
+      }
+
+      // 4. Bronze próximo do vencimento
+      if (expiringBronzeFilter) {
+        if (effectiveCat !== 'BRONZE') return false
+        if (calc.status_membro !== 'ATENCAO' && u.status_membro !== 'ATENCAO') return false
+      }
+
+      // 5. Filtro por quantidade de motos
+      if (minBikesFilter !== 'all') {
+        const min = parseInt(minBikesFilter, 10)
+        const bikes = Number(u.quantidade_motos_compradas || 0)
+        if (bikes < min) return false
+      }
+
+      return true
     })
-  }, [users, search])
+  }, [users, search, categoryFilter, statusFilter, expiringBronzeFilter, minBikesFilter])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -197,6 +260,12 @@ const AdminMembers: React.FC = () => {
               </span>
             </div>
             <Button
+              onClick={() => setImportModalOpen(true)}
+              className="bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs gap-1.5 h-9 rounded-sm shadow-md shadow-blue-600/30"
+            >
+              <Upload className="w-4 h-4" /> 📥 IMPORTAR MEMBROS
+            </Button>
+            <Button
               onClick={() => {
                 if (filtered.length === 0) {
                   toast({
@@ -242,15 +311,101 @@ const AdminMembers: React.FC = () => {
         </div>
       </section>
 
-      {/* Search */}
-      <div className="relative max-w-md">
-        <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nome, e-mail ou CPF..."
-          className="pl-9 bg-[#141b27] border-[#222c3f] text-white text-xs placeholder:text-slate-500 h-10"
-        />
+      {/* Barra de Filtros e Busca */}
+      <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 space-y-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative flex-1 min-w-[240px]">
+            <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar por nome, e-mail, CPF, moto ou chassi..."
+              className="pl-9 bg-[#141b27] border-[#222c3f] text-white text-xs placeholder:text-slate-500 h-9"
+            />
+          </div>
+
+          {/* Filtro de Categoria */}
+          <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+            <SelectTrigger className="w-40 bg-[#141b27] border-[#222c3f] text-xs h-9 text-slate-300">
+              <SelectValue placeholder="Categoria" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+              <SelectItem value="all">Todas Categorias</SelectItem>
+              <SelectItem value="PLATINUM">Platinum (5+)</SelectItem>
+              <SelectItem value="GOLD">Gold (3-4)</SelectItem>
+              <SelectItem value="SILVER">Prata (1-2)</SelectItem>
+              <SelectItem value="BRONZE">Bronze (Oficina)</SelectItem>
+              <SelectItem value="INATIVO">Inativos</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Filtro de Status */}
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-36 bg-[#141b27] border-[#222c3f] text-xs h-9 text-slate-300">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+              <SelectItem value="all">Todos Status</SelectItem>
+              <SelectItem value="ativos">Apenas Ativos</SelectItem>
+              <SelectItem value="inativos">Apenas Inativos</SelectItem>
+              <SelectItem value="pre_cadastrado">Pré-cadastrado</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Filtro de Quantidade de Motos */}
+          <Select value={minBikesFilter} onValueChange={setMinBikesFilter}>
+            <SelectTrigger className="w-44 bg-[#141b27] border-[#222c3f] text-xs h-9 text-slate-300">
+              <SelectValue placeholder="Qtd. Motos" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+              <SelectItem value="all">Qualquer Qtd. Motos</SelectItem>
+              <SelectItem value="1">1+ Motos Compradas</SelectItem>
+              <SelectItem value="2">2+ Motos (Próx. Gold)</SelectItem>
+              <SelectItem value="3">3+ Motos (Gold+)</SelectItem>
+              <SelectItem value="4">4+ Motos (Próx. Plat.)</SelectItem>
+              <SelectItem value="5">5+ Motos (Platinum)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Toggle Bronze Atenção */}
+          <button
+            type="button"
+            onClick={() => setExpiringBronzeFilter(!expiringBronzeFilter)}
+            className={`px-3 py-1.5 rounded text-xs font-semibold border flex items-center gap-1.5 transition-colors h-9 ${
+              expiringBronzeFilter
+                ? 'bg-amber-600 text-white border-amber-500'
+                : 'bg-[#141b27] text-amber-300 border-amber-800/40 hover:bg-amber-950/40'
+            }`}
+          >
+            <AlertTriangle className="w-3.5 h-3.5" />
+            Bronze Próx. Vencimento
+          </button>
+        </div>
+
+        {(categoryFilter !== 'all' ||
+          statusFilter !== 'all' ||
+          expiringBronzeFilter ||
+          minBikesFilter !== 'all' ||
+          search) && (
+          <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
+            <span>
+              Exibindo <strong>{filtered.length}</strong> de {users.length} membros com filtros
+              aplicados.
+            </span>
+            <button
+              onClick={() => {
+                setSearch('')
+                setCategoryFilter('all')
+                setStatusFilter('all')
+                setExpiringBronzeFilter(false)
+                setMinBikesFilter('all')
+              }}
+              className="text-blue-400 hover:text-blue-300 underline font-medium"
+            >
+              Limpar Filtros
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Table */}
@@ -259,13 +414,13 @@ const AdminMembers: React.FC = () => {
           <table className="w-full text-left">
             <thead>
               <tr className="border-b border-[#1c2538] bg-[#0a0d14]">
-                <Th>Nome</Th>
-                <Th>Tipo / Nível</Th>
+                <Th>Nome / CPF</Th>
+                <Th>Tipo</Th>
                 <Th>Categoria</Th>
-                <Th>Telefone</Th>
+                <Th className="text-center">Motos</Th>
+                <Th>Últ. Oficina</Th>
                 <Th>Cidade</Th>
-                <Th>Moto</Th>
-                <Th>Chassi</Th>
+                <Th>Moto / Chassi</Th>
                 <Th>Status</Th>
                 <Th className="text-right">Ações</Th>
               </tr>
@@ -315,19 +470,43 @@ const AdminMembers: React.FC = () => {
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-300 font-medium">
-                      {u.category || 'Membro Premium'}
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <CategoryBadge category={u.categoria || u.category} size="sm" />
+                        <button
+                          type="button"
+                          title="Ajustar Categoria Manualmente com Auditoria"
+                          onClick={() => setAdjustCatUser(u)}
+                          className="text-[10px] text-slate-400 hover:text-amber-400 font-mono underline"
+                        >
+                          (Ajustar)
+                        </button>
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{u.phone || '—'}</td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{u.city || '—'}</td>
+                    <td className="px-4 py-3 text-center text-xs font-bold text-blue-400">
+                      {u.quantidade_motos_compradas ?? 0}
+                    </td>
                     <td className="px-4 py-3 text-xs text-slate-400">
-                      {[u.bike_brand, u.bike_model, u.bike_year].filter(Boolean).join(' ') || '—'}
+                      {u.data_ultima_passagem_oficina
+                        ? formatDate(u.data_ultima_passagem_oficina)
+                        : '—'}
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-300 font-mono">
-                      {u.bike_chassi || '—'}
+                    <td className="px-4 py-3 text-xs text-slate-400">{u.city || '—'}</td>
+                    <td className="px-4 py-3 text-xs text-slate-300">
+                      <div>
+                        <span>
+                          {[u.bike_brand, u.bike_model, u.bike_year].filter(Boolean).join(' ') ||
+                            '—'}
+                        </span>
+                        {u.bike_chassi && (
+                          <span className="block text-[10px] text-slate-500 font-mono">
+                            {u.bike_chassi}
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
-                      <StatusBadge status={u.status} />
+                      <MemberStatusBadge status={u.status} statusMembro={u.status_membro} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -422,6 +601,23 @@ const AdminMembers: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Modal de Importação em Massa */}
+      <ImportMembersModal
+        open={importModalOpen}
+        onOpenChange={setImportModalOpen}
+        onSuccess={load}
+      />
+
+      {/* Modal de Ajuste Manual de Categoria com Justificativa */}
+      <AdjustCategoryModal
+        user={adjustCatUser}
+        onClose={() => setAdjustCatUser(null)}
+        onSaved={(id, patch) => {
+          updateLocalUser(id, patch)
+          setAdjustCatUser(null)
+        }}
+      />
 
       {/* Edit Modal */}
       <EditMemberModal
@@ -610,7 +806,123 @@ const ActionBtn: React.FC<{
   </button>
 )
 
-/* ---------- Edit modal ---------- */
+/* ---------- Edit and Adjust Modals ---------- */
+
+const AdjustCategoryModal: React.FC<{
+  user: UserProfile | null
+  onClose: () => void
+  onSaved: (id: string, patch: Partial<UserProfile>) => void
+}> = ({ user, onClose, onSaved }) => {
+  const { toast } = useToast()
+  const [selectedCat, setSelectedCat] = useState<any>('SILVER')
+  const [justificativa, setJustificativa] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    if (user) {
+      setSelectedCat(user.categoria || user.category || 'SILVER')
+      setJustificativa('')
+    }
+  }, [user])
+
+  const handleConfirm = async () => {
+    if (!user) return
+    if (!justificativa.trim()) {
+      toast({
+        title: 'Justificativa obrigatória',
+        description: 'Informe a justificativa do ajuste manual para auditoria.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    setSaving(true)
+    try {
+      const updated = await userService.adjustMemberCategory(
+        user.id,
+        selectedCat,
+        justificativa.trim(),
+      )
+      toast({
+        title: 'Categoria atualizada',
+        description: `Categoria de ${user.name} alterada para ${selectedCat} com registro no histórico.`,
+      })
+      onSaved(user.id, updated)
+    } catch (e: any) {
+      toast({
+        title: 'Erro ao alterar categoria',
+        description: e.message || 'Falha na gravação.',
+        variant: 'destructive',
+      })
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <Dialog open={!!user} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="bg-[#0f141d] border-[#1e2738] text-white max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-base font-bold text-white flex items-center gap-2">
+            <Crown className="w-4 h-4 text-amber-400" />
+            Ajuste Manual de Categoria (Auditoria)
+          </DialogTitle>
+          <DialogDescription className="text-xs text-slate-400">
+            {user?.name} · CPF: {user?.cpf || '—'}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 mt-2">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-slate-300">Nova Categoria</Label>
+            <Select value={selectedCat} onValueChange={setSelectedCat}>
+              <SelectTrigger className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+                <SelectItem value="PLATINUM">PLATINUM (5+ motos)</SelectItem>
+                <SelectItem value="GOLD">GOLD (3 a 4 motos)</SelectItem>
+                <SelectItem value="SILVER">PRATA / SILVER (1 a 2 motos)</SelectItem>
+                <SelectItem value="BRONZE">BRONZE (Revisão Oficina)</SelectItem>
+                <SelectItem value="INATIVO">INATIVO</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label className="text-xs text-slate-300">
+              Justificativa Obrigatória <span className="text-red-400">*</span>
+            </Label>
+            <textarea
+              value={justificativa}
+              onChange={(e) => setJustificativa(e.target.value)}
+              placeholder="Descreva o motivo do ajuste manual (ex: cortesia da diretoria, erro no faturamento anterior, etc)..."
+              rows={3}
+              className="w-full bg-[#141b27] border border-[#222c3f] rounded-md p-2 text-xs text-white placeholder-slate-500 focus:border-blue-500 outline-none"
+            />
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#1c2538]">
+            <Button
+              variant="outline"
+              onClick={onClose}
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleConfirm}
+              disabled={saving || !justificativa.trim()}
+              className="bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs"
+            >
+              {saving ? 'Gravando...' : 'Gravar Ajuste no Histórico'}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 const EditMemberModal: React.FC<{
   user: UserProfile | null
@@ -620,6 +932,7 @@ const EditMemberModal: React.FC<{
   const { toast } = useToast()
   const [form, setForm] = useState<Partial<UserProfile>>({})
   const [saving, setSaving] = useState(false)
+  const [chassiError, setChassiError] = useState('')
 
   useEffect(() => {
     if (user) {
@@ -628,6 +941,11 @@ const EditMemberModal: React.FC<{
         email: user.email || '',
         role: user.role || 'member',
         category: user.category || 'Membro Premium',
+        categoria: user.categoria || user.category || 'SILVER',
+        quantidade_motos_compradas: user.quantidade_motos_compradas ?? 0,
+        data_ultima_passagem_oficina: user.data_ultima_passagem_oficina || '',
+        data_primeira_compra: user.data_primeira_compra || '',
+        data_ultima_compra: user.data_ultima_compra || '',
         member_id: user.member_id || '',
         phone: user.phone || '',
         cpf: user.cpf || '',
@@ -643,8 +961,6 @@ const EditMemberModal: React.FC<{
       setChassiError('')
     }
   }, [user])
-
-  const [chassiError, setChassiError] = useState('')
 
   const validateChassi = (chassi: string): boolean => {
     if (!chassi || !chassi.trim()) return true
@@ -690,6 +1006,8 @@ const EditMemberModal: React.FC<{
         phone: form.phone,
         cpf: form.cpf,
         city: form.city,
+        quantidade_motos_compradas: Number(form.quantidade_motos_compradas) || 0,
+        data_ultima_passagem_oficina: form.data_ultima_passagem_oficina || null,
         bike_brand: form.bike_brand,
         bike_model: form.bike_model,
         bike_year: Number(form.bike_year) || 0,
@@ -769,7 +1087,7 @@ const EditMemberModal: React.FC<{
           <Field label="Status de Cadastro" icon={null}>
             <Select
               value={(form.status as string) || 'pendente'}
-              onValueChange={(v) => set('status', v)}
+              onValueChange={(v) => set('status', v as Status)}
             >
               <SelectTrigger className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9">
                 <SelectValue />
@@ -782,6 +1100,35 @@ const EditMemberModal: React.FC<{
                 ))}
               </SelectContent>
             </Select>
+          </Field>
+
+          <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
+            <p className="text-[10px] font-bold text-amber-400 uppercase tracking-widest font-montserrat mb-3 flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5" /> Histórico Comercial e Oficina
+            </p>
+          </div>
+
+          <Field label="Qtd. Motos Compradas" icon={null}>
+            <Input
+              type="number"
+              min={0}
+              value={form.quantidade_motos_compradas ?? 0}
+              onChange={(e) => set('quantidade_motos_compradas', parseInt(e.target.value, 10) || 0)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-bold text-blue-400"
+            />
+          </Field>
+
+          <Field label="Última Passagem Oficina" icon={<Calendar className="w-3 h-3" />}>
+            <Input
+              type="date"
+              value={
+                form.data_ultima_passagem_oficina
+                  ? new Date(form.data_ultima_passagem_oficina).toISOString().split('T')[0]
+                  : ''
+              }
+              onChange={(e) => set('data_ultima_passagem_oficina', e.target.value)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
           </Field>
 
           <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">

@@ -15,6 +15,7 @@ import {
 import { UserProfile, userService } from '@/services/api'
 import { formatMemberId, getMemberCategory } from '@/lib/member'
 import { Button } from '@/components/ui/button'
+import { CategoryBadge } from '@/components/CategoryBadge'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 import memberCardLogo from '@/assets/image-ae9a6.png'
 
@@ -217,12 +218,13 @@ export const VerifyMember: React.FC = () => {
                 <div className="bg-[#0f1422] border border-[#202c42] rounded-lg p-3 flex items-start gap-3">
                   <Crown className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                   <div>
-                    <span className="block text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat">
+                    <span className="block text-[9px] font-bold tracking-widest text-slate-400 uppercase font-montserrat mb-1">
                       CATEGORIA
                     </span>
-                    <span className="text-xs font-bold text-white uppercase font-montserrat">
-                      {getMemberCategory(member)}
-                    </span>
+                    <CategoryBadge
+                      category={member.categoria || member.category || getMemberCategory(member)}
+                      size="sm"
+                    />
                   </div>
                 </div>
 
