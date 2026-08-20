@@ -186,9 +186,8 @@ export function formatMemberId(user?: UserProfile | null): string {
 
 /** Returns the member category name with fallback */
 export function getMemberCategory(user?: UserProfile | null): string {
-  if (!user) return 'Membro'
+  if (!user) return 'SILVER'
   if (user.categoria && user.categoria.trim()) return user.categoria.toUpperCase()
-  if (user.category && user.category.trim()) return user.category.toUpperCase()
   return 'SILVER'
 }
 

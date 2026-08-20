@@ -222,7 +222,7 @@ export const VerifyMember: React.FC = () => {
                       CATEGORIA
                     </span>
                     <CategoryBadge
-                      category={member.categoria || member.category || getMemberCategory(member)}
+                      category={member.categoria || getMemberCategory(member)}
                       size="sm"
                     />
                   </div>

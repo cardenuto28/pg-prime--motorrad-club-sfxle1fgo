@@ -27,7 +27,9 @@ export const MemberCard: React.FC = () => {
   const { toast } = useToast()
 
   const memberIdFormatted = useMemo(() => formatMemberId(user), [user])
-  const categoryFormatted = useMemo(() => getMemberCategory(user), [user])
+  const effectiveCategory = useMemo(() => {
+    return user?.categoria || getMemberCategory(user)
+  }, [user])
 
   // URL pública de verificação
   const verifyUrl = useMemo(() => {
@@ -239,10 +241,7 @@ export const MemberCard: React.FC = () => {
                       CATEGORIA
                     </span>
                     <div className="flex items-center gap-2">
-                      <CategoryBadge
-                        category={user?.categoria || user?.category || categoryFormatted}
-                        size="sm"
-                      />
+                      <CategoryBadge category={effectiveCategory} size="sm" />
                     </div>
                   </div>
                 </div>

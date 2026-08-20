@@ -940,8 +940,7 @@ const EditMemberModal: React.FC<{
         name: user.name || '',
         email: user.email || '',
         role: user.role || 'member',
-        category: user.category || 'Membro Premium',
-        categoria: user.categoria || user.category || 'SILVER',
+        categoria: user.categoria || 'SILVER',
         quantidade_motos_compradas: user.quantidade_motos_compradas ?? 0,
         data_ultima_passagem_oficina: user.data_ultima_passagem_oficina || '',
         data_primeira_compra: user.data_primeira_compra || '',
@@ -1001,7 +1000,6 @@ const EditMemberModal: React.FC<{
       const data: Partial<UserProfile> = {
         name: form.name,
         role: form.role,
-        category: form.category || 'Membro Premium',
         member_id: form.member_id,
         phone: form.phone,
         cpf: form.cpf,
@@ -1154,18 +1152,6 @@ const EditMemberModal: React.FC<{
                 </SelectItem>
               </SelectContent>
             </Select>
-          </Field>
-
-          <Field
-            label="Categoria na Carteirinha"
-            icon={<Crown className="w-3 h-3 text-amber-400" />}
-          >
-            <Input
-              value={(form.category as string) || ''}
-              onChange={(e) => set('category', e.target.value)}
-              placeholder="Ex.: Membro Premium, Membro VIP, Sócio Fundador"
-              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
-            />
           </Field>
 
           <Field label="ID Customizado (Opcional)" icon={null}>
