@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Benefit, benefitService } from '@/services/api'
 import { useAuth } from '@/context/AuthContext'
 import { resolveFileUrl, coverFallback, formatDate } from '@/lib/member'
+import { BenefitsMatrixSection } from '@/components/BenefitsMatrixSection'
 
 const PublicBeneficios: React.FC = () => {
   const { user } = useAuth()
@@ -76,8 +77,23 @@ const PublicBeneficios: React.FC = () => {
         </div>
       </section>
 
+      {/* Matriz de Benefícios por Categoria */}
+      <div className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 pt-10 sm:pt-14">
+        <BenefitsMatrixSection />
+      </div>
+
       {/* Grid */}
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-xl sm:text-2xl font-bold text-white font-montserrat tracking-tight uppercase">
+              Parceiros & Descontos Ativos
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-400 mt-1">
+              Benefícios e condições especiais negociados diretamente com nossos parceiros.
+            </p>
+          </div>
+        </div>
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />

@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { Benefit, benefitService } from '@/services/api'
 import { resolveFileUrl, coverFallback, formatDate } from '@/lib/member'
+import { BenefitsMatrixSection } from '@/components/BenefitsMatrixSection'
 
 const MemberBeneficios: React.FC = () => {
   const [benefits, setBenefits] = useState<Benefit[]>([])
@@ -51,6 +52,12 @@ const MemberBeneficios: React.FC = () => {
           Condições exclusivas e descontos especiais com nossos parceiros credenciados.
         </p>
       </div>
+
+      {/* Matriz de Benefícios por Categoria */}
+      <BenefitsMatrixSection
+        compact
+        subtitle="Confira todas as vantagens progressivas para membros Bronze, Prata, Gold e Platinum."
+      />
 
       {/* Destaque de membro */}
       <div className="bg-gradient-to-r from-blue-950/40 to-[#0e131d] border border-blue-700/40 rounded-md p-4 flex items-center gap-3">
