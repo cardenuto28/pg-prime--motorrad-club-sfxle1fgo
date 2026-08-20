@@ -14,7 +14,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Ride, UserProfile, registrationService } from '@/services/api'
 import { useToast } from '@/hooks/use-toast'
-import { Bike, Users, ShieldAlert, CheckCircle2 } from 'lucide-react'
+import { Bike, Users, ShieldAlert, CheckCircle2, AlertTriangle, Info } from 'lucide-react'
 
 interface RideRegistrationModalProps {
   ride: Ride | null
@@ -285,6 +285,22 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
                   required
                 />
               </div>
+            </div>
+          </div>
+
+          {/* Observação Destacada de Autorização de Imagem */}
+          <div className="bg-amber-950/40 border border-amber-500/40 rounded-lg p-3.5 flex items-start gap-3 shadow-sm">
+            <AlertTriangle className="w-5 h-5 text-amber-400 shrink-0 mt-0.5" />
+            <div className="space-y-1 text-xs leading-relaxed">
+              <p className="text-amber-200/90 font-medium">
+                <strong className="text-amber-300 font-semibold">Importante:</strong> os eventos do
+                Euromotors Motorrad Club são experiências coletivas e poderão ser fotografados e
+                filmados. Por esse motivo, a autorização de uso de imagem e voz é requisito para
+                participação no Clube.
+              </p>
+              <p className="text-amber-300/70 text-[11px]">
+                Marque os checkboxes obrigatórios abaixo para prosseguir com sua inscrição.
+              </p>
             </div>
           </div>
 
