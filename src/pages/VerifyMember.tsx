@@ -16,6 +16,7 @@ import { UserProfile, userService } from '@/services/api'
 import { formatMemberId, getMemberCategory } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import logoImage from '@/assets/logo-e67e1.jpeg'
+import memberCardLogo from '@/assets/image-ae9a6.png'
 
 export const VerifyMember: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -63,9 +64,9 @@ export const VerifyMember: React.FC = () => {
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
             <img
-              src={logoImage}
+              src={memberCardLogo}
               alt="Euro Motors Motorrad Club"
-              className="h-10 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           </Link>
           <div className="flex items-center gap-2">
@@ -172,6 +173,18 @@ export const VerifyMember: React.FC = () => {
 
             {/* Member Card Details */}
             <div className="p-6 sm:p-8 space-y-5">
+              {/* Carteirinha Preview compacta / Logo oficial */}
+              <div className="flex justify-center pb-1">
+                <div className="relative flex items-center justify-center">
+                  <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full pointer-events-none" />
+                  <img
+                    src={memberCardLogo}
+                    alt="Brasão Euro Motors Motorrad Club"
+                    className="h-28 sm:h-36 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]"
+                  />
+                </div>
+              </div>
+
               {/* Nome e ID */}
               <div className="bg-[#0f1422] border border-[#202c42] rounded-xl p-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5 min-w-0">

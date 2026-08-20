@@ -18,6 +18,7 @@ import { useAuth } from '@/context/AuthContext'
 import { formatMemberId, getMemberCategory, statusLabel } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import memberCardLogo from '@/assets/image-ae9a6.png'
 
 export const MemberCard: React.FC = () => {
   const { user } = useAuth()
@@ -195,71 +196,16 @@ export const MemberCard: React.FC = () => {
             <div className="grid grid-cols-12 gap-3 sm:gap-6 items-center my-auto py-2">
               {/* Left Col: Motorrad Club Shield (Col 4) */}
               <div className="col-span-12 sm:col-span-4 flex flex-col items-center justify-center">
-                <div className="relative w-36 sm:w-48 transition-transform group-hover:scale-105 duration-300">
-                  {/* Motorrad Club Euro Motors Shield Artwork */}
-                  <div className="relative flex flex-col items-center">
-                    <div className="w-32 sm:w-44 h-36 sm:h-48 rounded-t-3xl rounded-b-[40px] bg-gradient-to-b from-[#131924] via-[#090d15] to-[#04060a] border-2 border-[#384860] shadow-[0_10px_30px_rgba(0,0,0,0.9),inset_0_1px_2px_rgba(255,255,255,0.2)] p-2 flex flex-col items-center justify-between relative overflow-hidden">
-                      {/* Shield Inner metallic border */}
-                      <div className="absolute inset-1 rounded-t-2xl rounded-b-[36px] border border-blue-500/30 pointer-events-none" />
-
-                      {/* ESTD 2025 */}
-                      <div className="w-full flex justify-between items-center px-2 pt-1 text-[7px] sm:text-[8px] font-bold text-slate-400 font-montserrat">
-                        <span>ESTD</span>
-                        <span>2025</span>
-                      </div>
-
-                      {/* Mountain Compass Graphic */}
-                      <div className="relative my-auto flex flex-col items-center">
-                        {/* Wings top */}
-                        <div className="flex items-center gap-1 text-blue-400 mb-0.5">
-                          <div className="w-4 h-0.5 bg-blue-400 rounded-full" />
-                          <div className="w-1.5 h-1.5 rotate-45 border border-blue-400" />
-                          <div className="w-4 h-0.5 bg-blue-400 rounded-full" />
-                        </div>
-
-                        {/* Mountain Peaks SVG in shield */}
-                        <svg
-                          className="w-20 sm:w-28 h-10 sm:h-14"
-                          viewBox="0 0 100 50"
-                          fill="none"
-                          xmlns="http://www.w3.org/2000/svg"
-                        >
-                          <polygon points="50,6 68,36 32,36" fill="#e2e8f0" opacity="0.9" />
-                          <polygon points="30,16 46,36 14,36" fill="#94a3b8" opacity="0.8" />
-                          <polygon points="70,16 86,36 54,36" fill="#94a3b8" opacity="0.8" />
-                          {/* Winding blue road */}
-                          <path
-                            d="M50,14 Q44,26 50,38 Q56,48 50,50"
-                            stroke="#0088ff"
-                            strokeWidth="3.5"
-                            fill="none"
-                            strokeLinecap="round"
-                          />
-                        </svg>
-
-                        {/* Compass Arrow Top */}
-                        <div className="w-0 h-0 border-l-[3px] border-l-transparent border-r-[3px] border-r-transparent border-b-[6px] border-b-blue-400 -mt-8 mb-4" />
-                      </div>
-
-                      {/* MOTORRAD CLUB Banner text */}
-                      <div className="w-full text-center pb-1 space-y-0.5 z-10">
-                        <div className="bg-gradient-to-r from-transparent via-[#101929] to-transparent py-0.5 border-t border-b border-blue-500/40">
-                          <span className="block text-[11px] sm:text-[14px] font-black tracking-wider text-white font-montserrat uppercase leading-none drop-shadow">
-                            MOTORRAD
-                          </span>
-                          <div className="flex items-center justify-center gap-1 mt-0.5">
-                            <span className="h-[1px] w-2 bg-blue-500" />
-                            <span className="text-[8px] sm:text-[9.5px] font-extrabold tracking-[0.2em] text-blue-400 font-montserrat">
-                              CLUB
-                            </span>
-                            <span className="h-[1px] w-2 bg-blue-500" />
-                          </div>
-                        </div>
-                        <span className="block text-[6.5px] sm:text-[7.5px] font-bold tracking-[0.15em] text-slate-400 uppercase font-montserrat pt-0.5">
-                          EUROMOTORS
-                        </span>
-                      </div>
-                    </div>
+                <div className="relative group transition-transform duration-300 hover:scale-105 flex items-center justify-center">
+                  <div className="relative flex items-center justify-center">
+                    {/* Subtle backglow */}
+                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full pointer-events-none" />
+                    {/* Shield Logo Image */}
+                    <img
+                      src={memberCardLogo}
+                      alt="Motorrad Club Euromotors"
+                      className="relative w-36 sm:w-44 h-auto max-h-52 object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)]"
+                    />
                   </div>
                 </div>
               </div>
@@ -353,8 +299,12 @@ export const MemberCard: React.FC = () => {
                     />
                     {/* Mini overlay logo inside QR */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-6 h-6 rounded bg-[#090d15] border border-blue-500/80 flex items-center justify-center shadow-lg">
-                        <span className="text-[6px] font-black text-blue-400">EMC</span>
+                      <div className="w-6 h-6 rounded bg-[#090d15] border border-blue-500/80 overflow-hidden flex items-center justify-center shadow-lg p-0.5">
+                        <img
+                          src={memberCardLogo}
+                          alt="Logo"
+                          className="w-full h-full object-contain"
+                        />
                       </div>
                     </div>
                   </a>
