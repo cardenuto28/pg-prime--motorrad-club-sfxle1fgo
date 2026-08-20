@@ -29,7 +29,7 @@ interface BenefitsMatrixSectionProps {
 
 export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
   className = '',
-  compact = false,
+  compact: _compact = false,
   subtitle = 'Compare todas as categorias Bronze, Prata, Gold e Platinum e veja as vantagens exclusivas do Euro Motors Motorrad Club.',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
@@ -88,16 +88,15 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
           </div>
         </div>
 
-        {/* Container da Imagem com overlay de clique */}
+        {/* Container da Imagem completo */}
         <div className="relative p-3 sm:p-6 bg-[#07090e]/90">
           <div
             onClick={handleOpen}
-            className="relative cursor-pointer rounded-lg overflow-hidden border border-[#1b263a] bg-black/40 group/preview transition-all hover:border-[#0066FF]/60 hover:shadow-xl hover:shadow-[#0066FF]/10"
+            className="relative cursor-pointer rounded-lg overflow-hidden border border-[#1b263a] bg-[#07090e] group/preview transition-all hover:border-[#0066FF]/60 hover:shadow-xl hover:shadow-[#0066FF]/10"
+            title="Clique para abrir com controles de zoom em tela cheia"
           >
-            {/* Imagem */}
-            <div
-              className={`relative w-full ${compact ? 'max-h-[500px]' : 'max-h-[680px]'} overflow-hidden flex items-center justify-center bg-[#07090e]`}
-            >
+            {/* Imagem em tamanho natural / largura total */}
+            <div className="relative w-full flex items-center justify-center bg-[#07090e]">
               {!isLoaded && (
                 <div className="absolute inset-0 flex items-center justify-center bg-[#0d131f] min-h-[300px]">
                   <div className="w-8 h-8 border-2 border-[#0066FF] border-t-transparent rounded-full animate-spin" />
@@ -106,23 +105,23 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
               <img
                 src={BENEFITS_MATRIX_IMAGE_URL}
                 alt="Matriz de Benefícios por Categoria - Euro Motors Motorrad Club"
-                className={`w-full h-auto object-contain transition-all duration-500 group-hover/preview:scale-[1.01] ${
-                  isLoaded ? 'opacity-100' : 'opacity-0'
+                className={`w-full h-auto block transition-all duration-300 ${
+                  isLoaded ? 'opacity-100' : 'opacity-0 min-h-[200px]'
                 }`}
                 loading="lazy"
                 onLoad={() => setIsLoaded(true)}
               />
             </div>
 
-            {/* Hover overlay hint */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 flex items-end justify-center p-4">
-              <span className="inline-flex items-center gap-2 text-xs font-bold text-white bg-[#0066FF] px-4 py-2 rounded-full shadow-lg transform translate-y-2 group-hover/preview:translate-y-0 transition-transform duration-300 font-montserrat uppercase tracking-wider">
-                <ZoomIn className="w-4 h-4" /> Clique para ampliar e ver detalhes
+            {/* Hover overlay hint sutil */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover/preview:opacity-100 transition-opacity duration-300 flex items-end justify-center p-4 pointer-events-none">
+              <span className="inline-flex items-center gap-2 text-xs font-bold text-white bg-[#0066FF]/95 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg transform translate-y-2 group-hover/preview:translate-y-0 transition-transform duration-300 font-montserrat uppercase tracking-wider">
+                <ZoomIn className="w-4 h-4" /> Clique para abrir em tela cheia com zoom
               </span>
             </div>
 
-            {/* Badges de Categoria no rodapé do preview */}
-            <div className="absolute top-3 right-3 hidden sm:flex items-center gap-1.5 bg-black/70 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-[11px] font-semibold text-slate-200">
+            {/* Badges de Categoria no topo */}
+            <div className="absolute top-3 right-3 hidden sm:flex items-center gap-1.5 bg-black/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/10 text-[11px] font-semibold text-slate-200 pointer-events-none">
               <Sparkles className="w-3.5 h-3.5 text-amber-400" />
               <span>Bronze • Prata • Gold • Platinum</span>
             </div>
@@ -132,14 +131,15 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
           <div className="mt-3 flex flex-wrap items-center justify-between gap-2 px-1 text-[11px] text-slate-400">
             <span className="inline-flex items-center gap-1.5">
               <Info className="w-3.5 h-3.5 text-[#0066FF]" />
-              Clique na imagem para abrir em alta resolução com ferramentas de zoom.
+              Imagem completa da Matriz de Benefícios. Para zoom e detalhes adicionais, clique na
+              imagem ou em "Ver em Tela Cheia".
             </span>
             <button
               type="button"
               onClick={handleOpen}
               className="text-[#0066FF] hover:text-blue-400 font-semibold underline underline-offset-2 tracking-wide"
             >
-              Abrir visualizador detalhado
+              Abrir visualizador com zoom
             </button>
           </div>
         </div>
