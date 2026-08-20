@@ -76,26 +76,33 @@ export function drawClubHeader(doc: jsPDF, title: string, subtitle?: string) {
 }
 
 export function drawClubFooter(doc: jsPDF) {
-  const pageCount = (doc as any).internal.getNumberOfPages()
-  const pageWidth = doc.internal.pageSize.getWidth()
-  const pageHeight = doc.internal.pageSize.getHeight()
+  try {
+    const pageCount =
+      typeof (doc as any).getNumberOfPages === 'function'
+        ? (doc as any).getNumberOfPages()
+        : (doc as any).internal?.getNumberOfPages?.() || 1
+    const pageWidth = doc.internal.pageSize.getWidth()
+    const pageHeight = doc.internal.pageSize.getHeight()
 
-  for (let i = 1; i <= pageCount; i++) {
-    doc.setPage(i)
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i)
 
-    // Thin separator line
-    doc.setDrawColor(226, 232, 240)
-    doc.setLineWidth(0.5)
-    doc.line(14, pageHeight - 14, pageWidth - 14, pageHeight - 14)
+      // Thin separator line
+      doc.setDrawColor(226, 232, 240)
+      doc.setLineWidth(0.5)
+      doc.line(14, pageHeight - 14, pageWidth - 14, pageHeight - 14)
 
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(148, 163, 184)
-    doc.text('Euro Motors Motorrad Club — Documento Oficial', 14, pageHeight - 9)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(148, 163, 184)
+      doc.text('Euro Motors Motorrad Club — Documento Oficial', 14, pageHeight - 9)
 
-    doc.text(`Página ${i} de ${pageCount}`, pageWidth - 14, pageHeight - 9, {
-      align: 'right',
-    })
+      doc.text(`Página ${i} de ${pageCount}`, pageWidth - 14, pageHeight - 9, {
+        align: 'right',
+      })
+    }
+  } catch (err) {
+    console.error('[drawClubFooter] Erro ao desenhar rodapé nas páginas:', err)
   }
 }
 
@@ -103,6 +110,7 @@ export function drawClubFooter(doc: jsPDF) {
  * Export Complete Administrator Manual to PDF
  */
 export function exportAdminManualPdf() {
+  console.info('[exportAdminManualPdf] Iniciando geração do Manual do Administrador...')
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
   const pageHeight = doc.internal.pageSize.getHeight()
@@ -119,126 +127,154 @@ export function exportAdminManualPdf() {
   }
 
   function drawManualPageHeader(targetDoc: jsPDF) {
-    const pWidth = targetDoc.internal.pageSize.getWidth()
-    targetDoc.setFillColor(10, 17, 32)
-    targetDoc.rect(0, 0, pWidth, 22, 'F')
-    targetDoc.setFillColor(0, 102, 255)
-    targetDoc.rect(0, 22, pWidth, 1.2, 'F')
+    try {
+      const pWidth = targetDoc.internal.pageSize.getWidth()
+      targetDoc.setFillColor(10, 17, 32)
+      targetDoc.rect(0, 0, pWidth, 22, 'F')
+      targetDoc.setFillColor(0, 102, 255)
+      targetDoc.rect(0, 22, pWidth, 1.2, 'F')
 
-    targetDoc.setFont('helvetica', 'bold')
-    targetDoc.setFontSize(11)
-    targetDoc.setTextColor(255, 255, 255)
-    targetDoc.text('EUROMOTORS MOTORRAD CLUB', 14, 11)
+      targetDoc.setFont('helvetica', 'bold')
+      targetDoc.setFontSize(11)
+      targetDoc.setTextColor(255, 255, 255)
+      targetDoc.text('EUROMOTORS MOTORRAD CLUB', 14, 11)
 
-    targetDoc.setFont('helvetica', 'normal')
-    targetDoc.setFontSize(8)
-    targetDoc.setTextColor(148, 163, 184)
-    targetDoc.text('MANUAL DO ADMINISTRADOR', 14, 17)
+      targetDoc.setFont('helvetica', 'normal')
+      targetDoc.setFontSize(8)
+      targetDoc.setTextColor(148, 163, 184)
+      targetDoc.text('MANUAL DO ADMINISTRADOR', 14, 17)
 
-    const now = new Date()
-    const dateFormatted = now.toLocaleDateString('pt-BR')
-    targetDoc.text(`Atualizado em: ${dateFormatted}`, pWidth - 14, 14, { align: 'right' })
+      const now = new Date()
+      const dateFormatted = now.toLocaleDateString('pt-BR')
+      targetDoc.text(`Atualizado em: ${dateFormatted}`, pWidth - 14, 14, { align: 'right' })
+    } catch (headerErr) {
+      console.error('[exportAdminManualPdf] Erro em drawManualPageHeader:', headerErr)
+    }
   }
 
   // First page main header
-  doc.setFillColor(10, 17, 32)
-  doc.rect(0, 0, pageWidth, 30, 'F')
-  doc.setFillColor(0, 102, 255)
-  doc.rect(0, 30, pageWidth, 1.8, 'F')
+  try {
+    doc.setFillColor(10, 17, 32)
+    doc.rect(0, 0, pageWidth, 30, 'F')
+    doc.setFillColor(0, 102, 255)
+    doc.rect(0, 30, pageWidth, 1.8, 'F')
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(13)
-  doc.setTextColor(255, 255, 255)
-  doc.text('EUROMOTORS MOTORRAD CLUB', 14, 12)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(13)
+    doc.setTextColor(255, 255, 255)
+    doc.text('EUROMOTORS MOTORRAD CLUB', 14, 12)
 
-  doc.setFont('helvetica', 'bold')
-  doc.setFontSize(10)
-  doc.setTextColor(0, 102, 255)
-  doc.text('MANUAL DO ADMINISTRADOR', 14, 18)
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(0, 102, 255)
+    doc.text('MANUAL DO ADMINISTRADOR', 14, 18)
 
-  doc.setFont('helvetica', 'normal')
-  doc.setFontSize(7.5)
-  doc.setTextColor(148, 163, 184)
-  doc.text('Guia Completo de Operação, Gestão de Membros, Pontuação e Painel', 14, 24)
+    doc.setFont('helvetica', 'normal')
+    doc.setFontSize(7.5)
+    doc.setTextColor(148, 163, 184)
+    doc.text('Guia Completo de Operação, Gestão de Membros, Pontuação e Painel', 14, 24)
 
-  const now = new Date()
-  const dateFormatted = now.toLocaleDateString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-  })
-  const timeFormatted = now.toLocaleTimeString('pt-BR', {
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-  doc.setFontSize(7.5)
-  doc.setTextColor(203, 213, 225)
-  doc.text(`Gerado em: ${dateFormatted} às ${timeFormatted}`, pageWidth - 14, 16, {
-    align: 'right',
-  })
-  doc.text('Versão Oficial do Sistema', pageWidth - 14, 22, { align: 'right' })
+    const now = new Date()
+    const dateFormatted = now.toLocaleDateString('pt-BR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+    })
+    const timeFormatted = now.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit',
+    })
+    doc.setFontSize(7.5)
+    doc.setTextColor(203, 213, 225)
+    doc.text(`Gerado em: ${dateFormatted} às ${timeFormatted}`, pageWidth - 14, 16, {
+      align: 'right',
+    })
+    doc.text('Versão Oficial do Sistema', pageWidth - 14, 22, { align: 'right' })
+  } catch (firstHeaderErr) {
+    console.error('[exportAdminManualPdf] Erro no cabeçalho inicial:', firstHeaderErr)
+  }
 
   cursorY = 40
 
   const addSectionTitle = (title: string) => {
-    ensureSpace(14)
-    doc.setFillColor(15, 23, 42)
-    doc.rect(margin, cursorY - 4, contentWidth, 8, 'F')
-    doc.setFillColor(0, 102, 255)
-    doc.rect(margin, cursorY - 4, 2.5, 8, 'F')
+    try {
+      ensureSpace(14)
+      doc.setFillColor(15, 23, 42)
+      doc.rect(margin, cursorY - 4, contentWidth, 8, 'F')
+      doc.setFillColor(0, 102, 255)
+      doc.rect(margin, cursorY - 4, 2.5, 8, 'F')
 
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(10)
-    doc.setTextColor(255, 255, 255)
-    doc.text(title, margin + 6, cursorY + 1.5)
-    cursorY += 9
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(10)
+      doc.setTextColor(255, 255, 255)
+      doc.text(title, margin + 6, cursorY + 1.5)
+      cursorY += 9
+    } catch (err) {
+      console.error(`[exportAdminManualPdf] Erro em addSectionTitle (${title}):`, err)
+      cursorY += 10
+    }
   }
 
   const addSubSection = (title: string) => {
-    ensureSpace(10)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(9)
-    doc.setTextColor(0, 102, 255)
-    doc.text(title, margin, cursorY)
-    cursorY += 5
+    try {
+      ensureSpace(10)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(9)
+      doc.setTextColor(0, 102, 255)
+      doc.text(title, margin, cursorY)
+      cursorY += 5
+    } catch (err) {
+      console.error(`[exportAdminManualPdf] Erro em addSubSection (${title}):`, err)
+      cursorY += 6
+    }
   }
 
   const addParagraph = (text: string) => {
-    ensureSpace(8)
-    doc.setFont('helvetica', 'normal')
-    doc.setFontSize(8)
-    doc.setTextColor(51, 65, 85)
-    const lines = doc.splitTextToSize(text, contentWidth)
-    lines.forEach((line: string) => {
-      ensureSpace(5)
-      doc.text(line, margin, cursorY)
-      cursorY += 4.2
-    })
-    cursorY += 1.5
+    try {
+      ensureSpace(8)
+      doc.setFont('helvetica', 'normal')
+      doc.setFontSize(8)
+      doc.setTextColor(51, 65, 85)
+      const lines = doc.splitTextToSize(text, contentWidth)
+      lines.forEach((line: string) => {
+        ensureSpace(5)
+        doc.text(line, margin, cursorY)
+        cursorY += 4.2
+      })
+      cursorY += 1.5
+    } catch (err) {
+      console.error('[exportAdminManualPdf] Erro em addParagraph:', err)
+      cursorY += 5
+    }
   }
 
   const addBullet = (boldPrefix: string, text: string) => {
-    ensureSpace(6)
-    doc.setFont('helvetica', 'bold')
-    doc.setFontSize(8)
-    doc.setTextColor(30, 41, 59)
-    doc.text(`• ${boldPrefix}:`, margin + 2, cursorY)
-    const prefixWidth = doc.getTextWidth(`• ${boldPrefix}: `)
+    try {
+      ensureSpace(6)
+      doc.setFont('helvetica', 'bold')
+      doc.setFontSize(8)
+      doc.setTextColor(30, 41, 59)
+      doc.text(`• ${boldPrefix}:`, margin + 2, cursorY)
+      const prefixWidth = doc.getTextWidth(`• ${boldPrefix}: `)
 
-    doc.setFont('helvetica', 'normal')
-    doc.setTextColor(51, 65, 85)
-    const remainingWidth = contentWidth - prefixWidth - 2
-    const lines = doc.splitTextToSize(text, remainingWidth)
-    if (lines.length > 0) {
-      doc.text(lines[0], margin + 2 + prefixWidth, cursorY)
-      cursorY += 4.2
-      for (let k = 1; k < lines.length; k++) {
-        ensureSpace(5)
-        doc.text(lines[k], margin + 6, cursorY)
+      doc.setFont('helvetica', 'normal')
+      doc.setTextColor(51, 65, 85)
+      const remainingWidth = contentWidth - prefixWidth - 2
+      const lines = doc.splitTextToSize(text, remainingWidth)
+      if (lines.length > 0) {
+        doc.text(lines[0], margin + 2 + prefixWidth, cursorY)
+        cursorY += 4.2
+        for (let k = 1; k < lines.length; k++) {
+          ensureSpace(5)
+          doc.text(lines[k], margin + 6, cursorY)
+          cursorY += 4.2
+        }
+      } else {
         cursorY += 4.2
       }
-    } else {
-      cursorY += 4.2
+    } catch (err) {
+      console.error(`[exportAdminManualPdf] Erro em addBullet (${boldPrefix}):`, err)
+      cursorY += 5
     }
   }
 
@@ -246,46 +282,99 @@ export function exportAdminManualPdf() {
     head: string[][],
     body: (string | number)[][],
     colWidths?: { [key: number]: number },
+    tableName?: string,
   ) => {
     ensureSpace(20)
-    autoTable(doc, {
-      startY: cursorY,
-      head,
-      body,
-      theme: 'grid',
-      headStyles: {
-        fillColor: [10, 17, 32],
-        textColor: [255, 255, 255],
-        fontStyle: 'bold',
-        fontSize: 7.5,
-        cellPadding: 2,
-      },
-      bodyStyles: {
-        fontSize: 7,
-        textColor: [30, 41, 59],
-        cellPadding: 2,
-      },
-      alternateRowStyles: {
-        fillColor: [248, 250, 252],
-      },
-      columnStyles: colWidths
-        ? Object.fromEntries(Object.entries(colWidths).map(([k, v]) => [k, { cellWidth: v }]))
-        : {},
-      margin: { left: margin, right: margin, bottom: 20 },
-      didDrawPage: (data) => {
-        if (data.pageNumber > 1) {
-          drawManualPageHeader(doc)
+    try {
+      // Safe invoke autoTable (support default import, named import or attached prototype)
+      const autoTableFn: any =
+        typeof autoTable === 'function'
+          ? autoTable
+          : (doc as any).autoTable
+            ? (doc as any).autoTable.bind(doc)
+            : null
+
+      if (autoTableFn) {
+        autoTableFn(doc, {
+          startY: cursorY,
+          head,
+          body,
+          theme: 'grid',
+          headStyles: {
+            fillColor: [10, 17, 32],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold',
+            fontSize: 7.5,
+            cellPadding: 2,
+          },
+          bodyStyles: {
+            fontSize: 7,
+            textColor: [30, 41, 59],
+            cellPadding: 2,
+          },
+          alternateRowStyles: {
+            fillColor: [248, 250, 252],
+          },
+          columnStyles: colWidths
+            ? Object.fromEntries(Object.entries(colWidths).map(([k, v]) => [k, { cellWidth: v }]))
+            : {},
+          margin: { left: margin, right: margin, bottom: 20 },
+          didDrawPage: (data: any) => {
+            if (data && data.pageNumber > 1) {
+              drawManualPageHeader(doc)
+            }
+          },
+        })
+
+        const lastTable = (doc as any).lastAutoTable
+        if (lastTable && typeof lastTable.finalY === 'number') {
+          cursorY = lastTable.finalY + 5
+          return
         }
-      },
-    })
-    cursorY = (doc as any).lastAutoTable.finalY + 5
+      }
+      // If autoTable did not set finalY or wasn't callable, compute fallback cursorY
+      cursorY += (body.length + 1) * 6 + 5
+    } catch (tableErr) {
+      console.error(
+        `[exportAdminManualPdf] Falha ao renderizar autoTable ${tableName || ''}:`,
+        tableErr,
+      )
+      // Fallback: render table data as formatted text rows without breaking the entire PDF
+      try {
+        ensureSpace(10)
+        doc.setFont('helvetica', 'bold')
+        doc.setFontSize(7.5)
+        doc.setTextColor(10, 17, 32)
+        if (head && head.length > 0) {
+          doc.text(head[0].join(' | '), margin, cursorY)
+          cursorY += 4.5
+        }
+        doc.setFont('helvetica', 'normal')
+        doc.setFontSize(7)
+        doc.setTextColor(51, 65, 85)
+        for (const row of body) {
+          ensureSpace(5)
+          const rowText = row.map((c) => String(c ?? '')).join(' — ')
+          const lines = doc.splitTextToSize(rowText, contentWidth)
+          for (const line of lines) {
+            ensureSpace(4.5)
+            doc.text(line, margin + 2, cursorY)
+            cursorY += 4
+          }
+        }
+        cursorY += 3
+      } catch (fallbackErr) {
+        console.error('[exportAdminManualPdf] Falha no fallback de texto da tabela:', fallbackErr)
+        cursorY += 10
+      }
+    }
   }
 
   // --- SEÇÃO 1: ACESSO AO PAINEL ---
   addSectionTitle('1. ACESSO AO PAINEL ADMINISTRATIVO')
   addParagraph('1. Acesse: https://euromotorsclub.goskip.app')
   addParagraph('2. Faça login com seu e-mail e senha de administrador.')
-  addParagraph('3. No menu superior ou lateral, clique em Admin → Dashboard.')
+  addParagraph('3. No menu superior ou lateral, clique em Admin -> Dashboard.')
   addParagraph('Perfis de administrador cadastrados no sistema:')
   addTable(
     [['Nome', 'E-mail']],
@@ -293,6 +382,8 @@ export function exportAdminManualPdf() {
       ['Ricardo Euro Motors', 'ricardo@grupoeuromotors.com.br'],
       ['ADAUTO SAMPAIO', 'eventos@grupoeuromotors.com.br'],
     ],
+    undefined,
+    'Perfis de Admin',
   )
 
   // --- SEÇÃO 2: GESTÃO DE MEMBROS ---
@@ -333,6 +424,8 @@ export function exportAdminManualPdf() {
       ['Inativo', 'Bronze com oficina vencida (>6 meses sem visita registrada).'],
       ['Bloqueado', 'Impedido manualmente pelo administrador por descumprimento de regras.'],
     ],
+    undefined,
+    'Status do Membro',
   )
 
   addSubSection('2.4 Deletar membro')
@@ -342,7 +435,7 @@ export function exportAdminManualPdf() {
 
   addSubSection('2.5 Importar membros em massa')
   addParagraph(
-    'Clique em 📥 IMPORTAR MEMBROS e selecione arquivo Excel (.xlsx) ou CSV. Colunas aceitas:',
+    'Clique em IMPORTAR MEMBROS e selecione arquivo Excel (.xlsx) ou CSV. Colunas aceitas:',
   )
   addTable(
     [['Coluna', 'Descrição', 'Obrigatório']],
@@ -361,6 +454,8 @@ export function exportAdminManualPdf() {
       ['data_primeira_compra', 'Data da primeira compra', 'Não'],
       ['data_ultima_compra', 'Data da última compra', 'Não'],
     ],
+    undefined,
+    'Colunas de Importação',
   )
   addParagraph(
     '• Preview automático: o sistema valida e exibe registros válidos e com inconsistências antes da gravação.',
@@ -398,6 +493,8 @@ export function exportAdminManualPdf() {
         'Itens inclusos (café, apoio, almoço) e regras obrigatórias',
       ],
     ],
+    undefined,
+    'Ficha Técnica Passeios',
   )
 
   addSubSection('3.2 Editar / Excluir passeio')
@@ -432,11 +529,13 @@ export function exportAdminManualPdf() {
   addTable(
     [['Categoria', 'Pontuação Mínima', 'Identificador Visual']],
     [
-      ['PLATINUM', '500+ pontos', '💎 Azul Premium Especial'],
-      ['GOLD', '300 a 499 pontos', '👑 Dourado Gold'],
-      ['PRATA', '100 a 299 pontos', '⭐ Prata Silver'],
-      ['BRONZE', '0 a 99 pontos', '🛡️ Bronze Standard'],
+      ['PLATINUM', '500+ pontos', 'Azul Premium Especial'],
+      ['GOLD', '300 a 499 pontos', 'Dourado Gold'],
+      ['PRATA', '100 a 299 pontos', 'Prata Silver'],
+      ['BRONZE', '0 a 99 pontos', 'Bronze Standard'],
     ],
+    undefined,
+    'Categorias e Pontos',
   )
 
   addSubSection('5.3 Como os membros ganham pontos')
@@ -449,6 +548,8 @@ export function exportAdminManualPdf() {
       ['Revisão / Serviço na Oficina', '50 pontos', 'Por serviço concluído'],
       ['Indicação de Amigo que Comprou', '150 pontos', 'Por indicação concluída'],
     ],
+    undefined,
+    'Regras de Pontuação',
   )
 
   addSubSection('5.4 Regras importantes')
@@ -547,7 +648,7 @@ export function exportAdminManualPdf() {
 
   // --- SEÇÃO 12: RELATÓRIOS ---
   addSectionTitle('12. RELATÓRIOS')
-  addParagraph('Caminho no painel: Admin → Relatórios')
+  addParagraph('Caminho no painel: Admin -> Relatórios')
   addTable(
     [['Relatório', 'Conteúdo Gerado', 'Formatos']],
     [
@@ -556,12 +657,14 @@ export function exportAdminManualPdf() {
       ['Inscrições', 'Lista detalhada de inscritos e participantes por passeio', 'CSV / PDF'],
       ['Ranking', 'Classificação geral dos membros mais ativos por pontuação', 'CSV / PDF'],
     ],
+    undefined,
+    'Relatórios do Sistema',
   )
   addParagraph('Filtros: por categoria, por status e por intervalo de datas.')
 
   // --- SEÇÃO 13: CONFIGURAÇÕES ---
   addSectionTitle('13. CONFIGURAÇÕES')
-  addParagraph('Caminho no painel: Admin → Configurações')
+  addParagraph('Caminho no painel: Admin -> Configurações')
   addTable(
     [['Configuração', 'Descrição e Aplicação']],
     [
@@ -571,6 +674,8 @@ export function exportAdminManualPdf() {
       ['E-mail de contato', 'E-mail para suporte ao associado exibido na página de Contato'],
       ['Endereço físico', 'Endereço da concessionária Euro Motors em São José do Rio Preto'],
     ],
+    undefined,
+    'Configurações Gerais',
   )
 
   // --- SEÇÃO 14: FLUXOS PRINCIPAIS ---
@@ -643,8 +748,19 @@ export function exportAdminManualPdf() {
     'R: O sistema calcula a pontuação automaticamente com base nas ações realizadas. Caso queira conceder pontos por compras anteriores ou serviços, edite o membro e atualize a quantidade de motos ou a data da última passagem na oficina.',
   )
 
-  drawClubFooter(doc)
-  doc.save('Manual_Admin_EuroMotors_Club.pdf')
+  try {
+    drawClubFooter(doc)
+  } catch (footerErr) {
+    console.error('[exportAdminManualPdf] Erro ao desenhar rodapé:', footerErr)
+  }
+
+  try {
+    doc.save('Manual_Admin_EuroMotors_Club.pdf')
+    console.info('[exportAdminManualPdf] PDF gerado e download disparado com sucesso.')
+  } catch (saveErr) {
+    console.error('[exportAdminManualPdf] Erro ao salvar/baixar o arquivo PDF:', saveErr)
+    throw saveErr
+  }
 }
 
 /**

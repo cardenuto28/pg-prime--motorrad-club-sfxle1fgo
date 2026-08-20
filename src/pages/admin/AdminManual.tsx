@@ -64,23 +64,26 @@ export const AdminManual: React.FC = () => {
   const [downloading, setDownloading] = useState(false)
 
   const handleDownloadPdf = () => {
-    try {
-      setDownloading(true)
-      exportAdminManualPdf()
-      toast({
-        title: 'Download iniciado',
-        description: 'O arquivo Manual_Admin_EuroMotors_Club.pdf foi gerado com sucesso.',
-      })
-    } catch (e) {
-      console.error('Erro ao gerar PDF do manual:', e)
-      toast({
-        title: 'Erro ao gerar PDF',
-        description: 'Houve uma falha na criação do documento em PDF.',
-        variant: 'destructive',
-      })
-    } finally {
-      setDownloading(false)
-    }
+    setDownloading(true)
+    // Small timeout to allow the button UI state to update before synchronous PDF rendering
+    setTimeout(() => {
+      try {
+        exportAdminManualPdf()
+        toast({
+          title: 'Manual Baixado com Sucesso',
+          description: 'O arquivo Manual_Admin_EuroMotors_Club.pdf foi gerado e salvo.',
+        })
+      } catch (e: any) {
+        console.error('Erro ao gerar PDF do manual:', e)
+        toast({
+          title: 'Erro ao gerar PDF',
+          description: e?.message || 'Houve uma falha na criação do documento em PDF.',
+          variant: 'destructive',
+        })
+      } finally {
+        setDownloading(false)
+      }
+    }, 50)
   }
 
   const scrollToSection = (id: string) => {
