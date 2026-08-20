@@ -37,6 +37,8 @@ import AdminReports from './pages/admin/AdminReports'
 import AdminSettings from './pages/admin/AdminSettings'
 import AdminBanners from './pages/admin/AdminBanners'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
+import AdminStoreQrCode from './pages/admin/AdminStoreQrCode'
+import StoreCheckIn from './pages/StoreCheckIn'
 import Passeios from './pages/Passeios'
 import Galeria from './pages/Galeria'
 import Contato from './pages/Contato'
@@ -71,6 +73,7 @@ const App = () => (
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/validar-cadastro" element={<ValidarCadastro />} />
             <Route path="/verificar/:id" element={<VerifyMember />} />
+            <Route path="/checkin-loja" element={<StoreCheckIn />} />
           </Route>
           {/* Área do Membro (protegida) */}
           <Route
@@ -112,6 +115,7 @@ const App = () => (
             <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="reports" element={<AdminReports />} />
             <Route path="banners" element={<AdminBanners />} />
+            <Route path="qrcode-loja" element={<AdminStoreQrCode />} />
             <Route path="settings" element={<AdminSettings />} />
           </Route>
           <Route path="*" element={<NotFound />} />

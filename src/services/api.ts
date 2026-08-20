@@ -256,6 +256,18 @@ export interface Banner {
   updated: string
 }
 
+export interface StoreVisit {
+  id: string
+  user: string
+  notes?: string
+  created_at?: string
+  created: string
+  updated: string
+  expand?: {
+    user?: UserProfile
+  }
+}
+
 // Data Services
 export const userService = {
   async getCurrentUser(): Promise<UserProfile | null> {
@@ -784,5 +796,80 @@ export const bannerService = {
   async delete(id: string): Promise<boolean> {
     await pb.collection('banners').delete(id)
     return true
+  },
+}
+
+export const storeVisitService = {
+  async getAllVisits(): Promise<StoreVisit[]> {
+    try {
+      const records = await pb.collection('store_visits').getFullList({
+        sort: '-created',
+        expand: 'user',
+      })
+      return records as unknown as StoreVisit[]
+    } catch {
+      return []
+    }
+  },
+
+  async getVisitsByUser(userId: string): Promise<StoreVisit[]> {
+    try {
+      const records = await pb.collection('store_visits').getFullList({
+        filter: `user='${userId}'`,
+        sort: '-created',
+      })
+      return records as unknown as StoreVisit[]
+    } catch {
+      return []
+    }
+  },
+
+  async recordStoreVisit(userId: string, notes?: string): Promise<StoreVisit> {
+    const record = await pb.collection('store_visits').create({
+      user: userId,
+      notes: notes || 'Check-in presencial na loja Euro Motors',
+      created_at: new Date().toISOString(),
+    })
+    return record as unknown as StoreVisit
+  },
+
+  async getMemberPoints(userId: string): Promise<{
+    rideCheckins: number
+    storeVisits: number
+    ridePoints: number
+    storePoints: number
+    totalPoints: number
+  }> {
+    try {
+      const [regs, visits] = await Promise.all([
+        pb.collection('registrations').getFullList({
+          filter: `user='${userId}' && checked_in=true`,
+        }),
+        pb.collection('store_visits').getFullList({
+          filter: `user='${userId}'`,
+        }),
+      ])
+      const rideCheckins = regs.length
+      const storeVisits = visits.length
+      const ridePoints = rideCheckins * 100
+      const storePoints = storeVisits * 10
+      const totalPoints = ridePoints + storePoints
+
+      return {
+        rideCheckins,
+        storeVisits,
+        ridePoints,
+        storePoints,
+        totalPoints,
+      }
+    } catch {
+      return {
+        rideCheckins: 0,
+        storeVisits: 0,
+        ridePoints: 0,
+        storePoints: 0,
+        totalPoints: 0,
+      }
+    }
   },
 }

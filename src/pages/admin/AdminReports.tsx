@@ -15,9 +15,11 @@ import {
   UserProfile,
   Ride,
   Registration,
+  StoreVisit,
   userService,
   rideService,
   registrationService,
+  storeVisitService,
 } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -26,6 +28,7 @@ import { formatDate } from '@/lib/member'
 import { RideStatusBadge } from '@/lib/ride'
 import { exportActiveRankingPdf } from '@/lib/pdfExport'
 import { CategoryBadge } from '@/components/CategoryBadge'
+import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
 import { Sparkles, Crown, Star, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
@@ -34,6 +37,7 @@ const AdminReports: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [rides, setRides] = useState<Ride[]>([])
   const [registrations, setRegistrations] = useState<Registration[]>([])
+  const [storeVisits, setStoreVisits] = useState<StoreVisit[]>([])
   const [loading, setLoading] = useState(true)
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
@@ -41,14 +45,16 @@ const AdminReports: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [u, r, regs] = await Promise.all([
+      const [u, r, regs, visits] = await Promise.all([
         userService.getAllUsers(),
         rideService.getAllRides(),
         registrationService.getAllRegistrations(),
+        storeVisitService.getAllVisits().catch(() => [] as StoreVisit[]),
       ])
       setUsers(u)
       setRides(r)
       setRegistrations(regs)
+      setStoreVisits(visits)
     } catch (e) {
       console.error('Erro ao carregar relatórios:', e)
       toast({
@@ -107,6 +113,11 @@ const AdminReports: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [registrations, startDate, endDate])
 
+  const filteredStoreVisits = useMemo(() => {
+    if (!startDate && !endDate) return storeVisits
+    return storeVisits.filter((v) => inPeriod(v.created))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [storeVisits, startDate, endDate])
   // Metrics
   const totalMembers = users.length
   const newMembers30 = useMemo(() => {
@@ -157,69 +168,82 @@ const AdminReports: React.FC = () => {
       .sort((a, b) => b.count - a.count)
   }, [filteredUsers])
 
-  // Ranking de Membros Mais Ativos (Top 10 ou mais)
+  // Ranking de Membros Mais Ativos (Ordenação por Total de Pontos: (passeios × 100) + (visitas loja × 10))
   const activeRanking = useMemo(() => {
-    const ridesMap = new Map<string, Ride>()
-    rides.forEach((r) => ridesMap.set(r.id, r))
-
     const map = new Map<
       string,
       {
         user: UserProfile
+        category: string
         totalRegistered: number
         totalAttended: number
-        lastRideName: string
-        lastRideDate: string
+        storeVisitsCount: number
+        ridePoints: number
+        storePoints: number
+        totalPoints: number
       }
     >()
 
     users.forEach((u) => {
+      const calc = calcularCategoriaMembro({
+        quantidade_motos_compradas: u.quantidade_motos_compradas,
+        data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
+        status_membro_atual: u.status_membro || u.status,
+      })
+      const cat = normalizeCategory(u.categoria || u.category || calc.categoria)
+
       map.set(u.id, {
         user: u,
+        category: cat,
         totalRegistered: 0,
         totalAttended: 0,
-        lastRideName: '—',
-        lastRideDate: '',
+        storeVisitsCount: 0,
+        ridePoints: 0,
+        storePoints: 0,
+        totalPoints: 0,
       })
     })
 
-    registrations.forEach((reg) => {
+    filteredRegistrations.forEach((reg) => {
       if (reg.user && map.has(reg.user) && reg.status === 'confirmada') {
         const item = map.get(reg.user)!
         item.totalRegistered += 1
         if (reg.checked_in) {
           item.totalAttended += 1
-          const rideObj = ridesMap.get(reg.ride)
-          if (rideObj) {
-            const rideTs = new Date(rideObj.date).getTime() || 0
-            const currentLastTs = item.lastRideDate ? new Date(item.lastRideDate).getTime() || 0 : 0
-            if (rideTs >= currentLastTs) {
-              item.lastRideName = rideObj.name
-              item.lastRideDate = rideObj.date
-            }
-          }
         }
       }
     })
 
+    filteredStoreVisits.forEach((sv) => {
+      if (sv.user && map.has(sv.user)) {
+        const item = map.get(sv.user)!
+        item.storeVisitsCount += 1
+      }
+    })
+
     return Array.from(map.values())
-      .filter((m) => m.totalRegistered > 0 || m.totalAttended > 0)
       .map((m) => {
-        const rate =
-          m.totalRegistered > 0 ? Math.round((m.totalAttended / m.totalRegistered) * 100) : 0
+        const ridePoints = m.totalAttended * 100
+        const storePoints = m.storeVisitsCount * 10
+        const totalPoints = ridePoints + storePoints
         return {
           ...m,
-          rate,
-          bikeLabel: [m.user.bike_brand, m.user.bike_model].filter(Boolean).join(' ') || '—',
+          ridePoints,
+          storePoints,
+          totalPoints,
         }
       })
+      .filter((m) => m.totalPoints > 0 || m.totalRegistered > 0)
       .sort((a, b) => {
+        if (b.totalPoints !== a.totalPoints) {
+          return b.totalPoints - a.totalPoints
+        }
         if (b.totalAttended !== a.totalAttended) {
           return b.totalAttended - a.totalAttended
         }
-        return b.rate - a.rate
+        return b.storeVisitsCount - a.storeVisitsCount
       })
-  }, [users, registrations, rides])
+  }, [users, filteredRegistrations, filteredStoreVisits])
 
   // Frequência mensal nos últimos 12 meses
   const monthlyFrequency = useMemo(() => {
@@ -503,16 +527,16 @@ const AdminReports: React.FC = () => {
             </div>
           </section>
 
-          {/* 🏆 RANKING DE MEMBROS MAIS ATIVOS */}
+          {/* 🏆 RANKING DE MEMBROS MAIS ATIVOS (POR TOTAL DE PONTOS) */}
           <ReportTable
-            title="🏆 Ranking de Membros Mais Ativos"
+            title="🏆 Ranking de Membros Mais Ativos (Por Total de Pontos)"
             headers={[
               'Posição',
-              'Membro',
-              'Moto',
-              'Total Comparecido',
-              'Taxa Presença',
-              'Último Passeio',
+              'Nome',
+              'Categoria',
+              'Passeios (Check-ins)',
+              'Visitas Loja',
+              'Pontos Totais',
             ]}
             onExportPdf={() => {
               if (activeRanking.length === 0) {
@@ -526,7 +550,7 @@ const AdminReports: React.FC = () => {
               exportActiveRankingPdf(activeRanking)
               toast({
                 title: 'PDF Gerado',
-                description: 'Ranking de membros mais ativos exportado em PDF.',
+                description: 'Ranking de membros com pontuação exportado em PDF.',
               })
             }}
             onExport={() =>
@@ -536,30 +560,29 @@ const AdminReports: React.FC = () => {
                     'Posição',
                     'Nome',
                     'Email',
-                    'Moto',
-                    'Total Comparecido',
-                    'Total Inscrito',
-                    'Taxa Comparecimento (%)',
-                    'Último Passeio',
-                    'Data Último Passeio',
+                    'Categoria',
+                    'Passeios Realizados (Check-in)',
+                    'Pontos Passeios (100 pts cada)',
+                    'Visitas Loja (Check-in)',
+                    'Pontos Visitas (10 pts cada)',
+                    'Pontos Totais',
                   ],
                   ...activeRanking.map((item, idx) => [
                     idx + 1,
                     item.user.name,
                     item.user.email,
-                    item.bikeLabel,
+                    item.category,
                     item.totalAttended,
-                    item.totalRegistered,
-                    `${item.rate}%`,
-                    item.lastRideName,
-                    item.lastRideDate ? formatDate(item.lastRideDate) : '—',
+                    item.ridePoints,
+                    item.storeVisitsCount,
+                    item.storePoints,
+                    item.totalPoints,
                   ]),
                 ],
-                'ranking-membros-mais-ativos.csv',
+                'ranking-membros-mais-ativos-pontos.csv',
               )
             }
           >
-            {' '}
             {activeRanking.length === 0 ? (
               <EmptyRow colSpan={6} />
             ) : (
@@ -578,32 +601,21 @@ const AdminReports: React.FC = () => {
                       <span className="text-xs font-bold text-white block">{item.user.name}</span>
                       <span className="text-[10px] text-slate-500 block">{item.user.email}</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-300">{item.bikeLabel}</td>
-                    <td className="px-4 py-3 text-xs text-emerald-400 font-bold font-mono">
-                      {item.totalAttended} passeios ({item.totalRegistered} inscritos)
+                    <td className="px-4 py-3">
+                      <CategoryBadge category={item.category} size="sm" />
                     </td>
-                    <td className="px-4 py-3 text-xs">
-                      <span
-                        className={`font-bold font-mono px-2 py-0.5 rounded text-[11px] ${
-                          item.rate >= 80
-                            ? 'bg-emerald-950/80 text-emerald-300 border border-emerald-700/60'
-                            : item.rate >= 50
-                              ? 'bg-blue-950/80 text-blue-300 border border-blue-700/60'
-                              : 'bg-slate-800 text-slate-400'
-                        }`}
-                      >
-                        {item.rate}%
-                      </span>
+                    <td className="px-4 py-3 text-xs text-slate-300 font-mono">
+                      <strong className="text-emerald-400">{item.totalAttended}</strong> check-ins{' '}
+                      <span className="text-slate-500 text-[10px]">({item.ridePoints} pts)</span>
                     </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
-                      <span className="block text-slate-300 font-medium truncate max-w-xs">
-                        {item.lastRideName}
+                    <td className="px-4 py-3 text-xs text-slate-300 font-mono">
+                      <strong className="text-blue-400">{item.storeVisitsCount}</strong> visitas{' '}
+                      <span className="text-slate-500 text-[10px]">({item.storePoints} pts)</span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded bg-blue-600/20 text-blue-300 border border-blue-500/50 font-mono font-black text-xs">
+                        {item.totalPoints} PTS
                       </span>
-                      {item.lastRideDate && (
-                        <span className="text-[10px] text-slate-500 font-mono">
-                          {formatDate(item.lastRideDate)}
-                        </span>
-                      )}
                     </td>
                   </tr>
                 )

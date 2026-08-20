@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T14:57:52.388Z",
+  "generatedAt": "2026-08-20T15:28:43.604Z",
   "collections": [
     {
       "name": "users",
@@ -1344,6 +1344,56 @@
       "indexes": [
         "CREATE INDEX idx_histofic_membro ON historico_oficina (membro_id)",
         "CREATE INDEX idx_histofic_cpf ON historico_oficina (cpf)"
+      ]
+    },
+    {
+      "name": "store_visits",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "user",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "notes",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_store_visits_user ON store_visits (user, created DESC)",
+        "CREATE INDEX idx_store_visits_created ON store_visits (created)"
       ]
     }
   ]

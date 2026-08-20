@@ -22,10 +22,12 @@ import {
   Registration,
   Benefit,
   Announcement,
+  StoreVisit,
   rideService,
   registrationService,
   benefitService,
   announcementService,
+  storeVisitService,
 } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import {
@@ -49,6 +51,8 @@ import {
   ChevronDown,
   CreditCard,
   QrCode,
+  Trophy,
+  Sparkles,
 } from 'lucide-react'
 
 const MemberDashboard: React.FC = () => {
@@ -59,6 +63,20 @@ const MemberDashboard: React.FC = () => {
   const [regs, setRegs] = useState<Registration[]>([])
   const [benefits, setBenefits] = useState<Benefit[]>([])
   const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [storeVisits, setStoreVisits] = useState<StoreVisit[]>([])
+  const [pointsSummary, setPointsSummary] = useState<{
+    rideCheckins: number
+    storeVisits: number
+    ridePoints: number
+    storePoints: number
+    totalPoints: number
+  }>({
+    rideCheckins: 0,
+    storeVisits: 0,
+    ridePoints: 0,
+    storePoints: 0,
+    totalPoints: 0,
+  })
   const [expandedAnn, setExpandedAnn] = useState<Record<string, boolean>>({})
   const [loading, setLoading] = useState(true)
 
@@ -66,16 +84,21 @@ const MemberDashboard: React.FC = () => {
     if (!user) return
     setLoading(true)
     try {
-      const [allRides, userRegs, activeBenefits, activeAnnouncements] = await Promise.all([
-        rideService.getAllRides(),
-        registrationService.getRegistrationsByUser(user.id),
-        benefitService.getActiveBenefits(),
-        announcementService.getActive(),
-      ])
+      const [allRides, userRegs, activeBenefits, activeAnnouncements, userVisits, memberPts] =
+        await Promise.all([
+          rideService.getAllRides(),
+          registrationService.getRegistrationsByUser(user.id),
+          benefitService.getActiveBenefits(),
+          announcementService.getActive(),
+          storeVisitService.getVisitsByUser(user.id).catch(() => [] as StoreVisit[]),
+          storeVisitService.getMemberPoints(user.id),
+        ])
       setRides(allRides)
       setRegs(userRegs)
       setBenefits(activeBenefits)
       setAnnouncements(activeAnnouncements)
+      setStoreVisits(userVisits)
+      setPointsSummary(memberPts)
     } catch (e) {
       console.error('Erro ao carregar dashboard:', e)
     } finally {
@@ -207,6 +230,92 @@ const MemberDashboard: React.FC = () => {
             </h4>
             <p className="leading-relaxed opacity-90">{categoryMessage.message}</p>
           </div>
+        </div>
+      </section>
+
+      {/* 🏆 DESTAQUE DOS PONTOS DO MEMBRO (SISTEMA DE PONTOS EURO MOTORS CLUB) */}
+      <section className="bg-gradient-to-br from-[#0c1322] via-[#090e18] to-[#0c1424] border border-blue-600/40 rounded-xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-96 h-full bg-blue-600/10 blur-3xl pointer-events-none" />
+
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/70 border border-amber-600/50 text-[10px] font-black uppercase tracking-widest text-amber-300 font-montserrat">
+                <Trophy className="w-3.5 h-3.5 text-amber-400" /> SEUS PONTOS NO CLUBE
+              </span>
+              <span className="text-[10px] text-slate-400 font-mono">Ranking Oficial</span>
+            </div>
+
+            <div>
+              <h2 className="text-xl sm:text-2xl font-black text-white font-montserrat uppercase tracking-tight">
+                Pontuação Euro Motors Club
+              </h2>
+              <p className="text-xs text-slate-400 leading-relaxed max-w-xl">
+                Acumule pontos participando dos passeios oficiais e visitando a concessionária Euro
+                Motors. Seus pontos determinam sua posição no Top Membros!
+              </p>
+            </div>
+          </div>
+
+          {/* Placar de Pontos */}
+          <div className="flex flex-wrap sm:flex-nowrap items-center gap-3">
+            {/* Box Total */}
+            <div className="bg-gradient-to-br from-blue-950/80 to-[#0b101c] border-2 border-blue-500/60 rounded-xl p-4 text-center min-w-[140px] shadow-lg shadow-blue-950/60">
+              <span className="text-[9px] font-black uppercase tracking-widest text-blue-400 block font-montserrat">
+                TOTAL DE PONTOS
+              </span>
+              <p className="text-3xl sm:text-4xl font-black text-white font-mono mt-0.5 text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-white to-blue-300">
+                {pointsSummary.totalPoints}
+              </p>
+              <span className="text-[9px] text-slate-400 font-mono">PONTOS TOTAIS</span>
+            </div>
+
+            {/* Box Passeios */}
+            <div className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-3.5 text-center min-w-[120px]">
+              <div className="flex items-center justify-center gap-1 text-[9px] font-bold text-emerald-400 uppercase font-montserrat">
+                <Bike className="w-3 h-3" /> Passeios
+              </div>
+              <p className="text-xl font-black text-white font-mono mt-1">
+                {pointsSummary.rideCheckins}
+              </p>
+              <span className="text-[9px] text-emerald-400/90 font-mono font-bold">
+                +{pointsSummary.ridePoints} pts (100/un)
+              </span>
+            </div>
+
+            {/* Box Visitas Loja */}
+            <div className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-3.5 text-center min-w-[120px]">
+              <div className="flex items-center justify-center gap-1 text-[9px] font-bold text-blue-400 uppercase font-montserrat">
+                <Store className="w-3 h-3" /> Visitas Loja
+              </div>
+              <p className="text-xl font-black text-white font-mono mt-1">
+                {pointsSummary.storeVisits}
+              </p>
+              <span className="text-[9px] text-blue-400/90 font-mono font-bold">
+                +{pointsSummary.storePoints} pts (10/un)
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* Link para Check-in de Loja */}
+        <div className="mt-4 pt-4 border-t border-[#182236] flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-slate-400">
+          <div className="flex items-center gap-2">
+            <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              Está na concessionária Euro Motors? Escaneie a placa no balcão ou faça check-in pelo
+              link:
+            </span>
+          </div>
+          <Link to="/checkin-loja">
+            <Button
+              size="sm"
+              variant="outline"
+              className="border-blue-500/50 bg-blue-950/40 text-blue-300 hover:text-white hover:bg-blue-900/60 text-xs font-bold gap-1.5 font-montserrat"
+            >
+              <Store className="w-3.5 h-3.5" /> FAZER CHECK-IN NA LOJA
+            </Button>
+          </Link>
         </div>
       </section>
 

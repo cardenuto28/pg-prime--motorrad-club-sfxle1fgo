@@ -18,9 +18,11 @@ import {
   UserProfile,
   Ride,
   Registration,
+  StoreVisit,
   userService,
   rideService,
   registrationService,
+  storeVisitService,
 } from '@/services/api'
 import { formatDate, isRidePast } from '@/lib/member'
 import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
@@ -73,19 +75,22 @@ const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<UserProfile[]>([])
   const [rides, setRides] = useState<Ride[]>([])
   const [regs, setRegs] = useState<Registration[]>([])
+  const [storeVisits, setStoreVisits] = useState<StoreVisit[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const [allUsers, allRides, allRegs] = await Promise.all([
+      const [allUsers, allRides, allRegs, allVisits] = await Promise.all([
         userService.getAllUsers(),
         rideService.getAllRides(),
         registrationService.getAllRegistrations().catch(() => [] as Registration[]),
+        storeVisitService.getAllVisits().catch(() => [] as StoreVisit[]),
       ])
       setUsers(allUsers)
       setRides(allRides)
       setRegs(allRegs)
+      setStoreVisits(allVisits)
     } catch (e) {
       console.error('Erro ao carregar dashboard admin:', e)
     } finally {
@@ -159,24 +164,37 @@ const AdminDashboard: React.FC = () => {
 
     const ridesDone = rides.filter((r) => r.status === 'realizado' || isRidePast(r.date)).length
 
-    // Top 5 active members ranking (by checked_in rides count)
+    // Top 5 active members ranking (by total points: (rides × 100) + (store_visits × 10))
     const membersMap = new Map<
       string,
       {
         user: UserProfile
         attendedCount: number
+        storeVisitsCount: number
+        totalPoints: number
         lastRideName: string
         lastRideDate: string
+        category: string
       }
     >()
 
     // Prepopulate registered member users
     users.forEach((u) => {
+      const calc = calcularCategoriaMembro({
+        quantidade_motos_compradas: u.quantidade_motos_compradas,
+        data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
+        status_membro_atual: u.status_membro || u.status,
+      })
+      const cat = normalizeCategory(u.categoria || u.category || calc.categoria)
+
       membersMap.set(u.id, {
         user: u,
         attendedCount: 0,
+        storeVisitsCount: 0,
+        totalPoints: 0,
         lastRideName: '—',
         lastRideDate: '',
+        category: cat,
       })
     })
 
@@ -202,9 +220,27 @@ const AdminDashboard: React.FC = () => {
       }
     })
 
+    // Map store visits
+    storeVisits.forEach((sv) => {
+      if (sv.user && membersMap.has(sv.user)) {
+        const item = membersMap.get(sv.user)!
+        item.storeVisitsCount += 1
+      }
+    })
+
+    // Compute total points
+    membersMap.forEach((item) => {
+      item.totalPoints = item.attendedCount * 100 + item.storeVisitsCount * 10
+    })
+
     const topActiveMembers = Array.from(membersMap.values())
-      .filter((m) => m.attendedCount > 0)
-      .sort((a, b) => b.attendedCount - a.attendedCount)
+      .filter((m) => m.totalPoints > 0 || m.attendedCount > 0 || m.storeVisitsCount > 0)
+      .sort((a, b) => {
+        if (b.totalPoints !== a.totalPoints) {
+          return b.totalPoints - a.totalPoints
+        }
+        return b.attendedCount - a.attendedCount
+      })
       .slice(0, 5)
 
     return {
@@ -225,7 +261,7 @@ const AdminDashboard: React.FC = () => {
       upcomingRides,
       topActiveMembers,
     }
-  }, [users, rides, regs])
+  }, [users, rides, regs, storeVisits])
 
   if (loading) {
     return (
@@ -420,37 +456,42 @@ const AdminDashboard: React.FC = () => {
         )}
       </section>
 
-      {/* 🏆 MEMBROS MAIS ATIVOS - TOP 5 */}
+      {/* 🏆 TOP MEMBROS - RANKING POR TOTAL DE PONTOS */}
       <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-amber-400" />
             <h2 className="text-xs font-bold text-slate-300 font-montserrat tracking-widest uppercase">
-              🏆 Membros Mais Ativos (Top 5)
+              🏆 TOP MEMBROS (Ranking por Pontos)
             </h2>
           </div>
-          <Link
-            to="/admin/reports"
-            className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
-          >
-            VER RANKING COMPLETO <ChevronRight className="w-3.5 h-3.5" />
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              to="/admin/qrcode-loja"
+              className="text-[11px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider flex items-center gap-1 font-montserrat"
+            >
+              QR CODE LOJA <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+            <Link
+              to="/admin/reports"
+              className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+            >
+              VER RANKING COMPLETO <ChevronRight className="w-3.5 h-3.5" />
+            </Link>
+          </div>
         </div>
 
         {stats.topActiveMembers.length === 0 ? (
           <div className="bg-[#0a0d14] border border-dashed border-[#1c2538] rounded-md p-6 text-center">
             <p className="text-xs text-slate-500">
-              Nenhum check-in confirmado em passeios ainda. Os dados aparecerão conforme os
-              check-ins forem realizados.
+              Nenhum check-in em passeios ou visita na loja registrado ainda. Os pontos serão
+              calculados automaticamente (Passeio = 100 pts, Loja = 10 pts).
             </p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
             {stats.topActiveMembers.map((item, idx) => {
-              const medals = ['🥇', '🥈', '🥉', '4º', '5º']
-              const bikeLabel =
-                [item.user.bike_brand, item.user.bike_model].filter(Boolean).join(' ') ||
-                'Moto não inf.'
+              const medals = ['🥇 1º', '🥈 2º', '🥉 3º', '4º', '5º']
 
               return (
                 <div
@@ -466,9 +507,11 @@ const AdminDashboard: React.FC = () => {
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="text-xl leading-none font-bold">{medals[idx]}</span>
-                    <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-blue-950/80 text-blue-300 border border-blue-800/50 font-mono">
-                      {item.attendedCount} {item.attendedCount === 1 ? 'passeio' : 'passeios'}
+                    <span className="text-base leading-none font-bold font-mono text-white">
+                      {medals[idx]}
+                    </span>
+                    <span className="text-[11px] font-black uppercase px-2 py-0.5 rounded bg-blue-600/20 text-blue-300 border border-blue-500/50 font-mono">
+                      {item.totalPoints} PTS
                     </span>
                   </div>
 
@@ -479,23 +522,20 @@ const AdminDashboard: React.FC = () => {
                     >
                       {item.user.name}
                     </h3>
-                    <p className="text-[10px] text-slate-400 truncate mt-0.5" title={bikeLabel}>
-                      🏍️ {bikeLabel}
-                    </p>
+                    <div className="mt-1">
+                      <CategoryBadge category={item.category} size="sm" />
+                    </div>
                   </div>
 
-                  <div className="pt-2 border-t border-[#1c2538] text-[9px] text-slate-500">
-                    <span
-                      className="block text-slate-400 font-medium truncate"
-                      title={item.lastRideName}
-                    >
-                      Último: {item.lastRideName}
-                    </span>
-                    {item.lastRideDate && (
-                      <span className="font-mono text-slate-500">
-                        {formatDate(item.lastRideDate)}
-                      </span>
-                    )}
+                  <div className="pt-2 border-t border-[#1c2538] space-y-1 text-[10px]">
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>🏍️ Passeios (100 pts):</span>
+                      <strong className="text-emerald-400 font-mono">{item.attendedCount}</strong>
+                    </div>
+                    <div className="flex items-center justify-between text-slate-400">
+                      <span>🏬 Visitas Loja (10 pts):</span>
+                      <strong className="text-blue-400 font-mono">{item.storeVisitsCount}</strong>
+                    </div>
                   </div>
                 </div>
               )

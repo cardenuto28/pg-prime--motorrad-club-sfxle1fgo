@@ -341,17 +341,16 @@ export function exportActiveRankingPdf(ranking: any[]) {
   doc.text('Classificação baseada em check-ins confirmados nos passeios oficiais', 14, 42)
 
   const tableHead = [
-    ['Pos', 'Membro', 'Motocicleta', 'Compareceu', 'Inscrito', 'Taxa', 'Último Passeio'],
+    ['Pos', 'Nome', 'Categoria', 'Passeios (Check-ins)', 'Visitas Loja', 'Pontos Totais'],
   ]
 
   const tableBody = ranking.map((item, idx) => [
     `${idx + 1}º`,
-    item.user.name || '—',
-    item.bikeLabel || '—',
-    `${item.totalAttended} passeios`,
-    `${item.totalRegistered}`,
-    `${item.rate}%`,
-    item.lastRideName || '—',
+    item.user?.name || item.name || '—',
+    (item.category || item.user?.categoria || 'SILVER').toUpperCase(),
+    `${item.totalAttended ?? item.rideCheckins ?? 0} (${(item.totalAttended ?? item.rideCheckins ?? 0) * 100} pts)`,
+    `${item.storeVisitsCount ?? item.storeVisits ?? 0} (${(item.storeVisitsCount ?? item.storeVisits ?? 0) * 10} pts)`,
+    `${item.totalPoints ?? 0} PTS`,
   ])
 
   autoTable(doc, {
@@ -374,7 +373,7 @@ export function exportActiveRankingPdf(ranking: any[]) {
     },
     columnStyles: {
       0: { fontStyle: 'bold' },
-      3: { fontStyle: 'bold' },
+      5: { fontStyle: 'bold', textColor: [0, 102, 255] },
     },
     margin: { left: 14, right: 14, bottom: 18 },
   })
