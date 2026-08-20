@@ -22,7 +22,9 @@ import {
   Info,
   ExternalLink,
   FileText,
-  Download,
+  Trash2,
+  Upload,
+  AlertTriangle,
 } from 'lucide-react'
 import { exportMembersPdf } from '@/lib/pdfExport'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
@@ -38,6 +40,16 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -45,17 +57,10 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useToast } from '@/hooks/use-toast'
-import { StatusBadge, MemberStatusBadge, formatDate, statusLabel } from '@/lib/member'
+import { MemberStatusBadge, formatDate, statusLabel } from '@/lib/member'
 import { CategoryBadge } from '@/components/CategoryBadge'
-import { calcularCategoriaMembro, normalizeCategory, formatCPF } from '@/lib/membership'
+import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
 import { ImportMembersModal } from '@/components/ImportMembersModal'
-import {
-  Upload,
-  SlidersHorizontal,
-  ShieldAlert,
-  AlertTriangle,
-  FileSpreadsheet,
-} from 'lucide-react'
 
 const PAGE_SIZE = 10
 
@@ -83,6 +88,10 @@ const AdminMembers: React.FC = () => {
 
   // Modal de Ajuste Manual de Categoria
   const [adjustCatUser, setAdjustCatUser] = useState<UserProfile | null>(null)
+
+  // Modal de exclusão permanente
+  const [deleteTarget, setDeleteTarget] = useState<UserProfile | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   // Modal rápido de Promover a Admin
   const [promoteModalOpen, setPromoteModalOpen] = useState(false)
@@ -236,6 +245,29 @@ const AdminMembers: React.FC = () => {
       console.error(e)
     } finally {
       setHistoryLoading(false)
+    }
+  }
+
+  const handleDeleteMember = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
+    try {
+      await userService.deleteUser(deleteTarget.id)
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
+      toast({
+        title: 'Membro excluído',
+        description: 'Membro excluído com sucesso.',
+      })
+      setDeleteTarget(null)
+    } catch (e) {
+      console.error('Erro ao deletar membro:', e)
+      toast({
+        title: 'Erro ao excluir',
+        description: 'Não foi possível excluir o membro.',
+        variant: 'destructive',
+      })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -563,6 +595,16 @@ const AdminMembers: React.FC = () => {
                             <RotateCcw className="w-3.5 h-3.5" />
                           </ActionBtn>
                         )}
+                        <ActionBtn
+                          title="Deletar membro"
+                          disabled={
+                            actionLoading === u.id || (deleting && deleteTarget?.id === u.id)
+                          }
+                          onClick={() => setDeleteTarget(u)}
+                          className="text-red-400 hover:text-red-300 hover:bg-red-950/50"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </ActionBtn>
                       </div>
                     </td>
                   </tr>
@@ -771,6 +813,46 @@ const AdminMembers: React.FC = () => {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Confirmação de Exclusão */}
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(o) => !o && !deleting && setDeleteTarget(null)}
+      >
+        <AlertDialogContent className="bg-[#0f141d] border-[#1e2738] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold tracking-wide text-white flex items-center gap-2">
+              <Trash2 className="w-4 h-4 text-red-500" />
+              Excluir Membro Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-slate-400 leading-relaxed">
+              Tem certeza que deseja excluir permanentemente o membro{' '}
+              <span className="text-white font-semibold">
+                {deleteTarget?.name || 'este membro'}
+              </span>
+              ? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel
+              disabled={deleting}
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleDeleteMember()
+              }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold"
+            >
+              {deleting ? 'Excluindo...' : 'Sim, Excluir Membro'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

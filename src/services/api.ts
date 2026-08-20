@@ -299,6 +299,11 @@ export const userService = {
     return updated as unknown as UserProfile
   },
 
+  async deleteUser(id: string): Promise<boolean> {
+    await pb.collection('users').delete(id)
+    return true
+  },
+
   async adjustMemberCategory(
     id: string,
     newCategory: MemberCategory,
