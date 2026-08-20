@@ -226,8 +226,15 @@ const AdminRideDetail: React.FC = () => {
     const q = search.trim().toLowerCase()
     if (!q) return regs
     return regs.filter((r) => {
-      const name = r.expand?.user?.name || ''
-      return name.toLowerCase().includes(q)
+      const isGuest = r.is_guest || !r.user
+      const name = isGuest ? r.guest_name || '' : r.expand?.user?.name || ''
+      const phone = isGuest ? r.guest_phone || '' : r.expand?.user?.phone || ''
+      const email = isGuest ? r.guest_email || '' : r.expand?.user?.email || ''
+      return (
+        name.toLowerCase().includes(q) ||
+        phone.toLowerCase().includes(q) ||
+        email.toLowerCase().includes(q)
+      )
     })
   }, [regs, search])
 
@@ -277,14 +284,36 @@ const AdminRideDetail: React.FC = () => {
 
   const handleExportCSV = () => {
     const rows = [
-      ['Nome', 'Telefone', 'E-mail', 'Moto', 'Garupa', 'Pessoas', 'Status'],
+      [
+        'Nome',
+        'Tipo',
+        'Telefone',
+        'E-mail',
+        'CPF',
+        'Cidade',
+        'Moto',
+        'Garupa',
+        'Pessoas',
+        'Status',
+      ],
       ...confirmedRegs.map((r) => {
+        const isGuest = r.is_guest || !r.user
         const u = r.expand?.user
-        const bike = [u?.bike_brand, u?.bike_model, u?.bike_year].filter(Boolean).join(' ')
+        const name = isGuest ? r.guest_name || '' : u?.name || ''
+        const phone = isGuest ? r.guest_phone || '' : u?.phone || ''
+        const email = isGuest ? r.guest_email || '' : u?.email || ''
+        const cpf = isGuest ? r.guest_cpf || '' : u?.cpf || ''
+        const city = isGuest ? r.guest_city || '' : u?.city || ''
+        const bike = isGuest
+          ? [r.guest_bike_brand, r.guest_bike_model, r.guest_bike_year].filter(Boolean).join(' ')
+          : [u?.bike_brand, u?.bike_model, u?.bike_year].filter(Boolean).join(' ')
         return [
-          u?.name || '',
-          u?.phone || '',
-          u?.email || '',
+          name,
+          isGuest ? 'Não-Membro' : 'Membro',
+          phone,
+          email,
+          cpf,
+          city,
           bike,
           r.has_pillion ? 'Sim' : 'Não',
           String(r.has_pillion ? 2 : 1),
@@ -450,24 +479,50 @@ const AdminRideDetail: React.FC = () => {
                 </tr>
               ) : (
                 pageItems.map((reg) => {
+                  const isGuest = reg.is_guest || !reg.user
                   const u = reg.expand?.user
+                  const name = isGuest ? reg.guest_name || 'Não-Membro' : u?.name || '—'
+                  const phone = isGuest ? reg.guest_phone || '—' : u?.phone || '—'
+                  const email = isGuest ? reg.guest_email || '—' : u?.email || '—'
+                  const bikeModel = isGuest
+                    ? [reg.guest_bike_brand, reg.guest_bike_model].filter(Boolean).join(' ') || '—'
+                    : [u?.bike_brand, u?.bike_model].filter(Boolean).join(' ') || '—'
+                  const bikeYear = isGuest ? reg.guest_bike_year || '—' : u?.bike_year || '—'
                   const people = reg.has_pillion ? 2 : 1
+
                   return (
                     <tr
                       key={reg.id}
-                      className="border-b border-[#161e2c] last:border-0 hover:bg-[#11172250]"
+                      className={`border-b border-[#161e2c] last:border-0 transition-colors ${
+                        isGuest
+                          ? 'bg-amber-950/20 hover:bg-amber-950/35 border-l-2 border-l-amber-500'
+                          : 'hover:bg-[#11172250]'
+                      }`}
                     >
                       <td className="px-4 py-3">
-                        <span className="text-xs font-bold text-white">{u?.name || '—'}</span>
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-xs font-bold text-white">{name}</span>
+                          {isGuest && (
+                            <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500 text-slate-950 shadow-sm font-montserrat">
+                              NÃO-MEMBRO
+                            </span>
+                          )}
+                        </div>
                       </td>
-                      <td className="px-4 py-3 text-xs text-slate-400">{u?.phone || '—'}</td>
-                      <td className="px-4 py-3 text-xs text-slate-400">{u?.email || '—'}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400">{phone}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400">{email}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400">{bikeModel}</td>
+                      <td className="px-4 py-3 text-xs text-slate-400">{bikeYear}</td>
                       <td className="px-4 py-3 text-xs text-slate-400">
-                        {[u?.bike_brand, u?.bike_model].filter(Boolean).join(' ') || '—'}
-                      </td>
-                      <td className="px-4 py-3 text-xs text-slate-400">{u?.bike_year || '—'}</td>
-                      <td className="px-4 py-3 text-xs text-slate-400">
-                        {reg.has_pillion ? 'Sim' : 'Não'}
+                        {reg.has_pillion ? (
+                          <span
+                            title={reg.pillion_name ? `Garupa: ${reg.pillion_name}` : undefined}
+                          >
+                            Sim {reg.pillion_name ? `(${reg.pillion_name})` : ''}
+                          </span>
+                        ) : (
+                          'Não'
+                        )}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">{people}</td>
                       <td className="px-4 py-3">
@@ -496,7 +551,7 @@ const AdminRideDetail: React.FC = () => {
                             </ActionBtn>
                           )}
                           <ActionBtn
-                            title="Ver telefone"
+                            title="Ver detalhes de contato"
                             onClick={() => setPhoneInfo(reg)}
                             className="text-blue-300 hover:text-blue-200 hover:bg-blue-950/50"
                           >
@@ -667,8 +722,78 @@ const AdminRideDetail: React.FC = () => {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
-            <ContactRow label="Telefone" value={phoneInfo?.expand?.user?.phone} />
-            <ContactRow label="E-mail" value={phoneInfo?.expand?.user?.email} />
+            <ContactRow
+              label="Tipo"
+              value={
+                phoneInfo?.is_guest || !phoneInfo?.user
+                  ? 'Não-Membro (Convidado)'
+                  : 'Membro do Clube'
+              }
+            />
+            <ContactRow
+              label="Nome"
+              value={
+                phoneInfo?.is_guest || !phoneInfo?.user
+                  ? phoneInfo?.guest_name
+                  : phoneInfo?.expand?.user?.name
+              }
+            />
+            <ContactRow
+              label="Telefone"
+              value={
+                phoneInfo?.is_guest || !phoneInfo?.user
+                  ? phoneInfo?.guest_phone
+                  : phoneInfo?.expand?.user?.phone
+              }
+            />
+            <ContactRow
+              label="E-mail"
+              value={
+                phoneInfo?.is_guest || !phoneInfo?.user
+                  ? phoneInfo?.guest_email
+                  : phoneInfo?.expand?.user?.email
+              }
+            />
+            {(phoneInfo?.guest_cpf || phoneInfo?.expand?.user?.cpf) && (
+              <ContactRow
+                label="CPF"
+                value={
+                  phoneInfo?.is_guest || !phoneInfo?.user
+                    ? phoneInfo?.guest_cpf
+                    : phoneInfo?.expand?.user?.cpf
+                }
+              />
+            )}
+            {(phoneInfo?.guest_city || phoneInfo?.expand?.user?.city) && (
+              <ContactRow
+                label="Cidade"
+                value={
+                  phoneInfo?.is_guest || !phoneInfo?.user
+                    ? phoneInfo?.guest_city
+                    : phoneInfo?.expand?.user?.city
+                }
+              />
+            )}
+            <ContactRow
+              label="Motocicleta"
+              value={
+                phoneInfo?.is_guest || !phoneInfo?.user
+                  ? [
+                      phoneInfo?.guest_bike_brand,
+                      phoneInfo?.guest_bike_model,
+                      phoneInfo?.guest_bike_year,
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || '—'
+                  : [
+                      phoneInfo?.expand?.user?.bike_brand,
+                      phoneInfo?.expand?.user?.bike_model,
+                      phoneInfo?.expand?.user?.bike_year,
+                    ]
+                      .filter(Boolean)
+                      .join(' ') || '—'
+              }
+            />
             <ContactRow
               label="Garupa"
               value={

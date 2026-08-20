@@ -31,6 +31,7 @@ export interface UserProfile {
   pillion_phone?: string
   status: 'pendente' | 'ativo' | 'inativo' | 'bloqueado'
   accepted_privacy_at?: string
+  accepted_image_at?: string
   created: string
   updated: string
 }
@@ -56,6 +57,7 @@ export interface Ride {
   rules?: string
   map_link?: string
   registration_deadline?: string
+  ride_type?: 'bate_e_volta' | 'bate_e_fica'
   status:
     | 'rascunho'
     | 'inscricoes_abertas'
@@ -74,7 +76,7 @@ export interface Ride {
 export interface Registration {
   id: string
   ride: string
-  user: string
+  user?: string
   has_pillion: boolean
   pillion_name?: string
   pillion_phone?: string
@@ -84,6 +86,16 @@ export interface Registration {
   accepted_terms: boolean
   accepted_terms_at?: string
   accepted_image_at?: string
+  is_guest?: boolean
+  guest_name?: string
+  guest_phone?: string
+  guest_email?: string
+  guest_cpf?: string
+  guest_city?: string
+  guest_bike_brand?: string
+  guest_bike_model?: string
+  guest_bike_year?: number
+  accepted_privacy_at?: string
   status: 'confirmada' | 'cancelada' | 'pendente'
   created: string
   updated: string
@@ -229,18 +241,21 @@ export const userService = {
     pillion_name?: string
     pillion_phone?: string
     accepted_privacy_at?: string
+    accepted_image_at?: string
   }): Promise<UserProfile> {
     const passwordToUse = data.password
     if (!passwordToUse || passwordToUse.length < 6) {
       throw new Error('A senha deve ter no mínimo 6 caracteres.')
     }
+    const nowIso = new Date().toISOString()
     const record = await pb.collection('users').create({
       ...data,
       password: passwordToUse,
       passwordConfirm: passwordToUse,
       role: 'member',
       status: 'pendente',
-      accepted_privacy_at: data.accepted_privacy_at || new Date().toISOString(),
+      accepted_privacy_at: data.accepted_privacy_at || nowIso,
+      accepted_image_at: data.accepted_image_at || nowIso,
     })
     // Tenta autenticar após cadastro
     try {
@@ -320,23 +335,36 @@ export const rideService = {
 export const registrationService = {
   async registerForRide(data: {
     ride: string
-    user: string
+    user?: string
     has_pillion: boolean
     pillion_name?: string
     pillion_phone?: string
     emergency_contact_name: string
     emergency_contact_phone: string
-    accepted_rules: boolean
-    accepted_terms: boolean
+    accepted_rules?: boolean
+    accepted_terms?: boolean
     accepted_terms_at?: string
     accepted_image_at?: string
+    is_guest?: boolean
+    guest_name?: string
+    guest_phone?: string
+    guest_email?: string
+    guest_cpf?: string
+    guest_city?: string
+    guest_bike_brand?: string
+    guest_bike_model?: string
+    guest_bike_year?: number
+    accepted_privacy_at?: string
+    status?: 'confirmada' | 'cancelada' | 'pendente'
   }): Promise<Registration> {
     const nowIso = new Date().toISOString()
     const record = await pb.collection('registrations').create({
       ...data,
+      accepted_rules: data.accepted_rules ?? true,
+      accepted_terms: data.accepted_terms ?? true,
       accepted_terms_at: data.accepted_terms_at || nowIso,
       accepted_image_at: data.accepted_image_at || nowIso,
-      status: 'confirmada',
+      status: data.status || (data.is_guest ? 'pendente' : 'confirmada'),
     })
     return record as unknown as Registration
   },

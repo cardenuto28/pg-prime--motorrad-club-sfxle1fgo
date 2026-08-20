@@ -119,14 +119,6 @@ export default function Index() {
       navigate('/member/dashboard')
       return
     }
-    if (!user) {
-      toast({
-        title: 'Área do Membro',
-        description: 'Faça login na Área do Membro para se inscrever nos passeios.',
-      })
-      setLoginModalOpen(true)
-      return
-    }
     setSelectedRide(ride)
     setModalOpen(true)
   }

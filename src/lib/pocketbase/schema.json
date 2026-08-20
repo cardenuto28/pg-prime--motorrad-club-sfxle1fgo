@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T02:14:41.180Z",
+  "generatedAt": "2026-08-20T02:25:36.903Z",
   "collections": [
     {
       "name": "users",
@@ -114,6 +114,12 @@
         },
         {
           "name": "accepted_privacy_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "accepted_image_at",
           "type": "date",
           "required": false,
           "system": false
@@ -282,6 +288,13 @@
           "type": "file",
           "required": false,
           "system": false
+        },
+        {
+          "name": "ride_type",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["bate_e_volta", "bate_e_fica"]
         }
       ],
       "indexes": []
@@ -307,7 +320,7 @@
         {
           "name": "user",
           "type": "relation",
-          "required": true,
+          "required": false,
           "system": false,
           "collectionRef": "users"
         },
@@ -382,6 +395,66 @@
         },
         {
           "name": "accepted_image_at",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "is_guest",
+          "type": "bool",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_name",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_phone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_email",
+          "type": "email",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_cpf",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_city",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_bike_brand",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_bike_model",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "guest_bike_year",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "accepted_privacy_at",
           "type": "date",
           "required": false,
           "system": false

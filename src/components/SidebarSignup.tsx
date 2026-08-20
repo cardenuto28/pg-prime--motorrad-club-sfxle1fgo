@@ -39,10 +39,12 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
     passwordConfirm: '',
   })
 
+  const [acceptedImage, setAcceptedImage] = useState(false)
   const [acceptedPrivacy, setAcceptedPrivacy] = useState(false)
   const [submitting, setSubmitting] = useState(false)
   const [successMsg, setSuccessMsg] = useState(false)
   const [passwordError, setPasswordError] = useState('')
+  const [imageError, setImageError] = useState(false)
   const [privacyError, setPrivacyError] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,6 +97,19 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
       return
     }
 
+    // Validação obrigatória da Autorização de Imagem e Voz
+    if (!acceptedImage) {
+      setImageError(true)
+      toast({
+        title: 'Autorização de imagem e voz',
+        description:
+          'A autorização de uso de imagem e voz é condição obrigatória para participação no Clube.',
+        variant: 'destructive',
+      })
+      return
+    }
+    setImageError(false)
+
     // Validação obrigatória da Política de Privacidade
     if (!acceptedPrivacy) {
       setPrivacyError(true)
@@ -122,6 +137,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         bike_year: parseInt(formData.bike_year, 10) || new Date().getFullYear(),
         password: formData.password,
         accepted_privacy_at: new Date().toISOString(),
+        accepted_image_at: new Date().toISOString(),
       })
 
       setSuccessMsg(true)
@@ -167,7 +183,9 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         <Button
           onClick={() => {
             setSuccessMsg(false)
+            setAcceptedImage(false)
             setAcceptedPrivacy(false)
+            setImageError(false)
             setPrivacyError(false)
             setFormData({
               name: '',
@@ -342,6 +360,53 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         </div>
         {passwordError && <p className="text-[10px] text-red-400 -mt-1.5">{passwordError}</p>}
 
+        {/* Destaque Alerta Âmbar / Dourado de Autorização de Imagem e Voz */}
+        <div className="bg-amber-950/40 border border-amber-500/40 rounded-sm p-3 flex items-start gap-2.5 shadow-sm text-left">
+          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+          <p className="text-[11px] text-amber-200/95 leading-relaxed font-normal">
+            <strong className="text-amber-300 font-semibold">Importante:</strong> os eventos do
+            Euromotors Motorrad Club são experiências coletivas e poderão ser fotografados e
+            filmados. Por esse motivo, a autorização de uso de imagem e voz é requisito para
+            participação no Clube.
+          </p>
+        </div>
+
+        {/* Checkbox Autorização de Imagem e Voz */}
+        <div
+          className={`p-2.5 rounded-sm bg-[#141a26] border ${
+            imageError ? 'border-red-500/80 bg-red-950/20' : 'border-[#202a3d]'
+          } transition-colors`}
+        >
+          <div className="flex items-start space-x-2.5">
+            <Checkbox
+              id="accepted-image-signup"
+              checked={acceptedImage}
+              onCheckedChange={(checked) => {
+                const isChecked = !!checked
+                setAcceptedImage(isChecked)
+                if (isChecked) setImageError(false)
+              }}
+              className={`mt-0.5 border-[#0066FF] data-[state=checked]:bg-[#0066FF] ${
+                imageError ? 'border-red-500 ring-1 ring-red-500/50' : ''
+              }`}
+            />
+            <Label
+              htmlFor="accepted-image-signup"
+              className="cursor-pointer text-[11px] font-normal leading-relaxed text-slate-300"
+            >
+              Li, compreendi e autorizo o uso da minha imagem e voz exclusivamente em fotos do
+              passeio, fotos do grupo, vídeos do passeio e demais registros vinculados às atividades
+              do Euromotors Motorrad Club, estando ciente de que essa autorização é condição para
+              minha participação no Club. <span className="text-red-400 font-bold">*</span>
+            </Label>
+          </div>
+          {imageError && (
+            <p className="text-[10px] text-red-400 mt-1 pl-6">
+              Você precisa autorizar o uso de imagem e voz para se cadastrar.
+            </p>
+          )}
+        </div>
+
         {/* Checkbox Política de Privacidade */}
         <div
           className={`p-2.5 rounded-sm bg-[#141a26] border ${
@@ -389,7 +454,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         {/* Botão Fazer Cadastro */}
         <Button
           type="submit"
-          disabled={submitting || !acceptedPrivacy}
+          disabled={submitting || !acceptedPrivacy || !acceptedImage}
           className="w-full bg-[#2563eb] hover:bg-blue-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-xs tracking-wider h-11 rounded-sm mt-3 flex items-center justify-center gap-2 shadow-lg shadow-blue-900/20 transition-all"
         >
           {submitting ? 'PROCESSANDO...' : 'FAZER CADASTRO'}

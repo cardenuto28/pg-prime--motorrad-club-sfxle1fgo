@@ -51,7 +51,7 @@ import {
 } from '@/components/ui/alert-dialog'
 import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/member'
-import { RIDE_STATUS_ORDER, rideStatusLabels, RideStatusBadge } from '@/lib/ride'
+import { RIDE_STATUS_ORDER, rideStatusLabels, RideStatusBadge, RideTypeBadge } from '@/lib/ride'
 
 const PAGE_SIZE = 10
 
@@ -76,6 +76,7 @@ const EMPTY_FORM: RideFormState = {
   rules: '',
   map_link: '',
   registration_deadline: '',
+  ride_type: 'bate_e_volta',
   status: 'rascunho',
 }
 
@@ -100,6 +101,7 @@ interface RideFormState {
   rules: string
   map_link: string
   registration_deadline: string
+  ride_type: 'bate_e_volta' | 'bate_e_fica'
   status: Ride['status']
 }
 
@@ -242,6 +244,7 @@ const AdminRides: React.FC = () => {
             <thead>
               <tr className="border-b border-[#1c2538] bg-[#0a0d14]">
                 <Th>Passeio</Th>
+                <Th>Tipo</Th>
                 <Th>Data</Th>
                 <Th>Status</Th>
                 <Th>Motos</Th>
@@ -261,7 +264,7 @@ const AdminRides: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={8} className="py-12 text-center text-xs text-slate-500">
                     Nenhum passeio encontrado.
                   </td>
                 </tr>
@@ -278,6 +281,9 @@ const AdminRides: React.FC = () => {
                     >
                       <td className="px-4 py-3">
                         <span className="text-xs font-bold text-white">{ride.name}</span>
+                      </td>
+                      <td className="px-4 py-3">
+                        <RideTypeBadge type={ride.ride_type} />
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400 flex items-center gap-1.5">
                         <Calendar className="w-3 h-3 text-slate-500" />
@@ -479,6 +485,7 @@ const RideFormModal: React.FC<{
           rules: ride.rules || '',
           map_link: ride.map_link || '',
           registration_deadline: ride.registration_deadline || '',
+          ride_type: ride.ride_type || 'bate_e_volta',
           status: ride.status || 'rascunho',
         })
       } else {
@@ -500,6 +507,14 @@ const RideFormModal: React.FC<{
       toast({
         title: 'Campo obrigatório',
         description: 'Informe o nome do passeio.',
+        variant: 'destructive',
+      })
+      return
+    }
+    if (!form.ride_type) {
+      toast({
+        title: 'Campo obrigatório',
+        description: 'Selecione o tipo de passeio (Bate e Volta ou Bate e Fica).',
         variant: 'destructive',
       })
       return
@@ -526,6 +541,7 @@ const RideFormModal: React.FC<{
         rules: form.rules,
         map_link: form.map_link.trim(),
         registration_deadline: form.registration_deadline,
+        ride_type: form.ride_type,
         status: form.status,
       }
       if (ride) {
@@ -588,6 +604,61 @@ const RideFormModal: React.FC<{
               />
             </Field>
           </div>
+
+          <div className="sm:col-span-2">
+            <Field label="Tipo de passeio *">
+              <Select
+                value={form.ride_type}
+                onValueChange={(v) => set('ride_type', v as 'bate_e_volta' | 'bate_e_fica')}
+              >
+                <SelectTrigger className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9">
+                  <SelectValue placeholder="Selecione o tipo..." />
+                </SelectTrigger>
+                <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white">
+                  <SelectItem value="bate_e_volta" className="text-xs">
+                    Bate e Volta
+                  </SelectItem>
+                  <SelectItem value="bate_e_fica" className="text-xs">
+                    Bate e Fica
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </Field>
+          </div>
+
+          {/* Campos adicionais condicionais para "Bate e Fica" */}
+          {form.ride_type === 'bate_e_fica' && (
+            <div className="sm:col-span-2 bg-[#121926] border border-blue-500/30 rounded-md p-4 space-y-3 animate-in fade-in duration-200">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-400" />
+                <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider font-montserrat">
+                  Configurações Bate e Fica (Hospedagem / Custos)
+                </h4>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                <Field label="Valor (R$)">
+                  <Input
+                    type="number"
+                    value={form.price || ''}
+                    onChange={(e) => set('price', Number(e.target.value))}
+                    placeholder="0.00"
+                    className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+                  />
+                </Field>
+                <div className="sm:col-span-2">
+                  <Field label="O que está incluso">
+                    <Textarea
+                      value={form.whats_included}
+                      onChange={(e) => set('whats_included', e.target.value)}
+                      rows={3}
+                      placeholder="Ex: Hospedagem, café da manhã, jantar, brindes"
+                      className="bg-[#141b27] border-[#222c3f] text-white text-xs resize-none"
+                    />
+                  </Field>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div className="sm:col-span-2">
             <Field label="Foto de capa">
@@ -711,15 +782,17 @@ const RideFormModal: React.FC<{
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
-          <Field label="Valor (R$, opcional)">
-            <Input
-              type="number"
-              value={form.price || ''}
-              onChange={(e) => set('price', Number(e.target.value))}
-              placeholder="0.00"
-              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
-            />
-          </Field>
+          {form.ride_type !== 'bate_e_fica' && (
+            <Field label="Valor (R$, opcional)">
+              <Input
+                type="number"
+                value={form.price || ''}
+                onChange={(e) => set('price', Number(e.target.value))}
+                placeholder="0.00"
+                className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+              />
+            </Field>
+          )}
 
           <div className="sm:col-span-2 flex items-center justify-between bg-[#141b27] border border-[#222c3f] rounded-md px-4 py-3">
             <div>
@@ -745,16 +818,18 @@ const RideFormModal: React.FC<{
               />
             </Field>
           </div>
-          <div className="sm:col-span-2">
-            <Field label="O que está incluso">
-              <Textarea
-                value={form.whats_included}
-                onChange={(e) => set('whats_included', e.target.value)}
-                rows={2}
-                className="bg-[#141b27] border-[#222c3f] text-white text-xs resize-none"
-              />
-            </Field>
-          </div>
+          {form.ride_type !== 'bate_e_fica' && (
+            <div className="sm:col-span-2">
+              <Field label="O que está incluso">
+                <Textarea
+                  value={form.whats_included}
+                  onChange={(e) => set('whats_included', e.target.value)}
+                  rows={2}
+                  className="bg-[#141b27] border-[#222c3f] text-white text-xs resize-none"
+                />
+              </Field>
+            </div>
+          )}
           <div className="sm:col-span-2">
             <Field label="Regulamento">
               <Textarea

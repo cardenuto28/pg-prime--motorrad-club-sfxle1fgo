@@ -101,6 +101,32 @@ export function RegStatusBadge({ status }: { status: 'confirmada' | 'cancelada' 
   )
 }
 
+export const RIDE_TYPE_META: Record<
+  'bate_e_volta' | 'bate_e_fica',
+  { label: string; className: string }
+> = {
+  bate_e_volta: {
+    label: 'Bate e Volta',
+    className: 'bg-blue-950/70 text-blue-300 border-blue-700/50',
+  },
+  bate_e_fica: {
+    label: 'Bate e Fica',
+    className: 'bg-amber-950/70 text-amber-300 border-amber-700/50',
+  },
+}
+
+export function RideTypeBadge({ type }: { type?: 'bate_e_volta' | 'bate_e_fica' }) {
+  if (!type) return null
+  const meta = RIDE_TYPE_META[type] || RIDE_TYPE_META.bate_e_volta
+  return (
+    <span
+      className={`inline-flex items-center text-[10px] font-bold tracking-wider px-2.5 py-0.5 rounded uppercase border whitespace-nowrap ${meta.className}`}
+    >
+      {meta.label}
+    </span>
+  )
+}
+
 /** Formats a text date for display (handles DD/MM/YYYY or ISO). */
 export function formatRideDate(value?: string): string {
   if (!value) return 'A definir'

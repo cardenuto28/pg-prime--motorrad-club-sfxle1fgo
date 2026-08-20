@@ -16,7 +16,7 @@ import { RegStatusBadge } from '@/lib/ride'
 
 const PAGE_SIZE = 10
 
-type StatusFilter = 'todas' | 'confirmada' | 'cancelada' | 'pendente'
+type StatusFilter = 'todas' | 'confirmada' | 'cancelada' | 'pendente' | 'nao_membros'
 
 const AdminRegistrations: React.FC = () => {
   const { toast } = useToast()
@@ -51,11 +51,30 @@ const AdminRegistrations: React.FC = () => {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
     return registrations.filter((reg) => {
-      if (statusFilter !== 'todas' && reg.status !== statusFilter) return false
+      const isGuest = reg.is_guest || !reg.user
+      if (statusFilter === 'nao_membros') {
+        if (!isGuest) return false
+      } else if (statusFilter !== 'todas' && reg.status !== statusFilter) {
+        return false
+      }
+
       if (!q) return true
-      const participantName = (reg.expand?.user?.name || '').toLowerCase()
+      const participantName = (
+        isGuest ? reg.guest_name || 'Não-membro' : reg.expand?.user?.name || ''
+      ).toLowerCase()
       const rideName = (reg.expand?.ride?.name || '').toLowerCase()
-      return participantName.includes(q) || rideName.includes(q)
+      const participantPhone = (
+        isGuest ? reg.guest_phone || '' : reg.expand?.user?.phone || ''
+      ).toLowerCase()
+      const participantEmail = (
+        isGuest ? reg.guest_email || '' : reg.expand?.user?.email || ''
+      ).toLowerCase()
+      return (
+        participantName.includes(q) ||
+        rideName.includes(q) ||
+        participantPhone.includes(q) ||
+        participantEmail.includes(q)
+      )
     })
   }, [registrations, search, statusFilter])
 
@@ -125,22 +144,56 @@ const AdminRegistrations: React.FC = () => {
     const rows: (string | number)[][] = [
       [
         'Participante',
+        'Tipo',
+        'Telefone',
+        'E-mail',
+        'CPF',
+        'Cidade',
+        'Moto',
         'Passeio',
         'Data do passeio',
         'Garupa',
+        'Nome Garupa',
+        'Telefone Garupa',
+        'Contato Emergência',
+        'Telefone Emergência',
         'Pessoas',
         'Status',
         'Data da inscrição',
       ],
-      ...filtered.map((reg) => [
-        reg.expand?.user?.name || '—',
-        reg.expand?.ride?.name || '—',
-        formatDate(reg.expand?.ride?.date),
-        reg.has_pillion ? 'Sim' : 'Não',
-        reg.has_pillion ? 2 : 1,
-        reg.status,
-        formatDate(reg.created),
-      ]),
+      ...filtered.map((reg) => {
+        const isGuest = reg.is_guest || !reg.user
+        const u = reg.expand?.user
+        const name = isGuest ? reg.guest_name || '—' : u?.name || '—'
+        const phone = isGuest ? reg.guest_phone || '—' : u?.phone || '—'
+        const email = isGuest ? reg.guest_email || '—' : u?.email || '—'
+        const cpf = isGuest ? reg.guest_cpf || '—' : u?.cpf || '—'
+        const city = isGuest ? reg.guest_city || '—' : u?.city || '—'
+        const bike = isGuest
+          ? [reg.guest_bike_brand, reg.guest_bike_model, reg.guest_bike_year]
+              .filter(Boolean)
+              .join(' ')
+          : [u?.bike_brand, u?.bike_model, u?.bike_year].filter(Boolean).join(' ')
+        return [
+          name,
+          isGuest ? 'Não-Membro' : 'Membro',
+          phone,
+          email,
+          cpf,
+          city,
+          bike || '—',
+          reg.expand?.ride?.name || '—',
+          formatDate(reg.expand?.ride?.date),
+          reg.has_pillion ? 'Sim' : 'Não',
+          reg.pillion_name || '—',
+          reg.pillion_phone || '—',
+          reg.emergency_contact_name || '—',
+          reg.emergency_contact_phone || '—',
+          reg.has_pillion ? 2 : 1,
+          reg.status,
+          formatDate(reg.created),
+        ]
+      }),
     ]
     const csv = rows
       .map((row) =>
@@ -207,6 +260,9 @@ const AdminRegistrations: React.FC = () => {
             <SelectItem value="todas" className="text-xs">
               Todas
             </SelectItem>
+            <SelectItem value="nao_membros" className="text-xs font-semibold text-amber-400">
+              Apenas Não-Membros
+            </SelectItem>
             <SelectItem value="confirmada" className="text-xs">
               Confirmada
             </SelectItem>
@@ -252,54 +308,105 @@ const AdminRegistrations: React.FC = () => {
                   </td>
                 </tr>
               ) : (
-                pageItems.map((reg) => (
-                  <tr
-                    key={reg.id}
-                    className="border-b border-[#161e2c] last:border-0 hover:bg-[#11172250]"
-                  >
-                    <td className="px-4 py-3 text-xs font-bold text-white">
-                      {reg.expand?.user?.name || '—'}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-300">
-                      {reg.expand?.ride?.name || '—'}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
-                      {formatDate(reg.expand?.ride?.date)}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">
-                      {reg.has_pillion ? 'Sim' : 'Não'}
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{reg.has_pillion ? 2 : 1}</td>
-                    <td className="px-4 py-3">
-                      <RegStatusBadge status={reg.status} />
-                    </td>
-                    <td className="px-4 py-3 text-xs text-slate-400">{formatDate(reg.created)}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center justify-end gap-1">
-                        {reg.status === 'pendente' && (
-                          <ActionBtn
-                            title="Confirmar inscrição"
-                            disabled={actionLoading === reg.id}
-                            onClick={() => handleConfirm(reg)}
-                            className="text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/50"
+                pageItems.map((reg) => {
+                  const isGuest = reg.is_guest || !reg.user
+                  const participantName = isGuest
+                    ? reg.guest_name || 'Não-Membro'
+                    : reg.expand?.user?.name || '—'
+                  const bike = isGuest
+                    ? [reg.guest_bike_brand, reg.guest_bike_model, reg.guest_bike_year]
+                        .filter(Boolean)
+                        .join(' ')
+                    : [
+                        reg.expand?.user?.bike_brand,
+                        reg.expand?.user?.bike_model,
+                        reg.expand?.user?.bike_year,
+                      ]
+                        .filter(Boolean)
+                        .join(' ')
+
+                  return (
+                    <tr
+                      key={reg.id}
+                      className={`border-b border-[#161e2c] last:border-0 transition-colors ${
+                        isGuest
+                          ? 'bg-amber-950/20 hover:bg-amber-950/35 border-l-2 border-l-amber-500'
+                          : 'hover:bg-[#11172250]'
+                      }`}
+                    >
+                      <td className="px-4 py-3 text-xs">
+                        <div className="flex flex-col gap-1 items-start">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-bold text-white">{participantName}</span>
+                            {isGuest && (
+                              <span className="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500 text-slate-950 shadow-sm font-montserrat">
+                                NÃO-MEMBRO
+                              </span>
+                            )}
+                          </div>
+                          {isGuest ? (
+                            <span className="text-[10px] text-amber-300/80">
+                              {reg.guest_phone || reg.guest_email || 'Aguardando cobrança/contato'}
+                              {bike ? ` · ${bike}` : ''}
+                            </span>
+                          ) : (
+                            bike && <span className="text-[10px] text-slate-500">{bike}</span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-300">
+                        {reg.expand?.ride?.name || '—'}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400">
+                        {formatDate(reg.expand?.ride?.date)}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400">
+                        {reg.has_pillion ? (
+                          <span
+                            title={reg.pillion_name ? `Garupa: ${reg.pillion_name}` : undefined}
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                          </ActionBtn>
+                            Sim {reg.pillion_name ? `(${reg.pillion_name})` : ''}
+                          </span>
+                        ) : (
+                          'Não'
                         )}
-                        {reg.status !== 'cancelada' && (
-                          <ActionBtn
-                            title="Cancelar inscrição"
-                            disabled={actionLoading === reg.id}
-                            onClick={() => handleCancel(reg)}
-                            className="text-red-300 hover:text-red-200 hover:bg-red-950/50"
-                          >
-                            <Ban className="w-3.5 h-3.5" />
-                          </ActionBtn>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400">
+                        {reg.has_pillion ? 2 : 1}
+                      </td>
+                      <td className="px-4 py-3">
+                        <RegStatusBadge status={reg.status} />
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-400">
+                        {formatDate(reg.created)}
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center justify-end gap-1">
+                          {reg.status === 'pendente' && (
+                            <ActionBtn
+                              title="Confirmar inscrição"
+                              disabled={actionLoading === reg.id}
+                              onClick={() => handleConfirm(reg)}
+                              className="text-emerald-300 hover:text-emerald-200 hover:bg-emerald-950/50"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                            </ActionBtn>
+                          )}
+                          {reg.status !== 'cancelada' && (
+                            <ActionBtn
+                              title="Cancelar inscrição"
+                              disabled={actionLoading === reg.id}
+                              onClick={() => handleCancel(reg)}
+                              className="text-red-300 hover:text-red-200 hover:bg-red-950/50"
+                            >
+                              <Ban className="w-3.5 h-3.5" />
+                            </ActionBtn>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                })
               )}
             </tbody>
           </table>

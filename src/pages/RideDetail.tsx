@@ -137,10 +137,6 @@ const RideDetail: React.FC = () => {
   }
 
   const handleQueroParticipar = () => {
-    if (!user) {
-      setLoginModalOpen(true)
-      return
-    }
     setRegModalOpen(true)
   }
 
@@ -264,6 +260,17 @@ const RideDetail: React.FC = () => {
                   {ride.status.replace(/_/g, ' ')}
                 </span>
               )}
+              {ride.ride_type && (
+                <span
+                  className={`text-[10px] font-bold px-2.5 py-1 rounded uppercase tracking-widest font-montserrat border ${
+                    ride.ride_type === 'bate_e_fica'
+                      ? 'text-amber-300 bg-amber-950/80 border-amber-600/50'
+                      : 'text-blue-300 bg-blue-950/80 border-blue-600/50'
+                  }`}
+                >
+                  {ride.ride_type === 'bate_e_fica' ? 'Bate e Fica' : 'Bate e Volta'}
+                </span>
+              )}
               {ride.date && (
                 <span className="text-[10px] font-bold text-slate-200 bg-[#0d1422]/90 backdrop-blur border border-[#222e43] px-2.5 py-1 rounded uppercase tracking-widest font-montserrat flex items-center gap-1.5">
                   <Calendar className="w-3 h-3 text-blue-400" /> {formatDate(ride.date)}
@@ -298,6 +305,13 @@ const RideDetail: React.FC = () => {
                 <Compass className="w-4 h-4 text-blue-500" /> Detalhes do Passeio
               </h3>
               <div className="divide-y divide-[#1c2538]">
+                {ride.ride_type && (
+                  <InfoRow
+                    icon={Compass}
+                    label="Tipo de Passeio"
+                    value={ride.ride_type === 'bate_e_fica' ? 'Bate e Fica' : 'Bate e Volta'}
+                  />
+                )}
                 <InfoRow icon={Calendar} label="Data" value={formatDate(ride.date)} />
                 <InfoRow icon={Clock} label="Horário de encontro" value={ride.meeting_time} />
                 <InfoRow icon={Timer} label="Horário de saída" value={ride.departure_time} />
@@ -508,7 +522,7 @@ const RideDetail: React.FC = () => {
 
                 {!user && !isFull && !registrationsClosed && (
                   <p className="text-[10px] text-slate-500 text-center flex items-center justify-center gap-1">
-                    <Lock className="w-3 h-3" /> Faça login para se inscrever no passeio.
+                    Não é membro? Preencha seus dados para solicitar sua vaga.
                   </p>
                 )}
                 {user && !myConfirmedReg && !isFull && !registrationsClosed && (
