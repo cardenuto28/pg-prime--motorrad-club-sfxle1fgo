@@ -49,7 +49,7 @@ const PublicBeneficios: React.FC = () => {
               <Gift className="w-3.5 h-3.5" /> Vantagens Exclusivas
             </span>
             <h1 className="text-4xl sm:text-5xl font-extrabold text-white font-montserrat tracking-tight uppercase leading-none drop-shadow-md">
-              Benefícios do Club
+              Benefícios do ClubE
             </h1>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
               Condições exclusivas e descontos especiais com nossos parceiros credenciados,
