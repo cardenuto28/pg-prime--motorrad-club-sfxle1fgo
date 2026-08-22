@@ -29,7 +29,6 @@ import {
   parseDateFlexible,
   calcularCategoriaMembro,
   calcularScoreCompleto,
-  parseTags,
   nivelRelacionamentoMeta,
   tagBadgeClass,
 } from '@/lib/membership'
@@ -534,7 +533,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   // PARTE 3 — Snapshot de métricas:
   //   A cada membro atualizado/criado, um registro é salvo na collection
   //   `historico_metricas_membro` com o snapshot das métricas do momento da
-  //   importação, permitindo evolutar o histórico do cliente ao longo do tempo.
+  //   importação (fire-and-forget), permitindo evoluir o histórico do cliente ao longo do tempo.
   //
   // PARTE 3 — Log de importação:
   //   Ao final, um registro é salvo na collection `import_logs` com o resumo
@@ -635,11 +634,11 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               proxima_melhor_acao: row.proximaMelhorAcao,
             })
 
-            // Registra histórico de categoria quando a categoria muda
+            // Registra histórico de categoria quando a categoria muda (fire-and-forget: sem await)
             if (catMudou) {
               categoriasAlteradasCount++
-              try {
-                await pb.collection('historico_categoria').create({
+              pb.collection('historico_categoria')
+                .create({
                   membro_id: row.existingId,
                   categoria_anterior: oldCat || null,
                   categoria_nova: row.categoriaCalculada,
@@ -648,27 +647,31 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   origem: 'automatico',
                   justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
                 })
-              } catch {
-                /* intentionally ignored */
-              }
+                .catch((e) => {
+                  console.warn('Falha no histórico de categoria (update):', e)
+                })
             }
             if (scoreMudou) {
               scoresAtualizadosCount++
             }
 
-            // PARTE 3 — Salva snapshot das métricas do membro (historico_metricas_membro)
-            await historicoMetricasService.create({
-              membro_id: row.existingId,
-              data_importacao: dataStr,
-              categoria: row.categoriaCalculada,
-              score_oficina: row.scoreOficina,
-              total_compras: row.quantidade_motos_compradas,
-              total_valor_vendido: row.total_valor_vendido,
-              numero_passagens: row.numero_passagens_oficina,
-              total_liquido_oficina: row.total_liquido_oficina,
-              status: row.statusCalculado,
-              nivel_relacionamento: row.nivelRelacionamento,
-            })
+            // PARTE 3 — Salva snapshot das métricas do membro (fire-and-forget: sem await)
+            historicoMetricasService
+              .create({
+                membro_id: row.existingId,
+                data_importacao: dataStr,
+                categoria: row.categoriaCalculada,
+                score_oficina: row.scoreOficina,
+                total_compras: row.quantidade_motos_compradas,
+                total_valor_vendido: row.total_valor_vendido,
+                numero_passagens: row.numero_passagens_oficina,
+                total_liquido_oficina: row.total_liquido_oficina,
+                status: row.statusCalculado,
+                nivel_relacionamento: row.nivelRelacionamento,
+              })
+              .catch((e) => {
+                console.warn('Falha no snapshot de métricas (update):', e)
+              })
 
             updatedCount++
           } else {
@@ -729,9 +732,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             categoriasAlteradasCount++
             scoresAtualizadosCount++
 
-            // Grava histórico de categoria
-            try {
-              await pb.collection('historico_categoria').create({
+            // Grava histórico de categoria (fire-and-forget: sem await)
+            pb.collection('historico_categoria')
+              .create({
                 membro_id: createdUser.id,
                 categoria_anterior: null,
                 categoria_nova: row.categoriaCalculada,
@@ -740,14 +743,14 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                 origem: 'automatico',
                 justificativa: 'Importação inicial de planilha em massa (UPSERT por CPF)',
               })
-            } catch {
-              /* intentionally ignored */
-            }
+              .catch((e) => {
+                console.warn('Falha no histórico de categoria (create):', e)
+              })
 
-            // Se tiver compra de moto registrada, grava histórico
+            // Se tiver compra de moto registrada, grava histórico (fire-and-forget)
             if (row.quantidade_motos_compradas > 0 && row.bike_model) {
-              try {
-                await pb.collection('historico_compras_motos').create({
+              pb.collection('historico_compras_motos')
+                .create({
                   membro_id: createdUser.id,
                   cpf: row.cpfClean,
                   modelo: row.bike_model,
@@ -757,15 +760,15 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   status_venda: 'ENTREGUE',
                   created_at: new Date().toISOString(),
                 })
-              } catch {
-                /* intentionally ignored */
-              }
+                .catch((e) => {
+                  console.warn('Falha no histórico de compras de moto:', e)
+                })
             }
 
-            // Se tiver oficina registrada, grava histórico
+            // Se tiver oficina registrada, grava histórico (fire-and-forget)
             if (oficinaDate) {
-              try {
-                await pb.collection('historico_oficina').create({
+              pb.collection('historico_oficina')
+                .create({
                   membro_id: createdUser.id,
                   cpf: row.cpfClean,
                   data_passagem: oficinaDate.toISOString(),
@@ -774,34 +777,39 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   status: 'CONCLUIDA',
                   created_at: new Date().toISOString(),
                 })
-              } catch {
-                /* intentionally ignored */
-              }
+                .catch((e) => {
+                  console.warn('Falha no histórico de oficina:', e)
+                })
             }
 
-            // PARTE 3 — Salva snapshot das métricas do novo membro
-            await historicoMetricasService.create({
-              membro_id: createdUser.id,
-              data_importacao: dataStr,
-              categoria: row.categoriaCalculada,
-              score_oficina: row.scoreOficina,
-              total_compras: row.quantidade_motos_compradas,
-              total_valor_vendido: row.total_valor_vendido,
-              numero_passagens: row.numero_passagens_oficina,
-              total_liquido_oficina: row.total_liquido_oficina,
-              status: row.statusCalculado,
-              nivel_relacionamento: row.nivelRelacionamento,
-            })
+            // PARTE 3 — Salva snapshot das métricas do novo membro (fire-and-forget: sem await)
+            historicoMetricasService
+              .create({
+                membro_id: createdUser.id,
+                data_importacao: dataStr,
+                categoria: row.categoriaCalculada,
+                score_oficina: row.scoreOficina,
+                total_compras: row.quantidade_motos_compradas,
+                total_valor_vendido: row.total_valor_vendido,
+                numero_passagens: row.numero_passagens_oficina,
+                total_liquido_oficina: row.total_liquido_oficina,
+                status: row.statusCalculado,
+                nivel_relacionamento: row.nivelRelacionamento,
+              })
+              .catch((e) => {
+                console.warn('Falha no snapshot de métricas (create):', e)
+              })
 
             createdCount++
           }
         } catch (err: any) {
           // PARTE 3 — Tratamento de erros por linha: registra mas NÃO paralisa o arquivo.
           console.error('Erro ao importar linha', row.rowIndex, err)
+          console.error('Erro completo:', JSON.stringify(err, Object.getOwnPropertyNames(err)))
           failCount++
 
-          // Extrai detalhes de validação específicos de err.data (PocketBase response.data / err.data)
-          const errorData = err?.data || err?.response?.data
+          // Extrai detalhes de validação específicos de err.response?.data ou err.data
+          const errorData = err?.response?.data || err?.data
           let specificDetails = ''
           if (errorData && typeof errorData === 'object') {
             const fieldMsgs: string[] = []
@@ -815,17 +823,24 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                 fieldMsgs.push(`${field}: ${(detail as any).message}`)
               } else if (typeof detail === 'string') {
                 fieldMsgs.push(`${field}: ${detail}`)
+              } else if (detail && typeof detail === 'object') {
+                fieldMsgs.push(`${field}: ${JSON.stringify(detail)}`)
               }
             }
             if (fieldMsgs.length > 0) {
               specificDetails = fieldMsgs.join(', ')
+            } else if (
+              typeof (errorData as any).message === 'string' &&
+              (errorData as any).message
+            ) {
+              specificDetails = (errorData as any).message
             }
           }
 
           const actionPrefix = row.action === 'UPDATE' ? 'Falha ao atualizar' : 'Falha ao criar'
 
           const fallbackMsg = err?.message
-            ? String(err.message).slice(0, 200)
+            ? String(err.message)
             : row.action === 'UPDATE'
               ? 'Failed to update record.'
               : 'Failed to create record.'
@@ -848,6 +863,8 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             failCount,
             percent: currentPercent,
           })
+          // Delay de 100ms entre linhas para evitar rate limiting (429)
+          await new Promise((resolve) => setTimeout(resolve, 100))
         }
       }
 
