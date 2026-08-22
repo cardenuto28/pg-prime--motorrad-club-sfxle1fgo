@@ -48,7 +48,9 @@ export interface UserProfile {
   nivel_relacionamento?: string
   data_ultimo_calculo?: string
   proxima_melhor_acao?: string
-  tags?: string
+  // PARTE 2 — tags armazenadas como JSON array (string) no PocketBase.
+  // Pode chegar como string JSON ou como array já parsed, dependendo do caminho.
+  tags?: string | string[]
   member_id?: string
   phone?: string
   cpf?: string

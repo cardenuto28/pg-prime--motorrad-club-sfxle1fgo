@@ -27,10 +27,15 @@ import {
   formatCPF,
   parseDateFlexible,
   calcularCategoriaMembro,
+  calcularScoreCompleto,
+  parseTags,
+  nivelRelacionamentoMeta,
+  tagBadgeClass,
 } from '@/lib/membership'
 import pb from '@/lib/pocketbase/client'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { useToast } from '@/hooks/use-toast'
+import { settingsService } from '@/services/settings'
 
 /**
  * Tipo de operação que será realizada para cada linha da planilha.
@@ -68,6 +73,13 @@ interface ImportRow {
   mesesDesdeUltimaPassagem: number
   diasDesdeVenda: number
   mesesDesdeVenda: number
+  // PARTE 2 — Score, tags e ação
+  scoreOficina: number
+  scoreValorOficina: number
+  scoreFrequencia: number
+  nivelRelacionamento: string
+  tags: string[]
+  proximaMelhorAcao: string
   errors: string[]
   isValid: boolean
   action: RowAction
@@ -101,6 +113,11 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   } | null>(null)
   const [filterTab, setFilterTab] = useState<'all' | 'create' | 'update' | 'invalid'>('all')
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // PARTE 2 — Faixas configuráveis de score carregadas uma vez ao abrir o modal.
+  // Variáveis `let` no escopo do componente (acessadas no handleFileChange e handleConfirmImport).
+  let currentValorRanges: any[] | undefined
+  let currentFrequenciaRanges: any[] | undefined
 
   const resetState = () => {
     setFile(null)
@@ -200,6 +217,11 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     setParsing(true)
 
     try {
+      // PARTE 2 — Carrega as faixas configuradas de score (uma vez por parsing).
+      const { valorRanges, frequenciaRanges } = await settingsService.getScoreRanges()
+      currentValorRanges = valorRanges
+      currentFrequenciaRanges = frequenciaRanges
+
       // 1. Carrega todos os usuários do banco e monta um mapa de CPF (somente dígitos) → usuário completo.
       //    Precisamos dos campos cadastrais protegidos (NOME, TELEFONE, EMAIL, CIDADE) para o UPSERT.
       const existingUsers = await pb.collection('users').getFullList({
@@ -326,6 +348,19 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           data_primeira_compra: primeiraDate,
         })
 
+        // PARTE 2 — Score, tags e próxima melhor ação
+        const scoreCalc = calcularScoreCompleto({
+          total_liquido_oficina: isNaN(total_liquido_oficina) ? 0 : total_liquido_oficina,
+          numero_passagens_oficina: isNaN(numero_passagens_oficina) ? 0 : numero_passagens_oficina,
+          categoria_clube: calc.categoria_clube,
+          total_veiculos_elegiveis: calc.total_veiculos_elegiveis,
+          data_primeira_compra: primeiraDate,
+          data_ultima_passagem_oficina: oficinaDate,
+          // Faixas configuradas (carregadas uma vez no handleFileChange)
+          valorRanges: currentValorRanges,
+          frequenciaRanges: currentFrequenciaRanges,
+        })
+
         // ---- Proteção de campos cadastrais (Parte 1, seção 6) ----
         // Se o registro já existe e o campo vem vazio na planilha, manter o valor existente.
         // Campos protegidos: NOME, TELEFONE, EMAIL, CIDADE.
@@ -369,6 +404,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           mesesDesdeUltimaPassagem: calc.meses_desde_ultima_passagem,
           diasDesdeVenda: calc.dias_desde_venda,
           mesesDesdeVenda: calc.meses_desde_venda,
+          // PARTE 2 — Score, tags e ação
+          scoreOficina: scoreCalc.score_oficina,
+          scoreValorOficina: scoreCalc.score_valor_oficina,
+          scoreFrequencia: scoreCalc.score_frequencia,
+          nivelRelacionamento: scoreCalc.nivel_relacionamento,
+          tags: scoreCalc.tags,
+          proximaMelhorAcao: scoreCalc.proxima_melhor_acao,
           errors,
           // Ignoradas não são válidas para importação; demais são válidas (erros de data só avisam)
           isValid: action !== 'IGNORE' && errors.length === 0,
@@ -464,6 +506,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               dias_desde_venda: row.diasDesdeVenda,
               meses_desde_venda: row.mesesDesdeVenda,
               data_ultimo_calculo: new Date().toISOString(),
+              // PARTE 2 — Score, tags e próxima melhor ação
+              score_oficina: row.scoreOficina,
+              score_valor_oficina: row.scoreValorOficina,
+              score_frequencia: row.scoreFrequencia,
+              nivel_relacionamento: row.nivelRelacionamento,
+              tags: JSON.stringify(row.tags),
+              proxima_melhor_acao: row.proximaMelhorAcao,
             })
 
             // Registra histórico de categoria quando a categoria muda
@@ -527,6 +576,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               dias_desde_venda: row.diasDesdeVenda,
               meses_desde_venda: row.mesesDesdeVenda,
               data_ultimo_calculo: new Date().toISOString(),
+              // PARTE 2 — Score, tags e próxima melhor ação
+              score_oficina: row.scoreOficina,
+              score_valor_oficina: row.scoreValorOficina,
+              score_frequencia: row.scoreFrequencia,
+              nivel_relacionamento: row.nivelRelacionamento,
+              tags: JSON.stringify(row.tags),
+              proxima_melhor_acao: row.proximaMelhorAcao,
             })
 
             // Grava histórico de categoria
@@ -818,6 +874,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                     <th className="p-2.5 text-center">Motos</th>
                     <th className="p-2.5 text-center">Ação</th>
                     <th className="p-2.5 text-center">Categoria</th>
+                    <th className="p-2.5 text-center">Score</th>
+                    <th className="p-2.5">Nível Relac.</th>
+                    <th className="p-2.5">Tags</th>
                     <th className="p-2.5">Status / Avisos</th>
                   </tr>
                 </thead>
@@ -870,6 +929,40 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                       </td>
                       <td className="p-2.5 text-center">
                         <CategoryBadge category={row.categoriaCalculada} size="sm" />
+                      </td>
+                      <td className="p-2.5 text-center">
+                        <span
+                          className={`font-bold ${nivelRelacionamentoMeta(row.nivelRelacionamento).textColor}`}
+                        >
+                          {row.scoreOficina}/100
+                        </span>
+                      </td>
+                      <td className="p-2.5">
+                        <span
+                          className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${
+                            nivelRelacionamentoMeta(row.nivelRelacionamento).badgeClass
+                          }`}
+                        >
+                          {nivelRelacionamentoMeta(row.nivelRelacionamento).short}
+                        </span>
+                      </td>
+                      <td className="p-2.5">
+                        {row.tags.length === 0 ? (
+                          <span className="text-slate-500 text-[11px]">—</span>
+                        ) : (
+                          <div className="flex flex-wrap gap-1">
+                            {row.tags.map((tag) => (
+                              <span
+                                key={tag}
+                                className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${tagBadgeClass(
+                                  tag,
+                                )}`}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
                       </td>
                       <td className="p-2.5">
                         {row.isValid ? (

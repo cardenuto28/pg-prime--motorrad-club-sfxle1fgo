@@ -25,9 +25,19 @@ import {
   storeVisitService,
 } from '@/services/api'
 import { formatDate, isRidePast } from '@/lib/member'
-import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
+import { calcularCategoriaMembro, normalizeCategory, parseTags } from '@/lib/membership'
 import { CategoryBadge } from '@/components/CategoryBadge'
-import { Shield, Diamond, Crown, Star, AlertTriangle, ShieldAlert, UserX } from 'lucide-react'
+import {
+  Shield,
+  Diamond,
+  Crown,
+  Star,
+  AlertTriangle,
+  ShieldAlert,
+  UserX,
+  Gauge,
+  TrendingUp,
+} from 'lucide-react'
 
 interface RideStatusBadgeProps {
   status: Ride['status']
@@ -120,6 +130,15 @@ const AdminDashboard: React.FC = () => {
     let bronzeExpiringCount = 0
     let bronzeInactiveCount = 0
 
+    // PARTE 2 — contadores de Score de Oficina e Tags Inteligentes
+    let scoreSum = 0
+    let scoreHigh85Count = 0
+    let vipAtivoCount = 0
+    let vipAfastadoCount = 0
+    let proximoGoldCount = 0
+    let proximoPlatinumCount = 0
+    let primeiraPassagemPendenteCount = 0
+
     users.forEach((u) => {
       const calc = calcularCategoriaMembro({
         quantidade_motos_compradas: u.quantidade_motos_compradas,
@@ -143,7 +162,20 @@ const AdminDashboard: React.FC = () => {
       } else {
         bronzeInactiveCount++
       }
+
+      // PARTE 2 — Score e Tags
+      const score = Number(u.score_oficina || 0)
+      scoreSum += score
+      if (score >= 85) scoreHigh85Count++
+      const tags = parseTags(u.tags)
+      if (tags.includes('VIP ATIVO')) vipAtivoCount++
+      if (tags.includes('VIP AFASTADO')) vipAfastadoCount++
+      if (tags.includes('PRÓXIMO DO GOLD')) proximoGoldCount++
+      if (tags.includes('PRÓXIMO DO PLATINUM')) proximoPlatinumCount++
+      if (tags.includes('PRIMEIRA PASSAGEM PENDENTE')) primeiraPassagemPendenteCount++
     })
+
+    const scoreMedio = users.length > 0 ? scoreSum / users.length : 0
 
     const upcomingRides = rides
       .filter((r) => !isRidePast(r.date) && r.status !== 'cancelado' && r.status !== 'realizado')
@@ -253,6 +285,14 @@ const AdminDashboard: React.FC = () => {
       bronzeActiveCount,
       bronzeExpiringCount,
       bronzeInactiveCount,
+      // PARTE 2 — Score e Tags
+      scoreMedio,
+      scoreHigh85Count,
+      vipAtivoCount,
+      vipAfastadoCount,
+      proximoGoldCount,
+      proximoPlatinumCount,
+      primeiraPassagemPendenteCount,
       nextRide,
       nextRideBikes,
       nextRideParticipants,
@@ -396,6 +436,115 @@ const AdminDashboard: React.FC = () => {
               {stats.bronzeInactiveCount}
             </p>
             <span className="text-[9px] text-slate-500">&gt;6 meses sem oficina</span>
+          </div>
+        </div>
+      </section>
+
+      {/* PARTE 2 — Indicadores de Score de Oficina e Inteligência de Relacionamento */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Gauge className="w-5 h-5 text-cyan-400" />
+            <h2 className="text-xs font-bold text-slate-300 font-montserrat tracking-widest uppercase">
+              Score de Oficina &amp; Inteligência de Relacionamento
+            </h2>
+          </div>
+          <Link
+            to="/admin/score-config"
+            className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+          >
+            ⚙️ CONFIGURAR FAIXAS <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+          <div className="bg-[#0a0d14] border border-cyan-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-cyan-400">
+              <Gauge className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Score Médio de Oficina
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.scoreMedio.toFixed(1)}
+              <span className="text-[10px] text-slate-500 font-normal">/100</span>
+            </p>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <TrendingUp className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Clientes Score 85+
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.scoreHigh85Count}
+            </p>
+            <span className="text-[9px] text-emerald-400/80">Alto valor pós-vendas</span>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-emerald-400">
+              <Crown className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                VIP Ativos
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">{stats.vipAtivoCount}</p>
+            <span className="text-[9px] text-emerald-400/80">GOLD/PLAT &amp; score ≥70</span>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-red-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-red-400">
+              <UserX className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                VIP Afastados
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.vipAfastadoCount}
+            </p>
+            <span className="text-[9px] text-red-400/80">GOLD/PLAT &amp; score &lt;30</span>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-blue-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-blue-400">
+              <Star className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Próximos do Gold
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.proximoGoldCount}
+            </p>
+            <span className="text-[9px] text-blue-400/80">Prata c/ 2 motos</span>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-purple-900/40 rounded-lg p-3 space-y-1">
+            <div className="flex items-center gap-1.5 text-purple-400">
+              <Diamond className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Próximos do Platinum
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.proximoPlatinumCount}
+            </p>
+            <span className="text-[9px] text-purple-400/80">Gold c/ 4 motos</span>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-orange-900/40 rounded-lg p-3 space-y-1 col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-1.5 text-orange-400">
+              <AlertTriangle className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Primeira Passagem Pendente
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.primeiraPassagemPendenteCount}
+            </p>
+            <span className="text-[9px] text-orange-400/80">Comprou, sem oficina</span>
           </div>
         </div>
       </section>

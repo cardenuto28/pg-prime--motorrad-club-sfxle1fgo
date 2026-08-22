@@ -35,6 +35,7 @@ import AdminGallery from './pages/admin/AdminGallery'
 import AdminAnnouncements from './pages/admin/AdminAnnouncements'
 import AdminReports from './pages/admin/AdminReports'
 import AdminSettings from './pages/admin/AdminSettings'
+import ScoreConfig from './pages/admin/ScoreConfig'
 import AdminBanners from './pages/admin/AdminBanners'
 import AdminRegistrations from './pages/admin/AdminRegistrations'
 import AdminStoreQrCode from './pages/admin/AdminStoreQrCode'
@@ -115,6 +116,7 @@ const App = () => (
             <Route path="gallery" element={<AdminGallery />} />
             <Route path="announcements" element={<AdminAnnouncements />} />
             <Route path="reports" element={<AdminReports />} />
+            <Route path="score-config" element={<ScoreConfig />} />
             <Route path="banners" element={<AdminBanners />} />
             <Route path="qrcode-loja" element={<AdminStoreQrCode />} />
             <Route path="manual" element={<AdminManual />} />

@@ -59,7 +59,14 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { MemberStatusBadge, formatDate, statusLabel } from '@/lib/member'
 import { CategoryBadge } from '@/components/CategoryBadge'
-import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
+import {
+  calcularCategoriaMembro,
+  normalizeCategory,
+  parseTags,
+  nivelRelacionamentoMeta,
+  tagBadgeClass,
+  TODAS_AS_TAGS,
+} from '@/lib/membership'
 import { ImportMembersModal } from '@/components/ImportMembersModal'
 
 const PAGE_SIZE = 10
@@ -78,6 +85,10 @@ const AdminMembers: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [expiringBronzeFilter, setExpiringBronzeFilter] = useState(false)
   const [minBikesFilter, setMinBikesFilter] = useState<string>('all')
+  // PARTE 2 — Filtros de Score, Nível de Relacionamento e Tags
+  const [scoreFilter, setScoreFilter] = useState<string>('all')
+  const [nivelRelacFilter, setNivelRelacFilter] = useState<string>('all')
+  const [tagFilter, setTagFilter] = useState<string>('all')
 
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [editing, setEditing] = useState<UserProfile | null>(null)
@@ -170,9 +181,42 @@ const AdminMembers: React.FC = () => {
         if (bikes < min) return false
       }
 
+      // 6. PARTE 2 — Filtro por faixa de Score
+      if (scoreFilter !== 'all') {
+        const score = Number(u.score_oficina || 0)
+        const [lo, hi] = scoreFilter.split('-').map(Number)
+        if (score < lo || score > hi) return false
+      }
+
+      // 7. PARTE 2 — Filtro por Nível de Relacionamento
+      if (nivelRelacFilter !== 'all') {
+        const nivel = (u.nivel_relacionamento || '').toUpperCase()
+        const meta = nivelRelacionamentoMeta(nivel)
+        if (!meta.label.toUpperCase().includes(nivelRelacFilter.toUpperCase())) {
+          // aceita também o short
+          if (meta.short.toUpperCase() !== nivelRelacFilter.toUpperCase()) return false
+        }
+      }
+
+      // 8. PARTE 2 — Filtro por Tag
+      if (tagFilter !== 'all') {
+        const tags = parseTags(u.tags)
+        if (!tags.some((t) => t.toUpperCase() === tagFilter.toUpperCase())) return false
+      }
+
       return true
     })
-  }, [users, search, categoryFilter, statusFilter, expiringBronzeFilter, minBikesFilter])
+  }, [
+    users,
+    search,
+    categoryFilter,
+    statusFilter,
+    expiringBronzeFilter,
+    minBikesFilter,
+    scoreFilter,
+    nivelRelacFilter,
+    tagFilter,
+  ])
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
   const currentPage = Math.min(page, totalPages)
@@ -414,10 +458,61 @@ const AdminMembers: React.FC = () => {
           </button>
         </div>
 
+        {/* PARTE 2 — Linha de filtros de Score / Nível / Tags */}
+        <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-[#1c2538]">
+          {/* Filtro de Score */}
+          <Select value={scoreFilter} onValueChange={setScoreFilter}>
+            <SelectTrigger className="w-40 bg-[#141b27] border-[#222c3f] text-xs h-9 text-slate-300">
+              <SelectValue placeholder="Score Oficina" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+              <SelectItem value="all">Todos Scores</SelectItem>
+              <SelectItem value="0-29">0–29 (Baixo)</SelectItem>
+              <SelectItem value="30-49">30–49 (Moderado)</SelectItem>
+              <SelectItem value="50-69">50–69 (Ativo)</SelectItem>
+              <SelectItem value="70-84">70–84 (Forte)</SelectItem>
+              <SelectItem value="85-100">85–100 (Excepcional)</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Filtro de Nível de Relacionamento */}
+          <Select value={nivelRelacFilter} onValueChange={setNivelRelacFilter}>
+            <SelectTrigger className="w-44 bg-[#141b27] border-[#222c3f] text-xs h-9 text-slate-300">
+              <SelectValue placeholder="Nível Relacionamento" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+              <SelectItem value="all">Todos Níveis</SelectItem>
+              <SelectItem value="BAIXO">Baixo Relacionamento</SelectItem>
+              <SelectItem value="MODERADO">Relacionamento Moderado</SelectItem>
+              <SelectItem value="ATIVO">Relacionamento Ativo</SelectItem>
+              <SelectItem value="FORTE">Relacionamento Forte</SelectItem>
+              <SelectItem value="EXCEPCIONAL">Relacionamento Excepcional</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Filtro de Tags */}
+          <Select value={tagFilter} onValueChange={setTagFilter}>
+            <SelectTrigger className="w-52 bg-[#141b27] border-[#222c3f] text-xs h-9 text-slate-300">
+              <SelectValue placeholder="Tags Inteligentes" />
+            </SelectTrigger>
+            <SelectContent className="bg-[#0f141d] border-[#222c3f] text-white text-xs">
+              <SelectItem value="all">Todas Tags</SelectItem>
+              {TODAS_AS_TAGS.map((tag) => (
+                <SelectItem key={tag} value={tag}>
+                  {tag}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         {(categoryFilter !== 'all' ||
           statusFilter !== 'all' ||
           expiringBronzeFilter ||
           minBikesFilter !== 'all' ||
+          scoreFilter !== 'all' ||
+          nivelRelacFilter !== 'all' ||
+          tagFilter !== 'all' ||
           search) && (
           <div className="flex items-center justify-between text-[11px] text-slate-400 pt-1">
             <span>
@@ -431,6 +526,9 @@ const AdminMembers: React.FC = () => {
                 setStatusFilter('all')
                 setExpiringBronzeFilter(false)
                 setMinBikesFilter('all')
+                setScoreFilter('all')
+                setNivelRelacFilter('all')
+                setTagFilter('all')
               }}
               className="text-blue-400 hover:text-blue-300 underline font-medium"
             >
@@ -455,13 +553,16 @@ const AdminMembers: React.FC = () => {
                 <Th>Últ. Oficina</Th>
                 <Th>Cidade</Th>
                 <Th>Moto / Chassi</Th>
+                <Th className="text-center">Score Oficina</Th>
+                <Th>Nível Relac.</Th>
+                <Th>Tags</Th>
                 <Th className="text-right">Ações</Th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center">
+                  <td colSpan={13} className="py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -469,7 +570,7 @@ const AdminMembers: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={13} className="py-12 text-center text-xs text-slate-500">
                     Nenhum membro encontrado.
                   </td>
                 </tr>
@@ -558,6 +659,61 @@ const AdminMembers: React.FC = () => {
                           </span>
                         )}
                       </div>
+                    </td>
+                    {/* PARTE 2 — Score Oficina com barra de progresso */}
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const score = Number(u.score_oficina || 0)
+                        const meta = nivelRelacionamentoMeta(u.nivel_relacionamento || '')
+                        return (
+                          <div className="flex flex-col items-center gap-1 min-w-[64px]">
+                            <span className={`text-xs font-bold ${meta.textColor}`}>
+                              {score}/100
+                            </span>
+                            <div className="w-16 h-1.5 rounded-full bg-[#1c2538] overflow-hidden">
+                              <div
+                                className={`h-full ${meta.barColor}`}
+                                style={{ width: `${score}%` }}
+                              />
+                            </div>
+                          </div>
+                        )
+                      })()}
+                    </td>
+                    {/* PARTE 2 — Nível de Relacionamento (badge) */}
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const meta = nivelRelacionamentoMeta(u.nivel_relacionamento || '')
+                        return (
+                          <span
+                            className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[10px] font-semibold ${meta.badgeClass}`}
+                          >
+                            {meta.short}
+                          </span>
+                        )
+                      })()}
+                    </td>
+                    {/* PARTE 2 — Tags (badges) */}
+                    <td className="px-4 py-3">
+                      {(() => {
+                        const tags = parseTags(u.tags)
+                        if (tags.length === 0)
+                          return <span className="text-slate-500 text-[11px]">—</span>
+                        return (
+                          <div className="flex flex-wrap gap-1 max-w-[160px]">
+                            {tags.map((t) => (
+                              <span
+                                key={t}
+                                className={`inline-flex items-center rounded border px-1.5 py-0.5 text-[9px] font-semibold ${tagBadgeClass(
+                                  t,
+                                )}`}
+                              >
+                                {t}
+                              </span>
+                            ))}
+                          </div>
+                        )
+                      })()}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -1070,6 +1226,13 @@ const EditMemberModal: React.FC<{
         dias_desde_venda: user.dias_desde_venda ?? 0,
         meses_desde_venda: user.meses_desde_venda ?? 0,
         data_ultimo_calculo: user.data_ultimo_calculo || '',
+        // PARTE 2 — Score, tags e próxima melhor ação (somente leitura)
+        score_oficina: user.score_oficina ?? 0,
+        score_valor_oficina: user.score_valor_oficina ?? 0,
+        score_frequencia: user.score_frequencia ?? 0,
+        nivel_relacionamento: user.nivel_relacionamento || '',
+        tags: user.tags || '[]',
+        proxima_melhor_acao: user.proxima_melhor_acao || '',
       })
       setChassiError('')
     }
@@ -1345,6 +1508,103 @@ const EditMemberModal: React.FC<{
               className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 text-slate-300 cursor-not-allowed"
             />
           </Field>
+
+          {/* PARTE 2 — Score e Relacionamento (somente leitura) */}
+          <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
+            <p className="text-[10px] font-bold text-cyan-400 uppercase tracking-widest font-montserrat mb-3 flex items-center gap-1.5">
+              <Crown className="w-3.5 h-3.5" /> Score e Relacionamento (somente leitura)
+            </p>
+          </div>
+
+          {(() => {
+            const meta = nivelRelacionamentoMeta((form.nivel_relacionamento as string) || '')
+            const score = Number(form.score_oficina ?? 0)
+            const valorPts = Number(form.score_valor_oficina ?? 0)
+            const freqPts = Number(form.score_frequencia ?? 0)
+            const tags = parseTags(form.tags)
+            return (
+              <>
+                <div className="sm:col-span-2 space-y-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 w-28 shrink-0">Score Oficina</span>
+                    <span className={`text-lg font-extrabold ${meta.textColor}`}>{score}/100</span>
+                    <div className="flex-1 h-2 rounded-full bg-[#1c2538] overflow-hidden">
+                      <div className={`h-full ${meta.barColor}`} style={{ width: `${score}%` }} />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 w-28 shrink-0">Score Valor</span>
+                    <span className="text-xs font-bold text-blue-300">{valorPts}/70</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-[#1c2538] overflow-hidden">
+                      <div
+                        className="h-full bg-blue-500"
+                        style={{ width: `${(valorPts / 70) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400 w-28 shrink-0">Score Frequência</span>
+                    <span className="text-xs font-bold text-cyan-300">{freqPts}/30</span>
+                    <div className="flex-1 h-1.5 rounded-full bg-[#1c2538] overflow-hidden">
+                      <div
+                        className="h-full bg-cyan-500"
+                        style={{ width: `${(freqPts / 30) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                <Field label="Nível de Relacionamento" icon={null}>
+                  <div className="h-9 flex items-center">
+                    <span
+                      className={`inline-flex items-center rounded border px-2 py-1 text-[11px] font-semibold ${meta.badgeClass}`}
+                    >
+                      {meta.label}
+                    </span>
+                  </div>
+                </Field>
+                <Field label="Próxima Melhor Ação" icon={null}>
+                  <Input
+                    readOnly
+                    value={(form.proxima_melhor_acao as string) || 'SEM AÇÃO'}
+                    className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-amber-400 cursor-not-allowed"
+                  />
+                </Field>
+                <Field label="Último Cálculo" icon={<Calendar className="w-3 h-3" />}>
+                  <Input
+                    readOnly
+                    value={
+                      form.data_ultimo_calculo
+                        ? new Date(form.data_ultimo_calculo as string).toLocaleString('pt-BR')
+                        : '—'
+                    }
+                    className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 text-slate-300 cursor-not-allowed"
+                  />
+                </Field>
+                <div className="sm:col-span-2 space-y-1.5">
+                  <Label className="text-[11px] text-slate-300 font-medium">
+                    Tags Inteligentes
+                  </Label>
+                  {tags.length === 0 ? (
+                    <span className="text-[11px] text-slate-500 italic">Nenhuma tag aplicável</span>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5">
+                      {tags.map((t) => (
+                        <span
+                          key={t}
+                          className={`inline-flex items-center rounded border px-2 py-1 text-[10px] font-semibold ${tagBadgeClass(
+                            t,
+                          )}`}
+                        >
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            )
+          })()}
 
           <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
             <p className="text-[10px] font-bold text-purple-400 uppercase tracking-widest font-montserrat mb-3 flex items-center gap-1.5">
