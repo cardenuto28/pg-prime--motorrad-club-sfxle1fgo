@@ -117,6 +117,21 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   const [filterTab, setFilterTab] = useState<'all' | 'create' | 'update' | 'invalid'>('all')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Estado de progresso em tempo real da importação
+  const [importProgress, setImportProgress] = useState<{
+    status: 'idle' | 'processing' | 'completed'
+    processedCount: number
+    totalCount: number
+    failCount: number
+    percent: number
+  }>({
+    status: 'idle',
+    processedCount: 0,
+    totalCount: 0,
+    failCount: 0,
+    percent: 0,
+  })
+
   // PARTE 3 — Resumo final de importação exibido em modal dedicado após a conclusão.
   // Contém os contadores detalhados (criados, atualizados, erros por linha, etc.)
   // e a lista de erros por linha, para o admin revisar.
@@ -143,6 +158,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     setSummary(null)
     setFinalSummary(null)
     setFilterTab('all')
+    setImportProgress({
+      status: 'idle',
+      processedCount: 0,
+      totalCount: 0,
+      failCount: 0,
+      percent: 0,
+    })
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
@@ -522,6 +544,15 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     if (validRows.length === 0) return
 
     setLoading(true)
+    const totalToProcess = validRows.length
+    setImportProgress({
+      status: 'processing',
+      processedCount: 0,
+      totalCount: totalToProcess,
+      failCount: 0,
+      percent: 0,
+    })
+
     let createdCount = 0
     let updatedCount = 0
     let failCount = 0
@@ -534,6 +565,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     const horaStr = today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
     try {
+      let processedIndex = 0
       for (const row of validRows) {
         try {
           const oficinaDate = parseDateFlexible(row.data_ultima_passagem_oficina)
@@ -806,6 +838,16 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             erro: formattedError,
             motivo: `${actionPrefix}: ${formattedError}`,
           })
+        } finally {
+          processedIndex++
+          const currentPercent = Math.round((processedIndex / totalToProcess) * 100)
+          setImportProgress({
+            status: 'processing',
+            processedCount: processedIndex,
+            totalCount: totalToProcess,
+            failCount,
+            percent: currentPercent,
+          })
         }
       }
 
@@ -846,6 +888,14 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         scoresAtualizados: scoresAtualizadosCount,
         linhasIgnoradas: ignoredCount,
         listaErros: errorsByLine,
+      })
+
+      setImportProgress({
+        status: 'completed',
+        processedCount: totalToProcess,
+        totalCount: totalToProcess,
+        failCount,
+        percent: 100,
       })
 
       toast({
@@ -913,12 +963,98 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               variant="outline"
               size="sm"
               onClick={handleDownloadTemplate}
+              disabled={loading}
               className="border-slate-700 bg-slate-900 text-xs text-slate-300 hover:text-white hover:bg-slate-800"
             >
               <Download className="w-3.5 h-3.5 mr-1.5 text-blue-400" />
               Baixar Modelo (.xlsx)
             </Button>
           </div>
+
+          {/* Barra de Progresso no Topo do Modal (abaixo do título) */}
+          {importProgress.status !== 'idle' && (
+            <div
+              className={`mt-4 rounded-xl border p-3.5 transition-all duration-300 ${
+                importProgress.status === 'processing'
+                  ? 'bg-blue-950/30 border-blue-500/30 shadow-lg shadow-blue-950/50'
+                  : importProgress.failCount > 0
+                    ? 'bg-amber-950/30 border-amber-500/30'
+                    : 'bg-emerald-950/30 border-emerald-500/30'
+              }`}
+            >
+              {/* Cabeçalho do Progresso: Status Geral e Contadores */}
+              <div className="flex items-center justify-between gap-2 mb-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  {importProgress.status === 'processing' ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-blue-500/20 text-blue-400 border border-blue-500/40 animate-pulse">
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                      PROCESSANDO...
+                    </span>
+                  ) : importProgress.failCount > 0 ? (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-amber-500/20 text-amber-400 border border-amber-500/40">
+                      <AlertTriangle className="w-3 h-3" />
+                      CONCLUÍDO COM ERROS
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                      <CheckCircle2 className="w-3 h-3" />
+                      FINALIZADO
+                    </span>
+                  )}
+
+                  <span className="text-xs font-semibold text-slate-200 truncate">
+                    {importProgress.status === 'processing'
+                      ? `Processando ${importProgress.percent}% — ${importProgress.processedCount.toLocaleString('pt-BR')} de ${importProgress.totalCount.toLocaleString('pt-BR')} registros`
+                      : importProgress.failCount > 0
+                        ? `Importação concluída com ${importProgress.failCount} ${importProgress.failCount === 1 ? 'falha' : 'falhas'}`
+                        : `Importação concluída — ${importProgress.processedCount.toLocaleString('pt-BR')} processados`}
+                  </span>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  {importProgress.status === 'processing' && importProgress.failCount > 0 && (
+                    <span className="text-[11px] font-medium text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded border border-amber-800/50">
+                      {importProgress.failCount}{' '}
+                      {importProgress.failCount === 1 ? 'falha' : 'falhas'}
+                    </span>
+                  )}
+                  <span
+                    className={`text-xs font-bold font-mono ${
+                      importProgress.status === 'processing'
+                        ? 'text-blue-400'
+                        : importProgress.failCount > 0
+                          ? 'text-amber-400'
+                          : 'text-emerald-400'
+                    }`}
+                  >
+                    {importProgress.percent}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Barra de Progresso com estilo refinado */}
+              <div className="relative w-full h-2.5 rounded-full bg-slate-900 border border-slate-800 overflow-hidden">
+                <div
+                  className="h-full rounded-full transition-all duration-200 ease-out"
+                  style={{
+                    width: `${Math.min(100, Math.max(0, importProgress.percent))}%`,
+                    backgroundColor:
+                      importProgress.status === 'processing'
+                        ? '#0066FF'
+                        : importProgress.failCount > 0
+                          ? '#F59E0B'
+                          : '#10B981',
+                    boxShadow:
+                      importProgress.status === 'processing'
+                        ? '0 0 12px rgba(0, 102, 255, 0.6)'
+                        : importProgress.failCount > 0
+                          ? '0 0 12px rgba(245, 158, 11, 0.6)'
+                          : '0 0 12px rgba(16, 185, 129, 0.6)',
+                  }}
+                />
+              </div>
+            </div>
+          )}
         </DialogHeader>
 
         {/* Upload Área */}
