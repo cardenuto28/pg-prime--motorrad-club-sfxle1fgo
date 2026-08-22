@@ -767,14 +767,44 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           // PARTE 3 — Tratamento de erros por linha: registra mas NÃO paralisa o arquivo.
           console.error('Erro ao importar linha', row.rowIndex, err)
           failCount++
+
+          // Extrai detalhes de validação específicos de err.data (PocketBase response.data / err.data)
+          const errorData = err?.data || err?.response?.data
+          let specificDetails = ''
+          if (errorData && typeof errorData === 'object') {
+            const fieldMsgs: string[] = []
+            for (const [field, detail] of Object.entries(errorData)) {
+              if (
+                detail &&
+                typeof detail === 'object' &&
+                'message' in detail &&
+                typeof (detail as any).message === 'string'
+              ) {
+                fieldMsgs.push(`${field}: ${(detail as any).message}`)
+              } else if (typeof detail === 'string') {
+                fieldMsgs.push(`${field}: ${detail}`)
+              }
+            }
+            if (fieldMsgs.length > 0) {
+              specificDetails = fieldMsgs.join(', ')
+            }
+          }
+
+          const actionPrefix = row.action === 'UPDATE' ? 'Falha ao atualizar' : 'Falha ao criar'
+
+          const fallbackMsg = err?.message
+            ? String(err.message).slice(0, 200)
+            : row.action === 'UPDATE'
+              ? 'Failed to update record.'
+              : 'Failed to create record.'
+
+          const formattedError = specificDetails || fallbackMsg
+
           errorsByLine.push({
             linha: row.rowIndex,
             cpf: row.cpf || row.cpfClean || '—',
-            erro: err?.message ? String(err.message).slice(0, 200) : 'Erro desconhecido',
-            motivo:
-              row.action === 'UPDATE'
-                ? 'Falha ao atualizar membro existente'
-                : 'Falha ao criar novo pré-cadastro',
+            erro: formattedError,
+            motivo: `${actionPrefix}: ${formattedError}`,
           })
         }
       }
