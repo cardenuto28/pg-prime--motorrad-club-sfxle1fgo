@@ -403,24 +403,28 @@ const AdminDashboard: React.FC = () => {
       {/* Métricas principais */}
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
+          to="/admin/membros"
           icon={Users}
           label="Total de Membros"
           value={String(stats.totalMembers)}
           tone="blue"
         />
         <MetricCard
+          to="/admin/membros"
           icon={UserPlus}
           label="Novos Membros no Mês"
           value={String(stats.newMembers)}
           tone="emerald"
         />
         <MetricCard
+          to="/admin/membros?filtro=ATIVOS"
           icon={UserCheck}
           label="Membros Ativos"
           value={String(stats.activeMembers)}
           tone="blue"
         />
         <MetricCard
+          to="/admin/rides"
           icon={CheckCircle2}
           label="Passeios Realizados"
           value={String(stats.ridesDone)}
@@ -438,81 +442,151 @@ const AdminDashboard: React.FC = () => {
             </h2>
           </div>
           <Link
-            to="/admin/members"
-            className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat"
+            to="/admin/membros"
+            className="text-[11px] font-bold text-slate-400 hover:text-white uppercase tracking-wider flex items-center gap-1 font-montserrat transition-colors"
           >
             GERENCIAR MEMBROS <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-          <div className="bg-[#0a0d14] border border-blue-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-blue-400">
-              <Diamond className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Platinum (5+)
-              </span>
+          <Link
+            to="/admin/membros?filtro=PLATINUM"
+            className="group bg-[#0a0d14] border border-blue-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-blue-400">
+                <div className="flex items-center gap-1.5">
+                  <Diamond className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Platinum (5+)
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.platinumCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">{stats.platinumCount}</p>
-          </div>
+            <span className="text-[9px] text-blue-400/70 group-hover:text-blue-300">
+              Ver membros &rarr;
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-amber-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-amber-400">
-              <Crown className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Gold (3-4)
-              </span>
+          <Link
+            to="/admin/membros?filtro=GOLD"
+            className="group bg-[#0a0d14] border border-amber-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-amber-500 hover:shadow-[0_0_15px_rgba(245,158,11,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-amber-400">
+                <div className="flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Gold (3-4)
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-amber-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.goldCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">{stats.goldCount}</p>
-          </div>
+            <span className="text-[9px] text-amber-400/70 group-hover:text-amber-300">
+              Ver membros &rarr;
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-slate-700/50 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-300">
-              <Star className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Prata (1-2)
-              </span>
+          <Link
+            to="/admin/membros?filtro=PRATA"
+            className="group bg-[#0a0d14] border border-slate-700/50 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-slate-400 hover:shadow-[0_0_15px_rgba(148,163,184,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-slate-300">
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Prata (1-2)
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-300" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.silverCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">{stats.silverCount}</p>
-          </div>
+            <span className="text-[9px] text-slate-400 group-hover:text-slate-200">
+              Ver membros &rarr;
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-orange-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-orange-400">
-              <Shield className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Bronze Ativos
-              </span>
+          <Link
+            to="/admin/membros?filtro=BRONZE_ATIVO"
+            className="group bg-[#0a0d14] border border-orange-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-orange-500 hover:shadow-[0_0_15px_rgba(249,115,22,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-orange-400">
+                <div className="flex items-center gap-1.5">
+                  <Shield className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Bronze Ativos
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-orange-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.bronzeActiveCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.bronzeActiveCount}
-            </p>
-          </div>
+            <span className="text-[9px] text-orange-400/70 group-hover:text-orange-300">
+              Ver membros &rarr;
+            </span>
+          </Link>
 
-          <div className="bg-amber-950/30 border border-amber-600/50 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-amber-400">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Bronze Atenção
-              </span>
+          <Link
+            to="/admin/membros?filtro=BRONZE_ATENCAO"
+            className="group bg-amber-950/30 border border-amber-600/50 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-amber-400 hover:shadow-[0_0_15px_rgba(217,119,6,0.3)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-amber-400">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Bronze Atenção
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-amber-400" />
+              </div>
+              <p className="text-xl font-black text-amber-300 font-montserrat mt-1">
+                {stats.bronzeExpiringCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-amber-300 font-montserrat">
-              {stats.bronzeExpiringCount}
-            </p>
-            <span className="text-[9px] text-amber-400/80">Vence em &le;30d</span>
-          </div>
+            <span className="text-[9px] text-amber-400/80 group-hover:text-amber-200">
+              Vence em &le;30d
+            </span>
+          </Link>
 
-          <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-slate-400">
-              <UserX className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Bronze Inativos
-              </span>
+          <Link
+            to="/admin/membros?filtro=BRONZE_INATIVO"
+            className="group bg-slate-900/60 border border-slate-800 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-slate-500 hover:shadow-[0_0_15px_rgba(100,116,139,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-slate-400">
+                <div className="flex items-center gap-1.5">
+                  <UserX className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Bronze Inativos
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-slate-400" />
+              </div>
+              <p className="text-xl font-black text-slate-400 font-montserrat mt-1">
+                {stats.bronzeInactiveCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-slate-400 font-montserrat">
-              {stats.bronzeInactiveCount}
-            </p>
-            <span className="text-[9px] text-slate-500">&gt;6 meses sem oficina</span>
-          </div>
+            <span className="text-[9px] text-slate-500 group-hover:text-slate-300">
+              &gt;6 meses sem oficina
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -534,115 +608,196 @@ const AdminDashboard: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
-          <div className="bg-[#0a0d14] border border-cyan-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-cyan-400">
-              <Gauge className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Score Médio de Oficina
-              </span>
+          <Link
+            to="/admin/membros"
+            className="group bg-[#0a0d14] border border-cyan-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-cyan-500 hover:shadow-[0_0_15px_rgba(6,182,212,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-cyan-400">
+                <div className="flex items-center gap-1.5">
+                  <Gauge className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Score Médio de Oficina
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-cyan-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.scoreMembersCount > 0 ? (
+                  <>
+                    {stats.scoreMedio.toFixed(1)}
+                    <span className="text-[10px] text-slate-500 font-normal">/100</span>
+                  </>
+                ) : (
+                  <span className="text-slate-500">—</span>
+                )}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.scoreMembersCount > 0 ? (
-                <>
-                  {stats.scoreMedio.toFixed(1)}
-                  <span className="text-[10px] text-slate-500 font-normal">/100</span>
-                </>
-              ) : (
-                <span className="text-slate-500">—</span>
-              )}
-            </p>
-            <span className="text-[9px] text-slate-500">
+            <span className="text-[9px] text-slate-500 group-hover:text-cyan-300">
               {stats.scoreMembersCount} membro(s) com histórico
             </span>
-          </div>
-          <div className="bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-emerald-400">
-              <TrendingUp className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Clientes Score 85+
-              </span>
-            </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.scoreHigh85Count}
-            </p>
-            <span className="text-[9px] text-emerald-400/80">Alto valor pós-vendas</span>
-          </div>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-emerald-400">
-              <Crown className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                VIP Ativos
-              </span>
+          <Link
+            to="/admin/membros?filtro=SCORE_85"
+            className="group bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-emerald-400">
+                <div className="flex items-center gap-1.5">
+                  <TrendingUp className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Clientes Score 85+
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.scoreHigh85Count}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">{stats.vipAtivoCount}</p>
-            <span className="text-[9px] text-emerald-400/80">GOLD/PLAT &amp; score ≥70</span>
-          </div>
+            <span className="text-[9px] text-emerald-400/80 group-hover:text-emerald-300">
+              Alto valor pós-vendas
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-red-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-red-400">
-              <UserX className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                VIP Afastados
-              </span>
+          <Link
+            to="/admin/membros?filtro=VIP_ATIVO"
+            className="group bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-emerald-500 hover:shadow-[0_0_15px_rgba(16,185,129,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-emerald-400">
+                <div className="flex items-center gap-1.5">
+                  <Crown className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    VIP Ativos
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-emerald-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.vipAtivoCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.vipAfastadoCount}
-            </p>
-            <span className="text-[9px] text-red-400/80">GOLD/PLAT &amp; score &lt;30</span>
-          </div>
+            <span className="text-[9px] text-emerald-400/80 group-hover:text-emerald-300">
+              GOLD/PLAT &amp; score ≥70
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-blue-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-blue-400">
-              <Star className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Próximos do Gold
-              </span>
+          <Link
+            to="/admin/membros?filtro=VIP_AFASTADO"
+            className="group bg-[#0a0d14] border border-red-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-red-500 hover:shadow-[0_0_15px_rgba(239,68,68,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-red-400">
+                <div className="flex items-center gap-1.5">
+                  <UserX className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    VIP Afastados
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-red-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.vipAfastadoCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.proximoGoldCount}
-            </p>
-            <span className="text-[9px] text-blue-400/80">Prata c/ 2 motos</span>
-          </div>
+            <span className="text-[9px] text-red-400/80 group-hover:text-red-300">
+              GOLD/PLAT &amp; score &lt;30
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-purple-900/40 rounded-lg p-3 space-y-1">
-            <div className="flex items-center gap-1.5 text-purple-400">
-              <Diamond className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Próximos do Platinum
-              </span>
+          <Link
+            to="/admin/membros?filtro=PROXIMO_GOLD"
+            className="group bg-[#0a0d14] border border-blue-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-blue-400">
+                <div className="flex items-center gap-1.5">
+                  <Star className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Próximos do Gold
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-blue-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.proximoGoldCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.proximoPlatinumCount}
-            </p>
-            <span className="text-[9px] text-purple-400/80">Gold c/ 4 motos</span>
-          </div>
+            <span className="text-[9px] text-blue-400/80 group-hover:text-blue-300">
+              Prata c/ 2 motos
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-orange-900/40 rounded-lg p-3 space-y-1 col-span-2 sm:col-span-1">
-            <div className="flex items-center gap-1.5 text-orange-400">
-              <AlertTriangle className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Primeira Passagem Pendente
-              </span>
+          <Link
+            to="/admin/membros?filtro=PROXIMO_PLATINUM"
+            className="group bg-[#0a0d14] border border-purple-900/40 rounded-lg p-3 space-y-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-purple-500 hover:shadow-[0_0_15px_rgba(168,85,247,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-purple-400">
+                <div className="flex items-center gap-1.5">
+                  <Diamond className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Próximos do Platinum
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.proximoPlatinumCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.primeiraPassagemPendenteCount}
-            </p>
-            <span className="text-[9px] text-orange-400/80">Comprou, sem oficina</span>
-          </div>
+            <span className="text-[9px] text-purple-400/80 group-hover:text-purple-300">
+              Gold c/ 4 motos
+            </span>
+          </Link>
 
-          <div className="bg-[#0a0d14] border border-amber-900/40 rounded-lg p-3 space-y-1 col-span-2 sm:col-span-1">
-            <div className="flex items-center gap-1.5 text-amber-400">
-              <Clock className="w-3.5 h-3.5" />
-              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-                Bronze Próximos do Vencimento
-              </span>
+          <Link
+            to="/admin/membros?filtro=PRIMEIRA_PASSAGEM_PENDENTE"
+            className="group bg-[#0a0d14] border border-orange-900/40 rounded-lg p-3 space-y-1 col-span-2 sm:col-span-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-orange-500 hover:shadow-[0_0_15px_rgba(249,115,22,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-orange-400">
+                <div className="flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Primeira Passagem Pendente
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-orange-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.primeiraPassagemPendenteCount}
+              </p>
             </div>
-            <p className="text-xl font-black text-white font-montserrat">
-              {stats.bronzeProximoVencimentoCount}
-            </p>
-            <span className="text-[9px] text-amber-400/80">Última passagem 5–6 meses</span>
-          </div>
+            <span className="text-[9px] text-orange-400/80 group-hover:text-orange-300">
+              Comprou, sem oficina
+            </span>
+          </Link>
+
+          <Link
+            to="/admin/membros?filtro=BRONZE_PROXIMO_VENCIMENTO"
+            className="group bg-[#0a0d14] border border-amber-900/40 rounded-lg p-3 space-y-1 col-span-2 sm:col-span-1 cursor-pointer transition-all duration-200 hover:scale-[1.03] hover:border-amber-500 hover:shadow-[0_0_15px_rgba(245,158,11,0.25)] flex flex-col justify-between"
+          >
+            <div>
+              <div className="flex items-center justify-between text-amber-400">
+                <div className="flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                    Bronze Próximos do Vencimento
+                  </span>
+                </div>
+                <ChevronRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-amber-400" />
+              </div>
+              <p className="text-xl font-black text-white font-montserrat mt-1">
+                {stats.bronzeProximoVencimentoCount}
+              </p>
+            </div>
+            <span className="text-[9px] text-amber-400/80 group-hover:text-amber-300">
+              Última passagem 5–6 meses
+            </span>
+          </Link>
         </div>
       </section>
 
@@ -657,8 +812,8 @@ const AdminDashboard: React.FC = () => {
         {stats.nextRide ? (
           <div className="space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-extrabold text-white font-montserrat tracking-tight">
+              <Link to={`/admin/rides/${stats.nextRide.id}`} className="group flex-1">
+                <h3 className="text-lg font-extrabold text-white font-montserrat tracking-tight group-hover:text-blue-400 transition-colors">
                   {stats.nextRide.name}
                 </h3>
                 <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400 mt-1.5">
@@ -673,23 +828,26 @@ const AdminDashboard: React.FC = () => {
                     </span>
                   )}
                 </div>
-              </div>
+              </Link>
               <RideStatusPill status={stats.nextRide.status} />
             </div>
             <div className="grid grid-cols-3 gap-3">
               <MiniStat
+                to="/admin/registrations"
                 icon={Bike}
                 label="Motos Inscritas"
                 value={String(stats.nextRideBikes)}
                 hint={`de ${stats.nextRide.max_bikes || 0} vagas`}
               />
               <MiniStat
+                to="/admin/registrations"
                 icon={Users2}
                 label="Participantes"
                 value={String(stats.nextRideParticipants)}
                 hint="incl. garupas"
               />
               <MiniStat
+                to={`/admin/rides/${stats.nextRide.id}`}
                 icon={Ticket}
                 label="Vagas Disponíveis"
                 value={String(stats.nextRideAvailable)}
@@ -740,16 +898,17 @@ const AdminDashboard: React.FC = () => {
               const medals = ['🥇 1º', '🥈 2º', '🥉 3º', '4º', '5º']
 
               return (
-                <div
+                <Link
                   key={item.user.id}
-                  className={`p-3.5 rounded-md border flex flex-col justify-between space-y-3 transition-all ${
+                  to={`/admin/membros/${item.user.id}`}
+                  className={`p-3.5 rounded-md border flex flex-col justify-between space-y-3 cursor-pointer transition-all duration-200 hover:scale-[1.03] ${
                     idx === 0
-                      ? 'bg-amber-950/20 border-amber-500/50 hover:border-amber-400'
+                      ? 'bg-amber-950/20 border-amber-500/50 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(245,158,11,0.25)]'
                       : idx === 1
-                        ? 'bg-slate-800/30 border-slate-600/50 hover:border-slate-400'
+                        ? 'bg-slate-800/30 border-slate-600/50 hover:border-slate-400 hover:shadow-[0_0_15px_rgba(148,163,184,0.25)]'
                         : idx === 2
-                          ? 'bg-amber-900/15 border-amber-700/40 hover:border-amber-500'
-                          : 'bg-[#0a0d14] border-[#1c2538] hover:border-blue-500/40'
+                          ? 'bg-amber-900/15 border-amber-700/40 hover:border-amber-500 hover:shadow-[0_0_15px_rgba(217,119,6,0.25)]'
+                          : 'bg-[#0a0d14] border-[#1c2538] hover:border-blue-500 hover:shadow-[0_0_15px_rgba(0,102,255,0.25)]'
                   }`}
                 >
                   <div className="flex items-start justify-between gap-2">
@@ -783,7 +942,7 @@ const AdminDashboard: React.FC = () => {
                       <strong className="text-blue-400 font-mono">{item.storeVisitsCount}</strong>
                     </div>
                   </div>
-                </div>
+                </Link>
               )
             })}
           </div>
@@ -815,12 +974,13 @@ const AdminDashboard: React.FC = () => {
               const bikes = rideRegs.length
               const available = Math.max(0, (ride.max_bikes || 0) - bikes)
               return (
-                <div
+                <Link
                   key={ride.id}
-                  className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 space-y-3 hover:border-blue-600/50 transition-colors"
+                  to={`/admin/rides/${ride.id}`}
+                  className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 space-y-3 hover:border-blue-500/60 hover:scale-[1.01] hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] transition-all cursor-pointer block group"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <h3 className="text-sm font-bold text-white tracking-wide uppercase font-montserrat line-clamp-1">
+                    <h3 className="text-sm font-bold text-white tracking-wide uppercase font-montserrat line-clamp-1 group-hover:text-blue-400 transition-colors">
                       {ride.name}
                     </h3>
                     <RideStatusPill status={ride.status} />
@@ -837,16 +997,21 @@ const AdminDashboard: React.FC = () => {
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-3 pt-2 border-t border-[#1c2538] text-[11px]">
-                    <span className="text-slate-400">
-                      <span className="text-white font-bold">{bikes}</span> motos
-                    </span>
-                    <span className="text-slate-600">·</span>
-                    <span className="text-slate-400">
-                      <span className="text-white font-bold">{available}</span> vagas
+                  <div className="flex items-center justify-between pt-2 border-t border-[#1c2538] text-[11px]">
+                    <div className="flex items-center gap-3">
+                      <span className="text-slate-400">
+                        <span className="text-white font-bold">{bikes}</span> motos
+                      </span>
+                      <span className="text-slate-600">·</span>
+                      <span className="text-slate-400">
+                        <span className="text-white font-bold">{available}</span> vagas
+                      </span>
+                    </div>
+                    <span className="text-[10px] text-blue-400 font-medium group-hover:translate-x-0.5 transition-transform">
+                      Ver passeio &rarr;
                     </span>
                   </div>
-                </div>
+                </Link>
               )
             })}
           </div>
@@ -861,22 +1026,46 @@ const MetricCard: React.FC<{
   label: string
   value: string
   tone: 'blue' | 'emerald' | 'amber'
-}> = ({ icon: Icon, label, value, tone }) => {
+  to?: string
+}> = ({ icon: Icon, label, value, tone, to }) => {
   const toneClass =
     tone === 'emerald' ? 'text-emerald-400' : tone === 'amber' ? 'text-amber-400' : 'text-blue-400'
-  return (
-    <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 space-y-2">
-      <div className="flex items-center gap-2">
-        <div className="w-9 h-9 rounded-md bg-[#131b2b] border border-[#222e43] flex items-center justify-center">
-          <Icon className={`w-4 h-4 ${toneClass}`} />
+
+  const content = (
+    <div className="bg-[#0e131d] border border-[#1c2538] rounded-md p-4 space-y-2 group transition-all duration-200 hover:scale-[1.02] hover:border-blue-500/60 hover:shadow-[0_0_15px_rgba(0,102,255,0.2)] cursor-pointer h-full flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2">
+            <div className="w-9 h-9 rounded-md bg-[#131b2b] border border-[#222e43] flex items-center justify-center group-hover:border-blue-500/40 transition-colors">
+              <Icon className={`w-4 h-4 ${toneClass}`} />
+            </div>
+            <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-montserrat leading-tight">
+              {label}
+            </span>
+          </div>
+          {to && (
+            <ChevronRight className="w-3.5 h-3.5 text-slate-600 group-hover:text-blue-400 transition-colors" />
+          )}
         </div>
-        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-montserrat leading-tight">
-          {label}
-        </span>
+        <p className="text-2xl font-extrabold text-white font-montserrat mt-2">{value}</p>
       </div>
-      <p className="text-2xl font-extrabold text-white font-montserrat">{value}</p>
+      {to && (
+        <span className="text-[9px] text-slate-500 group-hover:text-blue-400 font-medium">
+          Ver detalhes &rarr;
+        </span>
+      )}
     </div>
   )
+
+  if (to) {
+    return (
+      <Link to={to} className="block">
+        {content}
+      </Link>
+    )
+  }
+
+  return content
 }
 
 const MiniStat: React.FC<{
@@ -884,17 +1073,31 @@ const MiniStat: React.FC<{
   label: string
   value: string
   hint?: string
-}> = ({ icon: Icon, label, value, hint }) => (
-  <div className="bg-[#0a0d14] border border-[#1c2538] rounded-md p-3 space-y-1">
-    <div className="flex items-center gap-1.5 text-slate-400">
-      <Icon className="w-3.5 h-3.5 text-blue-500" />
-      <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
-        {label}
-      </span>
+  to?: string
+}> = ({ icon: Icon, label, value, hint, to }) => {
+  const content = (
+    <div
+      className={`bg-[#0a0d14] border border-[#1c2538] rounded-md p-3 space-y-1 transition-all ${to ? 'cursor-pointer hover:border-blue-500/50 hover:scale-[1.02] hover:shadow-[0_0_10px_rgba(0,102,255,0.15)]' : ''}`}
+    >
+      <div className="flex items-center gap-1.5 text-slate-400">
+        <Icon className="w-3.5 h-3.5 text-blue-500" />
+        <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+          {label}
+        </span>
+      </div>
+      <p className="text-lg font-extrabold text-white font-montserrat">{value}</p>
+      {hint && <p className="text-[10px] text-slate-500">{hint}</p>}
     </div>
-    <p className="text-lg font-extrabold text-white font-montserrat">{value}</p>
-    {hint && <p className="text-[10px] text-slate-500">{hint}</p>}
-  </div>
-)
+  )
+
+  if (to) {
+    return (
+      <Link to={to} className="block">
+        {content}
+      </Link>
+    )
+  }
+  return content
+}
 
 export default AdminDashboard

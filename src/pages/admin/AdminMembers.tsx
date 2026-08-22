@@ -28,7 +28,7 @@ import {
 } from 'lucide-react'
 import { exportMembersPdf } from '@/lib/pdfExport'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -76,6 +76,7 @@ type Status = UserProfile['status']
 const AdminMembers: React.FC = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -90,6 +91,104 @@ const AdminMembers: React.FC = () => {
   const [scoreFilter, setScoreFilter] = useState<string>('all')
   const [nivelRelacFilter, setNivelRelacFilter] = useState<string>('all')
   const [tagFilter, setTagFilter] = useState<string>('all')
+
+  // Aplica filtros vindos da URL (query param `filtro` ou parâmetros individuais)
+  useEffect(() => {
+    const filtro = (searchParams.get('filtro') || '').trim().toUpperCase()
+    const catParam = (searchParams.get('categoria') || searchParams.get('category') || '')
+      .trim()
+      .toUpperCase()
+    const statusParam = (searchParams.get('status') || '').trim().toUpperCase()
+    const tagParam = (searchParams.get('tag') || '').trim().toUpperCase()
+    const scoreParam = (searchParams.get('score') || '').trim()
+    const expParam = searchParams.get('expiring_bronze') || searchParams.get('vencimento')
+
+    if (filtro) {
+      if (filtro === 'PLATINUM') {
+        setCategoryFilter('PLATINUM')
+      } else if (filtro === 'GOLD') {
+        setCategoryFilter('GOLD')
+      } else if (filtro === 'PRATA' || filtro === 'SILVER') {
+        setCategoryFilter('SILVER')
+      } else if (filtro === 'BRONZE') {
+        setCategoryFilter('BRONZE')
+      } else if (
+        filtro === 'BRONZE_ATENCAO' ||
+        filtro === 'BRONZE_VENCIMENTO' ||
+        filtro === 'BRONZE_PROXIMO_VENCIMENTO'
+      ) {
+        setCategoryFilter('BRONZE')
+        setExpiringBronzeFilter(true)
+      } else if (filtro === 'BRONZE_ATIVO' || filtro === 'BRONZE_ATIVOS') {
+        setCategoryFilter('BRONZE')
+        setStatusFilter('ATIVO')
+      } else if (filtro === 'BRONZE_INATIVO' || filtro === 'BRONZE_INATIVOS') {
+        setCategoryFilter('BRONZE')
+        setStatusFilter('INATIVO')
+      } else if (filtro === 'SCORE_85' || filtro === 'SCORE_85+' || filtro === '85-100') {
+        setScoreFilter('85-100')
+      } else if (filtro === 'VIP_ATIVO' || filtro === 'VIP ATIVO') {
+        setTagFilter('VIP ATIVO')
+      } else if (filtro === 'VIP_AFASTADO' || filtro === 'VIP AFASTADO') {
+        setTagFilter('VIP AFASTADO')
+      } else if (
+        filtro === 'PROXIMO_GOLD' ||
+        filtro === 'PROXIMO DO GOLD' ||
+        filtro === 'PRÓXIMO DO GOLD'
+      ) {
+        setTagFilter('PRÓXIMO DO GOLD')
+      } else if (
+        filtro === 'PROXIMO_PLATINUM' ||
+        filtro === 'PROXIMO DO PLATINUM' ||
+        filtro === 'PRÓXIMO DO PLATINUM'
+      ) {
+        setTagFilter('PRÓXIMO DO PLATINUM')
+      } else if (
+        filtro === 'PRIMEIRA_PASSAGEM_PENDENTE' ||
+        filtro === 'PRIMEIRA PASSAGEM PENDENTE'
+      ) {
+        setTagFilter('PRIMEIRA PASSAGEM PENDENTE')
+      } else if (
+        filtro === 'ALTO_VALOR' ||
+        filtro === 'ALTO VALOR PÓS-VENDAS' ||
+        filtro === 'ALTO VALOR POS-VENDAS'
+      ) {
+        setTagFilter('ALTO VALOR PÓS-VENDAS')
+      } else if (filtro === 'ATIVOS' || filtro === 'ATIVO') {
+        setStatusFilter('ATIVO')
+      } else if (filtro === 'INATIVOS' || filtro === 'INATIVO') {
+        setStatusFilter('INATIVO')
+      } else if (filtro === 'TODOS' || filtro === 'ALL') {
+        setCategoryFilter('all')
+        setStatusFilter('all')
+        setScoreFilter('all')
+        setTagFilter('all')
+        setExpiringBronzeFilter(false)
+      }
+    }
+
+    if (catParam) {
+      if (catParam === 'PRATA') setCategoryFilter('SILVER')
+      else setCategoryFilter(catParam)
+    }
+    if (statusParam) {
+      setStatusFilter(statusParam)
+    }
+    if (tagParam) {
+      // Normaliza tag se necessário
+      const foundTag = TODAS_AS_TAGS.find(
+        (t) => t.toUpperCase() === tagParam || t.toUpperCase().replace(/\s+/g, '_') === tagParam,
+      )
+      if (foundTag) setTagFilter(foundTag)
+      else setTagFilter(tagParam)
+    }
+    if (scoreParam) {
+      setScoreFilter(scoreParam)
+    }
+    if (expParam === 'true' || expParam === '1' || expParam === 'sim') {
+      setExpiringBronzeFilter(true)
+    }
+  }, [searchParams])
 
   const [importModalOpen, setImportModalOpen] = useState(false)
   const [editing, setEditing] = useState<UserProfile | null>(null)
@@ -528,6 +627,7 @@ const AdminMembers: React.FC = () => {
                 setScoreFilter('all')
                 setNivelRelacFilter('all')
                 setTagFilter('all')
+                setSearchParams({})
               }}
               className="text-blue-400 hover:text-blue-300 underline font-medium"
             >
