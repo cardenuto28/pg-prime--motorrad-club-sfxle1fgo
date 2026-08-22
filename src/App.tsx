@@ -27,6 +27,8 @@ import VerifyMember from './pages/VerifyMember'
 import ValidarCadastro from './pages/ValidarCadastro'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import AdminMembers from './pages/admin/AdminMembers'
+import AdminMemberDetail from './pages/admin/AdminMemberDetail'
+import AdminImportacoes from './pages/admin/AdminImportacoes'
 import AdminRides from './pages/admin/AdminRides'
 import AdminRideDetail from './pages/admin/AdminRideDetail'
 import AdminBenefits from './pages/admin/AdminBenefits'
@@ -107,7 +109,11 @@ const App = () => (
             }
           >
             <Route index element={<AdminDashboard />} />
+            <Route path="dashboard" element={<AdminDashboard />} />
             <Route path="members" element={<AdminMembers />} />
+            <Route path="membros" element={<AdminMembers />} />
+            <Route path="membros/:id" element={<AdminMemberDetail />} />
+            <Route path="importacoes" element={<AdminImportacoes />} />
             <Route path="rides" element={<AdminRides />} />
             <Route path="rides/:id" element={<AdminRideDetail />} />
             <Route path="registrations" element={<AdminRegistrations />} />

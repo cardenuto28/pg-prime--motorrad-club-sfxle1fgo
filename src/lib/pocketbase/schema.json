@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-22T16:20:03.875Z",
+  "generatedAt": "2026-08-22T16:55:33.886Z",
   "collections": [
     {
       "name": "users",
@@ -1508,6 +1508,173 @@
       "indexes": [
         "CREATE INDEX idx_store_visits_user ON store_visits (user, created DESC)",
         "CREATE INDEX idx_store_visits_created ON store_visits (created)"
+      ]
+    },
+    {
+      "name": "import_logs",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "view": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "nome_arquivo",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "data",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "hora",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "linhas_processadas",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "clientes_criados",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "clientes_atualizados",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "erros",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_import_logs_created ON import_logs (created DESC)"]
+    },
+    {
+      "name": "historico_metricas_membro",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "view": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != '' && @request.auth.role = 'admin'",
+        "delete": "@request.auth.id != '' && @request.auth.role = 'admin'"
+      },
+      "fields": [
+        {
+          "name": "membro_id",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "users"
+        },
+        {
+          "name": "data_importacao",
+          "type": "date",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "categoria",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_compras",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_valor_vendido",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "numero_passagens",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_liquido_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nivel_relacionamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_histmetricas_membro ON historico_metricas_membro (membro_id, created DESC)"
       ]
     }
   ]

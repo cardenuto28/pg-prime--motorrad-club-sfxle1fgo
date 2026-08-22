@@ -21,6 +21,7 @@ import {
   Image,
   QrCode,
   BookOpen,
+  FileSpreadsheet,
 } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { announcementService } from '@/services/api'
@@ -35,7 +36,8 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { to: '/admin', label: 'Dashboard', icon: LayoutDashboard },
-  { to: '/admin/members', label: 'Membros', icon: Users },
+  { to: '/admin/membros', label: 'Membros', icon: Users },
+  { to: '/admin/importacoes', label: 'Importações', icon: FileSpreadsheet },
   { to: '/admin/rides', label: 'Passeios', icon: Calendar },
   { to: '/admin/registrations', label: 'Inscrições', icon: ClipboardList },
   { to: '/admin/benefits', label: 'Benefícios', icon: Gift },

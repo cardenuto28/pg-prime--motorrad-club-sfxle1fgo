@@ -922,3 +922,97 @@ export const storeVisitService = {
     }
   },
 }
+
+// ============================================================================
+// PARTE 3 — Histórico de Importações e Histórico de Métricas do Membro
+// ============================================================================
+
+export interface ImportLog {
+  id: string
+  nome_arquivo: string
+  data?: string
+  hora?: string
+  linhas_processadas?: number
+  clientes_criados?: number
+  clientes_atualizados?: number
+  erros?: string
+  status?: string
+  created: string
+  updated: string
+}
+
+export interface HistoricoMetricaMembro {
+  id: string
+  membro_id: string
+  data_importacao?: string
+  categoria?: string
+  score_oficina?: number
+  total_compras?: number
+  total_valor_vendido?: number
+  numero_passagens?: number
+  total_liquido_oficina?: number
+  status?: string
+  nivel_relacionamento?: string
+  created: string
+  updated: string
+  expand?: {
+    membro_id?: UserProfile
+  }
+}
+
+export const importLogService = {
+  async getAll(): Promise<ImportLog[]> {
+    try {
+      const records = await pb.collection('import_logs').getFullList({
+        sort: '-created',
+      })
+      return records as unknown as ImportLog[]
+    } catch {
+      return []
+    }
+  },
+
+  async create(data: Partial<ImportLog>): Promise<ImportLog | null> {
+    try {
+      const record = await pb.collection('import_logs').create(data)
+      return record as unknown as ImportLog
+    } catch (e) {
+      console.error('Erro ao salvar log de importação:', e)
+      return null
+    }
+  },
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await pb.collection('import_logs').delete(id)
+      return true
+    } catch {
+      return false
+    }
+  },
+}
+
+export const historicoMetricasService = {
+  async getByMembro(membroId: string): Promise<HistoricoMetricaMembro[]> {
+    try {
+      const records = await pb.collection('historico_metricas_membro').getFullList({
+        filter: `membro_id='${membroId}'`,
+        sort: '-created',
+        expand: 'membro_id',
+      })
+      return records as unknown as HistoricoMetricaMembro[]
+    } catch {
+      return []
+    }
+  },
+
+  async create(data: Partial<HistoricoMetricaMembro>): Promise<HistoricoMetricaMembro | null> {
+    try {
+      const record = await pb.collection('historico_metricas_membro').create(data)
+      return record as unknown as HistoricoMetricaMembro
+    } catch (e) {
+      console.error('Erro ao salvar snapshot de métricas:', e)
+      return null
+    }
+  },
+}

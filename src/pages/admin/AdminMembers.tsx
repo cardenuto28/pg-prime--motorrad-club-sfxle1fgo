@@ -28,7 +28,7 @@ import {
 } from 'lucide-react'
 import { exportMembersPdf } from '@/lib/pdfExport'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -75,6 +75,7 @@ type Status = UserProfile['status']
 
 const AdminMembers: React.FC = () => {
   const { toast } = useToast()
+  const navigate = useNavigate()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
@@ -159,13 +160,11 @@ const AdminMembers: React.FC = () => {
         return false
       }
 
-      // 3. Filtro de status
-      if (statusFilter === 'ativos') {
-        if (effectiveStatus !== 'ATIVO') return false
-      } else if (statusFilter === 'inativos') {
-        if (effectiveStatus !== 'INATIVO') return false
-      } else if (statusFilter === 'pre_cadastrado') {
-        if (effectiveStatus !== 'PRE_CADASTRADO' && effectiveStatus !== 'PENDENTE') return false
+      // 3. Filtro de status (PARTE 3 — ATIVO / ATENÇÃO / INATIVO)
+      if (statusFilter !== 'all') {
+        if (statusFilter === 'ATIVO' && effectiveStatus !== 'ATIVO') return false
+        if (statusFilter === 'ATENCAO' && effectiveStatus !== 'ATENCAO') return false
+        if (statusFilter === 'INATIVO' && effectiveStatus !== 'INATIVO') return false
       }
 
       // 4. Bronze próximo do vencimento

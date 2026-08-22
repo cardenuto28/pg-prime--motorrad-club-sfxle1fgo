@@ -20,6 +20,7 @@ import {
   Info,
   RefreshCw,
   UserPlus,
+  CheckCircle,
 } from 'lucide-react'
 import {
   isValidCPF,
@@ -36,6 +37,7 @@ import pb from '@/lib/pocketbase/client'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { useToast } from '@/hooks/use-toast'
 import { settingsService } from '@/services/settings'
+import { importLogService, historicoMetricasService } from '@/services/api'
 
 /**
  * Tipo de operação que será realizada para cada linha da planilha.
@@ -114,6 +116,21 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   const [filterTab, setFilterTab] = useState<'all' | 'create' | 'update' | 'invalid'>('all')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // PARTE 3 — Resumo final de importação exibido em modal dedicado após a conclusão.
+  // Contém os contadores detalhados (criados, atualizados, erros por linha, etc.)
+  // e a lista de erros por linha, para o admin revisar.
+  const [finalSummary, setFinalSummary] = useState<{
+    nomeArquivo: string
+    linhasProcessadas: number
+    clientesCriados: number
+    clientesAtualizados: number
+    erros: number
+    categoriasAlteradas: number
+    scoresAtualizados: number
+    linhasIgnoradas: number
+    listaErros: Array<{ linha: number; cpf: string; erro: string; motivo: string }>
+  } | null>(null)
+
   // PARTE 2 — Faixas configuráveis de score carregadas uma vez ao abrir o modal.
   // Variáveis `let` no escopo do componente (acessadas no handleFileChange e handleConfirmImport).
   let currentValorRanges: any[] | undefined
@@ -123,6 +140,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     setFile(null)
     setImportRows([])
     setSummary(null)
+    setFinalSummary(null)
     setFilterTab('all')
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -446,6 +464,20 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   }
 
   // Confirmar e executar UPSERT dos registros válidos
+  //
+  // PARTE 3 — Tratamento de erros por linha:
+  //   Uma linha com erro NÃO paralisa o arquivo inteiro. O erro é capturado,
+  //   registrado na lista de erros (linha, CPF, erro, motivo) e exibido no
+  //   resumo final. O processamento continua para as demais linhas.
+  //
+  // PARTE 3 — Snapshot de métricas:
+  //   A cada membro atualizado/criado, um registro é salvo na collection
+  //   `historico_metricas_membro` com o snapshot das métricas do momento da
+  //   importação, permitindo evolutar o histórico do cliente ao longo do tempo.
+  //
+  // PARTE 3 — Log de importação:
+  //   Ao final, um registro é salvo na collection `import_logs` com o resumo
+  //   completo da importação (nome do arquivo, contadores, erros, status).
   const handleConfirmImport = async () => {
     const validRows = importRows.filter((r) => r.isValid)
     if (validRows.length === 0) return
@@ -454,6 +486,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     let createdCount = 0
     let updatedCount = 0
     let failCount = 0
+    let categoriasAlteradasCount = 0
+    let scoresAtualizadosCount = 0
+    const errorsByLine: Array<{ linha: number; cpf: string; erro: string; motivo: string }> = []
+
+    const today = new Date()
+    const dataStr = today.toISOString().slice(0, 10) // YYYY-MM-DD
+    const horaStr = today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
     try {
       for (const row of validRows) {
@@ -475,6 +514,16 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             // Campos NÃO protegidos (sempre sobrescrever, mesmo vazio/zero):
             //   MARCA, DESCRICAO_MODELO, ANO_MODELO, CHASSI, DATA_VENDA, TOTAL_COMPRAS,
             //   TOTAL_VALOR_VENDIDO, NUMERO_PASSAGENS, TOTAL_LIQUIDO_OFICINA, ULTIMA_DATA_OFICINA.
+
+            // PARTE 3 — Detecta mudanças para o resumo (categoria alterada / score atualizado)
+            const oldCat = (row.existingUser?.categoria || row.existingUser?.category || '')
+              .toString()
+              .toUpperCase()
+            const newCat = row.categoriaCalculada.toUpperCase()
+            const catMudou = oldCat !== newCat
+            const oldScore = Number(row.existingUser?.score_oficina || 0)
+            const scoreMudou = oldScore !== row.scoreOficina
+
             await pb.collection('users').update(row.existingId, {
               name: row.nome || undefined,
               phone: row.telefone || undefined,
@@ -516,19 +565,39 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             })
 
             // Registra histórico de categoria quando a categoria muda
-            try {
-              await pb.collection('historico_categoria').create({
-                membro_id: row.existingId,
-                categoria_anterior: null,
-                categoria_nova: row.categoriaCalculada,
-                data_alteracao: new Date().toISOString(),
-                motivo: 'IMPORTACAO_ATUALIZACAO',
-                origem: 'automatico',
-                justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
-              })
-            } catch {
-              /* intentionally ignored */
+            if (catMudou) {
+              categoriasAlteradasCount++
+              try {
+                await pb.collection('historico_categoria').create({
+                  membro_id: row.existingId,
+                  categoria_anterior: oldCat || null,
+                  categoria_nova: row.categoriaCalculada,
+                  data_alteracao: new Date().toISOString(),
+                  motivo: 'IMPORTACAO_ATUALIZACAO',
+                  origem: 'automatico',
+                  justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
+                })
+              } catch {
+                /* intentionally ignored */
+              }
             }
+            if (scoreMudou) {
+              scoresAtualizadosCount++
+            }
+
+            // PARTE 3 — Salva snapshot das métricas do membro (historico_metricas_membro)
+            await historicoMetricasService.create({
+              membro_id: row.existingId,
+              data_importacao: dataStr,
+              categoria: row.categoriaCalculada,
+              score_oficina: row.scoreOficina,
+              total_compras: row.quantidade_motos_compradas,
+              total_valor_vendido: row.total_valor_vendido,
+              numero_passagens: row.numero_passagens_oficina,
+              total_liquido_oficina: row.total_liquido_oficina,
+              status: row.statusCalculado,
+              nivel_relacionamento: row.nivelRelacionamento,
+            })
 
             updatedCount++
           } else {
@@ -585,6 +654,10 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               proxima_melhor_acao: row.proximaMelhorAcao,
             })
 
+            // Novo membro → categoria e score sempre "alterados" em relação ao estado anterior (inexistente)
+            categoriasAlteradasCount++
+            scoresAtualizadosCount++
+
             // Grava histórico de categoria
             try {
               await pb.collection('historico_categoria').create({
@@ -635,15 +708,40 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               }
             }
 
+            // PARTE 3 — Salva snapshot das métricas do novo membro
+            await historicoMetricasService.create({
+              membro_id: createdUser.id,
+              data_importacao: dataStr,
+              categoria: row.categoriaCalculada,
+              score_oficina: row.scoreOficina,
+              total_compras: row.quantidade_motos_compradas,
+              total_valor_vendido: row.total_valor_vendido,
+              numero_passagens: row.numero_passagens_oficina,
+              total_liquido_oficina: row.total_liquido_oficina,
+              status: row.statusCalculado,
+              nivel_relacionamento: row.nivelRelacionamento,
+            })
+
             createdCount++
           }
-        } catch (err) {
+        } catch (err: any) {
+          // PARTE 3 — Tratamento de erros por linha: registra mas NÃO paralisa o arquivo.
           console.error('Erro ao importar linha', row.rowIndex, err)
           failCount++
+          errorsByLine.push({
+            linha: row.rowIndex,
+            cpf: row.cpf || row.cpfClean || '—',
+            erro: err?.message ? String(err.message).slice(0, 200) : 'Erro desconhecido',
+            motivo:
+              row.action === 'UPDATE'
+                ? 'Falha ao atualizar membro existente'
+                : 'Falha ao criar novo pré-cadastro',
+          })
         }
       }
 
       const ignoredCount = summary?.invalid ?? 0
+      const totalProcessadas = createdCount + updatedCount + failCount + ignoredCount
 
       setSummary((prev) =>
         prev
@@ -654,6 +752,33 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           : null,
       )
 
+      // PARTE 3 — Salva o registro de log da importação na collection import_logs
+      const statusLog =
+        failCount === 0 ? 'CONCLUIDO' : failCount === validRows.length ? 'FALHOU' : 'PARCIAL'
+      await importLogService.create({
+        nome_arquivo: file?.name || 'planilha.xlsx',
+        data: dataStr,
+        hora: horaStr,
+        linhas_processadas: totalProcessadas,
+        clientes_criados: createdCount,
+        clientes_atualizados: updatedCount,
+        erros: JSON.stringify(errorsByLine),
+        status: statusLog,
+      })
+
+      // PARTE 3 — Exibe o modal de resumo final detalhado
+      setFinalSummary({
+        nomeArquivo: file?.name || 'planilha.xlsx',
+        linhasProcessadas: totalProcessadas,
+        clientesCriados: createdCount,
+        clientesAtualizados: updatedCount,
+        erros: failCount,
+        categoriasAlteradas: categoriasAlteradasCount,
+        scoresAtualizados: scoresAtualizadosCount,
+        linhasIgnoradas: ignoredCount,
+        listaErros: errorsByLine,
+      })
+
       toast({
         title: 'Importação concluída',
         description: `${updatedCount} atualizados, ${createdCount} novos, ${ignoredCount} ignorados${
@@ -662,8 +787,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       })
 
       onSuccess()
-      onOpenChange(false)
-      resetState()
     } catch (err: any) {
       toast({
         title: 'Erro durante importação',
@@ -1054,6 +1177,139 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           )}
         </div>
       </DialogContent>
+
+      {/* PARTE 3 — Modal de resumo final exibido após a conclusão da importação. */}
+      {finalSummary && (
+        <Dialog
+          open={!!finalSummary}
+          onOpenChange={(v) => {
+            if (!v) {
+              setFinalSummary(null)
+              onOpenChange(false)
+              resetState()
+            }
+          }}
+        >
+          <DialogContent className="max-w-2xl bg-slate-950 border-slate-800 text-white max-h-[90vh] flex flex-col p-6">
+            <DialogHeader className="border-b border-slate-800 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-600/20 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <DialogTitle className="text-xl font-bold text-white">
+                    Importação concluída
+                  </DialogTitle>
+                  <DialogDescription className="text-slate-400 text-xs mt-0.5">
+                    {finalSummary.nomeArquivo}
+                  </DialogDescription>
+                </div>
+              </div>
+            </DialogHeader>
+
+            <div className="py-4 space-y-4 overflow-y-auto">
+              {/* Cards de contadores */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3">
+                  <div className="text-xs text-slate-400 font-medium">Registros processados</div>
+                  <div className="text-2xl font-bold text-white mt-1">
+                    {finalSummary.linhasProcessadas}
+                  </div>
+                </div>
+                <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-lg p-3">
+                  <div className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
+                    <UserPlus className="w-3.5 h-3.5" />
+                    Clientes criados
+                  </div>
+                  <div className="text-2xl font-bold text-emerald-300 mt-1">
+                    {finalSummary.clientesCriados}
+                  </div>
+                </div>
+                <div className="bg-blue-950/40 border border-blue-800/40 rounded-lg p-3">
+                  <div className="text-xs text-blue-400 font-medium flex items-center gap-1.5">
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    Clientes atualizados
+                  </div>
+                  <div className="text-2xl font-bold text-blue-300 mt-1">
+                    {finalSummary.clientesAtualizados}
+                  </div>
+                </div>
+                <div className="bg-amber-950/40 border border-amber-800/40 rounded-lg p-3">
+                  <div className="text-xs text-amber-400 font-medium flex items-center gap-1.5">
+                    <AlertCircle className="w-3.5 h-3.5" />
+                    Erros
+                  </div>
+                  <div className="text-2xl font-bold text-amber-300 mt-1">{finalSummary.erros}</div>
+                </div>
+                <div className="bg-purple-950/40 border border-purple-800/40 rounded-lg p-3">
+                  <div className="text-xs text-purple-400 font-medium">Categorias alteradas</div>
+                  <div className="text-2xl font-bold text-purple-300 mt-1">
+                    {finalSummary.categoriasAlteradas}
+                  </div>
+                </div>
+                <div className="bg-indigo-950/40 border border-indigo-800/40 rounded-lg p-3">
+                  <div className="text-xs text-indigo-400 font-medium">Scores atualizados</div>
+                  <div className="text-2xl font-bold text-indigo-300 mt-1">
+                    {finalSummary.scoresAtualizados}
+                  </div>
+                </div>
+              </div>
+
+              {/* Linhas ignoradas (CPF inválido / linha em branco) */}
+              {finalSummary.linhasIgnoradas > 0 && (
+                <div className="bg-slate-900/60 border border-slate-800 rounded-lg p-3 text-xs text-slate-400">
+                  <span className="font-semibold text-slate-300">
+                    {finalSummary.linhasIgnoradas}
+                  </span>{' '}
+                  linha(s) ignorada(s) por CPF inválido ou em branco (não bloquearam a importação).
+                </div>
+              )}
+
+              {/* Lista de erros por linha */}
+              {finalSummary.listaErros.length > 0 && (
+                <div className="border border-red-900/50 bg-red-950/20 rounded-lg p-3">
+                  <div className="text-xs font-semibold text-red-400 mb-2 flex items-center gap-1.5">
+                    <AlertTriangle className="w-4 h-4" />
+                    Detalhe dos erros por linha
+                  </div>
+                  <div className="max-h-40 overflow-y-auto space-y-1">
+                    {finalSummary.listaErros.map((e, i) => (
+                      <div
+                        key={i}
+                        className="text-[11px] text-red-300/90 bg-red-950/30 border border-red-900/30 rounded px-2 py-1 flex flex-wrap gap-x-2 gap-y-0.5"
+                      >
+                        <span className="font-mono text-red-200">Linha {e.linha}</span>
+                        <span className="text-red-400/70">|</span>
+                        <span>CPF: {e.cpf}</span>
+                        <span className="text-red-400/70">|</span>
+                        <span className="text-slate-400">{e.motivo}</span>
+                        <span className="text-red-400/70">|</span>
+                        <span className="text-red-300">{e.erro}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="border-t border-slate-800 pt-4 flex justify-end">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  setFinalSummary(null)
+                  onOpenChange(false)
+                  resetState()
+                }}
+                className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+              >
+                <CheckCircle2 className="w-4 h-4 mr-1.5" />
+                Fechar
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </Dialog>
   )
 }
