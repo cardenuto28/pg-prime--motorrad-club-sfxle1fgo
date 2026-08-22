@@ -408,6 +408,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         // Se o registro já existe e o campo vem vazio ou inválido na planilha, manter o valor existente.
         // Campos protegidos: NOME, TELEFONE, EMAIL, CIDADE.
         // Para EMAIL no UPDATE: se o email da planilha for vazio OU inválido, MANTER o email atual já cadastrado.
+        // Para CREATE: se o email da planilha for vazio OU inválido, usar o fallback exclusivo por CPF/CNPJ.
         const protectedNome =
           action === 'UPDATE' && existingUser && !nome ? String(existingUser.name || '') : nome
         const protectedTelefone =
@@ -415,9 +416,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             ? String(existingUser.phone || '')
             : telefone
         const protectedEmail =
-          action === 'UPDATE' && existingUser && (!email || !isValidEmail(email))
-            ? String(existingUser.email || '')
-            : email
+          action === 'UPDATE'
+            ? existingUser && (!email || !isValidEmail(email))
+              ? String(existingUser.email || '')
+              : email
+            : isValidEmail(email)
+              ? email
+              : generateFallbackEmail(cleanCpf)
         const protectedCidade =
           action === 'UPDATE' && existingUser && !cidade ? String(existingUser.city || '') : cidade
 
