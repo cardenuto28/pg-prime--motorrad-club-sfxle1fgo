@@ -1,7 +1,19 @@
 import { MemberCategory, MemberStatusType, UserProfile } from '@/services/api'
 
 /**
- * Validação de CPF brasileiro (algoritmo dos dígitos verificadores)
+ * ============================================================================
+ * CPF / CNPJ — Validação, normalização e formatação de documentos
+ * ============================================================================
+ * O sistema aceita CPF (11 dígitos, pessoa física) ou CNPJ (14 dígitos,
+ * pessoa jurídica). O tipo é detectado automaticamente pelo tamanho do número.
+ * ============================================================================
+ */
+
+export type TipoDocumento = 'CPF' | 'CNPJ' | ''
+export type TipoCliente = 'PESSOA_FISICA' | 'PESSOA_JURIDICA' | ''
+
+/**
+ * Validação de CPF brasileiro (11 dígitos, algoritmo dos dígitos verificadores)
  */
 export function isValidCPF(cpfRaw: string | undefined | null): boolean {
   if (!cpfRaw) return false
@@ -32,22 +44,152 @@ export function isValidCPF(cpfRaw: string | undefined | null): boolean {
 }
 
 /**
- * Normaliza CPF: remove pontos, traços e espaços.
- * Exemplo: "123.456.789-00" -> "12345678900"
+ * Validação de CNPJ brasileiro (14 dígitos, algoritmo dos dígitos verificadores)
  */
-export function normalizeCPF(cpfRaw: string | undefined | null): string {
-  if (!cpfRaw) return ''
-  return String(cpfRaw).replace(/[.\-\s]/g, '')
+export function isValidCNPJ(cnpjRaw: string | undefined | null): boolean {
+  if (!cnpjRaw) return false
+  const cnpj = cnpjRaw.replace(/\D/g, '')
+  if (cnpj.length !== 14) return false
+  // CNPJs com todos os dígitos iguais são inválidos
+  if (/^(\d)\1{13}$/.test(cnpj)) return false
+
+  let tamanho = 12
+  let numeros = cnpj.substring(0, tamanho)
+  const digitos = cnpj.substring(tamanho)
+  let soma = 0
+  let pos = tamanho - 7
+
+  for (let i = tamanho; i >= 1; i--) {
+    soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--
+    if (pos < 2) pos = 9
+  }
+
+  let resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11)
+  if (resultado !== parseInt(digitos.charAt(0), 10)) return false
+
+  tamanho = 13
+  numeros = cnpj.substring(0, tamanho)
+  soma = 0
+  pos = tamanho - 7
+
+  for (let i = tamanho; i >= 1; i--) {
+    soma += parseInt(numeros.charAt(tamanho - i), 10) * pos--
+    if (pos < 2) pos = 9
+  }
+
+  resultado = soma % 11 < 2 ? 0 : 11 - (soma % 11)
+  if (resultado !== parseInt(digitos.charAt(1), 10)) return false
+
+  return true
 }
 
 /**
- * Formata CPF para o padrão 000.000.000-00
+ * Valida um documento (CPF ou CNPJ) detectando automaticamente pelo tamanho.
+ * - 11 dígitos → CPF (valida dígitos verificadores do CPF)
+ * - 14 dígitos → CNPJ (valida dígitos verificadores do CNPJ)
+ * - Qualquer outro tamanho → inválido
  */
-export function formatCPF(cpfRaw: string | undefined | null): string {
-  if (!cpfRaw) return ''
-  const clean = normalizeCPF(cpfRaw)
-  if (clean.length !== 11) return cpfRaw as string
-  return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+export function isValidDocumento(docRaw: string | undefined | null): boolean {
+  if (!docRaw) return false
+  const clean = normalizeDocumento(docRaw)
+  if (clean.length === 11) return isValidCPF(clean)
+  if (clean.length === 14) return isValidCNPJ(clean)
+  return false
+}
+
+/** Alias antigo (compatibilidade) — agora valida CPF e CNPJ. */
+export const isValidDocumentoCPF = isValidDocumento
+
+/**
+ * Normaliza CPF/CNPJ: remove pontos, traços, barras e espaços.
+ * Exemplos:
+ *  - "123.456.789-00"      -> "12345678900"
+ *  - "12.345.678/0001-90" -> "12345678000190"
+ */
+export function normalizeDocumento(docRaw: string | undefined | null): string {
+  if (!docRaw) return ''
+  return String(docRaw).replace(/[.\-/\s]/g, '')
+}
+
+/** Alias antigo (compatibilidade) — agora normaliza CPF e CNPJ. */
+export const normalizeCPF = normalizeDocumento
+
+/**
+ * Detecta o tipo do documento pelo número de dígitos:
+ * - 11 dígitos → "CPF"
+ * - 14 dígitos → "CNPJ"
+ * - caso contrário → "" (vazio)
+ */
+export function detectTipoDocumento(docRaw: string | undefined | null): TipoDocumento {
+  const clean = normalizeDocumento(docRaw)
+  if (clean.length === 11) return 'CPF'
+  if (clean.length === 14) return 'CNPJ'
+  return ''
+}
+
+/**
+ * Deriva o tipo de cliente a partir do tipo de documento:
+ * - CPF  → PESSOA_FISICA
+ * - CNPJ → PESSOA_JURIDICA
+ * - ""   → "" (vazio)
+ */
+export function tipoClienteFromDocumento(tipoDoc: TipoDocumento): TipoCliente {
+  if (tipoDoc === 'CPF') return 'PESSOA_FISICA'
+  if (tipoDoc === 'CNPJ') return 'PESSOA_JURIDICA'
+  return ''
+}
+
+/**
+ * Formata CPF (000.000.000-00) ou CNPJ (00.000.000/0000-00) conforme o
+ * tamanho do número informado. Retorna o texto bruto caso não encaixe em
+ * nenhum dos formatos.
+ */
+export function formatDocumento(docRaw: string | undefined | null): string {
+  if (!docRaw) return ''
+  const clean = normalizeDocumento(docRaw)
+  if (clean.length === 11) {
+    return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4')
+  }
+  if (clean.length === 14) {
+    return clean.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5')
+  }
+  return docRaw as string
+}
+
+/** Alias antigo (compatibilidade) — agora formata CPF e CNPJ. */
+export const formatCPF = formatDocumento
+
+/**
+ * Aplica a máscara dinâmica de CPF/CNPJ enquanto o usuário digita.
+ * A máscara segue o padrão abaixo conforme o número de dígitos cresce:
+ *   CPF:  000.000.000-00 (até 11 dígitos)
+ *   CNPJ: 00.000.000/0000-00 (de 12 a 14 dígitos)
+ * A transição entre máscaras é automática ao passar de 11 para 12 dígitos.
+ */
+export function maskDocumentoCpfCnpj(input: string): string {
+  let clean = (input || '').replace(/\D/g, '')
+  if (clean.length > 14) clean = clean.slice(0, 14)
+
+  // CNPJ: quando passar de 11 dígitos, assume formato de CNPJ.
+  if (clean.length > 11) {
+    // 00.000.000/0000-00
+    return clean
+      .replace(/(\d{2})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1.$2')
+      .replace(/(\d{3})(\d)/, '$1/$2')
+      .replace(/(\d{4})(\d{1,2})$/, '$1-$2')
+  }
+  // CPF: 000.000.000-00
+  if (clean.length > 9) {
+    return clean.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/, '$1.$2.$3-$4')
+  }
+  if (clean.length > 6) {
+    return clean.replace(/(\d{3})(\d{3})(\d{1,3})/, '$1.$2.$3')
+  }
+  if (clean.length > 3) {
+    return clean.replace(/(\d{3})(\d{1,3})/, '$1.$2')
+  }
+  return clean
 }
 
 /**
