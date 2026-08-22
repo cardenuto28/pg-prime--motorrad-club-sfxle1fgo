@@ -54,6 +54,10 @@ export interface UserProfile {
   member_id?: string
   phone?: string
   cpf?: string
+  /** Tipo do documento armazenado em `cpf` — "CPF" ou "CNPJ" (detectado pelo tamanho). */
+  tipo_documento?: 'CPF' | 'CNPJ' | string
+  /** Tipo de cliente derivado do documento — "PESSOA_FISICA" ou "PESSOA_JURIDICA". */
+  tipo_cliente?: 'PESSOA_FISICA' | 'PESSOA_JURIDICA' | string
   city?: string
   bike_brand?: string
   bike_model?: string

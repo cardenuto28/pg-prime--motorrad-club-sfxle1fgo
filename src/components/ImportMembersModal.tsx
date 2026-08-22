@@ -23,9 +23,10 @@ import {
   CheckCircle,
 } from 'lucide-react'
 import {
-  isValidCPF,
-  normalizeCPF,
-  formatCPF,
+  isValidDocumento,
+  normalizeDocumento,
+  formatDocumento,
+  detectTipoDocumento,
   parseDateFlexible,
   calcularCategoriaMembro,
   calcularScoreCompleto,
@@ -41,9 +42,9 @@ import { importLogService, historicoMetricasService } from '@/services/api'
 
 /**
  * Tipo de operação que será realizada para cada linha da planilha.
- * - CREATE  : CPF não existe no banco → novo pré-cadastro
- * - UPDATE  : CPF já existe no banco   → atualização dos dados
- * - IGNORE  : CPF em branco ou inválido → linha ignorada com aviso
+ * - CREATE  : CPF/CNPJ não existe no banco → novo pré-cadastro
+ * - UPDATE  : CPF/CNPJ já existe no banco   → atualização dos dados
+ * - IGNORE  : CPF/CNPJ em branco ou inválido → linha ignorada com aviso
  */
 type RowAction = 'CREATE' | 'UPDATE' | 'IGNORE'
 
@@ -52,6 +53,7 @@ interface ImportRow {
   nome: string
   cpf: string
   cpfClean: string
+  tipoDoc: 'CPF' | 'CNPJ' | ''
   telefone: string
   email: string
   cidade: string
@@ -151,7 +153,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       'NOME',
       'TELEFONE',
       'EMAIL',
-      'CPF',
+      'CPF/CNPJ',
       'CIDADE',
       'MARCA',
       'DESCRICAO_MODELO',
@@ -240,7 +242,21 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       currentValorRanges = valorRanges
       currentFrequenciaRanges = frequenciaRanges
 
-      // 1. Carrega todos os usuários do banco e monta um mapa de CPF (somente dígitos) → usuário completo.
+      /**
+       * Normaliza um documento (CPF/CNPJ) para uso como chave de UPSERT:
+       * remove pontuação e, quando o Excel descartou o zero à esquerda,
+       * completa novamente (10 → 11 dígitos para CPF, 13 → 14 para CNPJ).
+       * Aplicado tanto na carga dos usuários existentes quanto nas linhas
+       * da planilha, para que as chaves batam de forma simétrica.
+       */
+      const normalizarDocChave = (raw: string | undefined | null): string => {
+        let clean = normalizeDocumento(raw)
+        if (clean.length === 10) clean = '0' + clean
+        else if (clean.length === 13) clean = '0' + clean
+        return clean
+      }
+
+      // 1. Carrega todos os usuários do banco e monta um mapa de CPF/CNPJ (somente dígitos) → usuário completo.
       //    Precisamos dos campos cadastrais protegidos (NOME, TELEFONE, EMAIL, CIDADE) para o UPSERT.
       const existingUsers = await pb.collection('users').getFullList({
         fields: 'id,cpf,email,name,phone,city',
@@ -248,7 +264,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       const existingCpfToUser = new Map<string, any>()
       existingUsers.forEach((u: any) => {
         if (u.cpf) {
-          const clean = normalizeCPF(u.cpf)
+          const clean = normalizarDocChave(u.cpf)
           if (clean) existingCpfToUser.set(clean, u)
         }
       })
@@ -320,18 +336,22 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         )
         const oficinaRaw = String(row[14] || '').trim()
 
-        const cleanCpf = normalizeCPF(cpfRaw)
+        // Documento (CPF/CNPJ) — normaliza, autocorrige zero à esquerda perdido no
+        // Excel (10 → 11 para CPF, 13 → 14 para CNPJ) e valida como CPF ou CNPJ.
+        const cleanCpf = normalizarDocChave(cpfRaw)
+        const tipoDoc = detectTipoDocumento(cleanCpf)
 
-        // Validação de CPF — em branco ou inválido => linha ignorada com aviso (não bloqueia a importação)
+        // Validação de documento — em branco ou inválido => linha ignorada com aviso
+        // (não bloqueia a importação). CPFs/CNPJs válidos viram CREATE ou UPDATE.
         let action: RowAction = 'CREATE'
         let existingId: string | undefined
         let existingUser: any
 
         if (!cleanCpf) {
-          errors.push('CPF em branco — linha será ignorada')
+          errors.push('Documento (CPF/CNPJ) em branco — linha será ignorada')
           action = 'IGNORE'
-        } else if (!isValidCPF(cleanCpf)) {
-          errors.push('CPF inválido — linha será ignorada')
+        } else if (!isValidDocumento(cleanCpf)) {
+          errors.push('Documento inválido (não é CPF nem CNPJ) — linha será ignorada')
           action = 'IGNORE'
         } else if (existingCpfToUser.has(cleanCpf)) {
           action = 'UPDATE'
@@ -397,8 +417,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         parsedRows.push({
           rowIndex: index + 2, // linha 1 é cabeçalho
           nome: protectedNome,
-          cpf: formatCPF(cleanCpf) || cpfRaw,
+          cpf: formatDocumento(cleanCpf) || cpfRaw,
           cpfClean: cleanCpf,
+          tipoDoc,
           telefone: protectedTelefone,
           email: protectedEmail,
           cidade: protectedCidade,
@@ -805,6 +826,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     return true
   })
 
+  // Contagem por tipo de documento (CPF/CNPJ) para os cards de resumo do preview.
+  const updatesList = importRows.filter((r) => r.isValid && r.action === 'UPDATE')
+  const createsList = importRows.filter((r) => r.isValid && r.action === 'CREATE')
+  const invalidList = importRows.filter((r) => !r.isValid)
+  const countTipo = (list: ImportRow[], tipo: string) =>
+    list.filter((r) => r.tipoDoc === tipo).length
+
   return (
     <Dialog
       open={open}
@@ -827,7 +855,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   Importação de Membros em Massa
                 </DialogTitle>
                 <DialogDescription className="text-slate-400 text-xs mt-0.5">
-                  UPSERT por CPF — atualiza membros existentes e cria novos pré-cadastros.
+                  UPSERT por CPF/CNPJ — atualiza membros existentes e cria novos pré-cadastros.
                 </DialogDescription>
               </div>
             </div>
@@ -881,19 +909,24 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             <div className="mt-6 max-w-xl w-full bg-slate-900/80 border border-slate-800 rounded-lg p-4 text-xs text-slate-400 space-y-1.5">
               <p className="font-semibold text-slate-200 flex items-center gap-1.5">
                 <Info className="w-4 h-4 text-blue-400" />
-                Regras de UPSERT por CPF:
+                Regras de UPSERT por CPF/CNPJ:
               </p>
               <p>
-                • <strong>CPF já existe:</strong> atualiza todos os dados do membro (nome, moto,
-                valores, oficinas...).
+                • <strong>Documento já existe:</strong> atualiza todos os dados do membro (nome,
+                moto, valores, oficinas...).
               </p>
               <p>
-                • <strong>CPF não existe:</strong> cria novo pré-cadastro com todos os dados da
-                planilha.
+                • <strong>Documento não existe:</strong> cria novo pré-cadastro com todos os dados
+                da planilha.
               </p>
               <p>
-                • <strong>CPF em branco ou inválido:</strong> a linha é ignorada com aviso (não
-                bloqueia a importação).
+                • <strong>CPF (11 dígitos) ou CNPJ (14 dígitos):</strong> aceitos e detectados
+                automaticamente. CPFs com zero à esquerda perdido no Excel (10 dígitos) são
+                corrigidos automaticamente.
+              </p>
+              <p>
+                • <strong>Documento em branco ou inválido:</strong> a linha é ignorada com aviso
+                (não bloqueia a importação).
               </p>
               <p className="pt-1.5 border-t border-slate-800 mt-1.5">
                 • <strong>Platinum:</strong> 5+ motos | <strong>Gold:</strong> 3 ou 4 motos |{' '}
@@ -914,6 +947,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   Serão ATUALIZADOS
                 </div>
                 <div className="text-2xl font-bold text-blue-300 mt-1">{summary.updates}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {countTipo(updatesList, 'CPF')} CPF · {countTipo(updatesList, 'CNPJ')} CNPJ
+                </div>
               </div>
               <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-lg p-3">
                 <div className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
@@ -921,6 +957,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   Serão CRIADOS
                 </div>
                 <div className="text-2xl font-bold text-emerald-300 mt-1">{summary.creates}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {countTipo(createsList, 'CPF')} CPF · {countTipo(createsList, 'CNPJ')} CNPJ
+                </div>
               </div>
               <div className="bg-amber-950/40 border border-amber-800/40 rounded-lg p-3">
                 <div className="text-xs text-amber-400 font-medium flex items-center gap-1.5">
@@ -928,6 +967,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   Linhas IGNORADAS
                 </div>
                 <div className="text-2xl font-bold text-amber-300 mt-1">{summary.invalid}</div>
+                <div className="text-[10px] text-slate-400 mt-0.5">
+                  {countTipo(invalidList, 'CPF')} CPF · {countTipo(invalidList, 'CNPJ')} CNPJ
+                </div>
               </div>
             </div>
 
@@ -992,7 +1034,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   <tr>
                     <th className="p-2.5 w-12 text-center">Linha</th>
                     <th className="p-2.5">Nome</th>
-                    <th className="p-2.5">CPF</th>
+                    <th className="p-2.5">CPF/CNPJ</th>
                     <th className="p-2.5">Motocicleta</th>
                     <th className="p-2.5 text-center">Motos</th>
                     <th className="p-2.5 text-center">Ação</th>
@@ -1020,7 +1062,18 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                         {row.nome || <span className="text-amber-400 italic">Vazio</span>}
                       </td>
                       <td className="p-2.5 font-mono text-slate-300">
-                        {row.cpf || <span className="text-amber-400 italic">Vazio</span>}
+                        {row.cpf ? (
+                          <div className="flex flex-col gap-1">
+                            <span>{row.cpf}</span>
+                            {row.tipoDoc && (
+                              <span className="inline-flex w-fit items-center rounded border border-slate-700 bg-slate-800 px-1 py-0 text-[9px] font-bold text-slate-300">
+                                {row.tipoDoc}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-amber-400 italic">Vazio</span>
+                        )}
                       </td>
                       <td className="p-2.5 text-slate-300">
                         {row.bike_model ? (
@@ -1261,7 +1314,8 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   <span className="font-semibold text-slate-300">
                     {finalSummary.linhasIgnoradas}
                   </span>{' '}
-                  linha(s) ignorada(s) por CPF inválido ou em branco (não bloquearam a importação).
+                  linha(s) ignorada(s) por CPF/CNPJ inválido ou em branco (não bloquearam a
+                  importação).
                 </div>
               )}
 
@@ -1280,7 +1334,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                       >
                         <span className="font-mono text-red-200">Linha {e.linha}</span>
                         <span className="text-red-400/70">|</span>
-                        <span>CPF: {e.cpf}</span>
+                        <span>Doc: {e.cpf}</span>
                         <span className="text-red-400/70">|</span>
                         <span className="text-slate-400">{e.motivo}</span>
                         <span className="text-red-400/70">|</span>
