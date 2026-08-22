@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T21:22:51.184Z",
+  "generatedAt": "2026-08-22T15:35:30.288Z",
   "collections": [
     {
       "name": "users",
@@ -175,6 +175,24 @@
         {
           "name": "motivo_categoria",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_valor_vendido",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "numero_passagens_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_liquido_oficina",
+          "type": "number",
           "required": false,
           "system": false
         }

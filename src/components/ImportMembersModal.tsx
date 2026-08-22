@@ -8,7 +8,6 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import {
   Upload,
@@ -19,10 +18,21 @@ import {
   Loader2,
   Download,
   Info,
+  RefreshCw,
+  UserPlus,
 } from 'lucide-react'
 import { isValidCPF, formatCPF, parseDateFlexible, calcularCategoriaMembro } from '@/lib/membership'
 import pb from '@/lib/pocketbase/client'
 import { CategoryBadge } from '@/components/CategoryBadge'
+import { useToast } from '@/hooks/use-toast'
+
+/**
+ * Tipo de operação que será realizada para cada linha da planilha.
+ * - CREATE  : CPF não existe no banco → novo pré-cadastro
+ * - UPDATE  : CPF já existe no banco   → atualização dos dados
+ * - IGNORE  : CPF em branco ou inválido → linha ignorada com aviso
+ */
+type RowAction = 'CREATE' | 'UPDATE' | 'IGNORE'
 
 interface ImportRow {
   rowIndex: number
@@ -36,14 +46,18 @@ interface ImportRow {
   bike_model: string
   bike_year: number
   bike_chassi: string
-  quantidade_motos_compradas: number
-  data_ultima_passagem_oficina: string
   data_primeira_compra: string
-  data_ultima_compra: string
+  quantidade_motos_compradas: number
+  total_valor_vendido: number
+  numero_passagens_oficina: number
+  total_liquido_oficina: number
+  data_ultima_passagem_oficina: string
   categoriaCalculada: string
   statusCalculado: string
   errors: string[]
   isValid: boolean
+  action: RowAction
+  existingId?: string
 }
 
 interface ImportMembersModalProps {
@@ -57,6 +71,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   onOpenChange,
   onSuccess,
 }) => {
+  const { toast } = useToast()
   const [file, setFile] = useState<File | null>(null)
   const [loading, setLoading] = useState(false)
   const [parsing, setParsing] = useState(false)
@@ -65,9 +80,11 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     total: number
     valid: number
     invalid: number
+    updates: number
+    creates: number
     importedCount?: number
   } | null>(null)
-  const [filterTab, setFilterTab] = useState<'all' | 'valid' | 'invalid'>('all')
+  const [filterTab, setFilterTab] = useState<'all' | 'create' | 'update' | 'invalid'>('all')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const resetState = () => {
@@ -78,67 +95,77 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
-  // Baixar modelo de exemplo
+  // Baixar modelo de exemplo (15 colunas)
   const handleDownloadTemplate = () => {
+    const header = [
+      'NOME',
+      'TELEFONE',
+      'EMAIL',
+      'CPF',
+      'CIDADE',
+      'MARCA',
+      'DESCRICAO_MODELO',
+      'ANO_MODELO',
+      'CHASSI',
+      'DATA_VENDA',
+      'TOTAL_COMPRAS',
+      'TOTAL_VALOR_VENDIDO',
+      'NUMERO_PASSAGENS',
+      'TOTAL_LIQUIDO_OFICINA',
+      'ULTIMA_DATA_OFICINA',
+    ]
+
     const templateData = [
-      [
-        'nome',
-        'cpf',
-        'telefone',
-        'email',
-        'cidade',
-        'bike_brand',
-        'bike_model',
-        'bike_year',
-        'bike_chassi',
-        'quantidade_motos_compradas',
-        'data_ultima_passagem_oficina',
-        'data_primeira_compra',
-        'data_ultima_compra',
-      ],
+      header,
       [
         'Carlos Alberto Silva',
-        '123.456.789-00',
         '(11) 98765-4321',
         'carlos.silva@exemplo.com.br',
+        '123.456.789-00',
         'Jundiaí - SP',
         'BMW Motorrad',
         'R 1300 GS',
         2024,
-        'Z123456',
-        3,
-        '15/02/2025',
+        '9BWHYJZ8X2024Z123456',
         '10/01/2020',
-        '12/11/2024',
+        3,
+        89500.0,
+        5,
+        12780.5,
+        '15/02/2025',
       ],
       [
         'Mariana Oliveira Santos',
-        '987.654.321-99',
         '(11) 97654-3210',
         'mariana.santos@exemplo.com.br',
+        '987.654.321-99',
         'Campinas - SP',
         'BMW Motorrad',
         'F 900 R',
         2023,
-        'Y654321',
+        '9BWHYJZ8X2024Y654321',
+        '15/03/2023',
         1,
+        32500.0,
+        2,
+        4500.0,
         '20/01/2025',
-        '15/03/2023',
-        '15/03/2023',
       ],
       [
         'Roberto Mendes',
-        '111.222.333-44',
         '(11) 99887-6655',
         'roberto.mendes@exemplo.com.br',
+        '111.222.333-44',
         'São Paulo - SP',
         'BMW Motorrad',
         'R 1250 GS Adventure',
         2022,
-        'X987654',
-        0,
-        '10/01/2025',
+        '9BWHYJZ8X2024X987654',
         '',
+        0,
+        0.0,
+        0,
+        0.0,
         '',
       ],
     ]
@@ -158,16 +185,16 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     setParsing(true)
 
     try {
-      // 1. Carrega CPFs e emails já existentes no banco para checar duplicidade
+      // 1. Carrega todos os usuários do banco e monta um mapa de CPF (somente dígitos) → id
       const existingUsers = await pb.collection('users').getFullList({
         fields: 'id,cpf,email',
       })
-      const existingCpfs = new Set<string>()
-      const existingEmails = new Set<string>()
-
+      const existingCpfToId = new Map<string, string>()
       existingUsers.forEach((u: any) => {
-        if (u.cpf) existingCpfs.add(u.cpf.replace(/\D/g, ''))
-        if (u.email) existingEmails.add(u.email.toLowerCase().trim())
+        if (u.cpf) {
+          const clean = String(u.cpf).replace(/\D/g, '')
+          if (clean) existingCpfToId.set(clean, u.id)
+        }
       })
 
       const data = await selectedFile.arrayBuffer()
@@ -175,7 +202,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       const firstSheetName = workbook.SheetNames[0]
       const worksheet = workbook.Sheets[firstSheetName]
 
-      // Converte para JSON
+      // Converte para JSON (cabeçalho na primeira linha)
       const rawRows: any[] = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
         raw: false,
@@ -186,64 +213,85 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         throw new Error('A planilha está vazia ou contém apenas o cabeçalho.')
       }
 
-      // Pula a linha do cabeçalho
       const dataRows = rawRows.slice(1)
       const parsedRows: ImportRow[] = []
-      const seenCpfsInFile = new Set<string>()
 
       dataRows.forEach((row, index) => {
-        // Se a linha toda estiver vazia, pula
+        // Linha totalmente vazia → ignora silenciosamente
         if (!row || row.every((c: any) => !c || String(c).trim() === '')) return
 
         const errors: string[] = []
 
-        // 13 colunas na ordem
+        // 15 colunas na ordem exata do modelo:
+        // 0  NOME              -> nome
+        // 1  TELEFONE          -> telefone
+        // 2  EMAIL            -> email
+        // 3  CPF              -> cpf (identificador único do UPSERT)
+        // 4  CIDADE           -> cidade
+        // 5  MARCA            -> bike_brand
+        // 6  DESCRICAO_MODELO -> bike_model
+        // 7  ANO_MODELO       -> bike_year
+        // 8  CHASSI           -> bike_chassi
+        // 9  DATA_VENDA       -> data_primeira_compra
+        // 10 TOTAL_COMPRAS    -> quantidade_motos_compradas
+        // 11 TOTAL_VALOR_VENDIDO -> total_valor_vendido
+        // 12 NUMERO_PASSAGENS -> numero_passagens_oficina
+        // 13 TOTAL_LIQUIDO_OFICINA -> total_liquido_oficina
+        // 14 ULTIMA_DATA_OFICINA -> data_ultima_passagem_oficina
         const nome = String(row[0] || '').trim()
-        const cpfRaw = String(row[1] || '').trim()
-        const telefone = String(row[2] || '').trim()
-        const email = String(row[3] || '').trim()
+        const telefone = String(row[1] || '').trim()
+        const email = String(row[2] || '').trim()
+        const cpfRaw = String(row[3] || '').trim()
         const cidade = String(row[4] || '').trim()
         const bike_brand = String(row[5] || 'BMW Motorrad').trim()
         const bike_model = String(row[6] || '').trim()
         const bike_year = parseInt(String(row[7] || ''), 10) || new Date().getFullYear()
         const bike_chassi = String(row[8] || '').trim()
-        const quantidade_motos = parseInt(String(row[9] || '0'), 10) || 0
-
-        const oficinaRaw = String(row[10] || '').trim()
-        const primeiraCompraRaw = String(row[11] || '').trim()
-        const ultimaCompraRaw = String(row[12] || '').trim()
+        const primeiraCompraRaw = String(row[9] || '').trim()
+        const quantidade_motos = parseInt(String(row[10] || '0'), 10) || 0
+        const total_valor_vendido = parseFloat(
+          String(row[11] || '0')
+            .replace(/\./g, '')
+            .replace(',', '.'),
+        )
+        const numero_passagens_oficina = parseInt(String(row[12] || '0'), 10) || 0
+        const total_liquido_oficina = parseFloat(
+          String(row[13] || '0')
+            .replace(/\./g, '')
+            .replace(',', '.'),
+        )
+        const oficinaRaw = String(row[14] || '').trim()
 
         const cleanCpf = cpfRaw.replace(/\D/g, '')
 
-        // Validações
-        if (!nome) {
-          errors.push('Nome completo é obrigatório')
-        }
+        // Validação de CPF — em branco ou inválido => linha ignorada com aviso (não bloqueia a importação)
+        let action: RowAction = 'CREATE'
+        let existingId: string | undefined
 
         if (!cleanCpf) {
-          errors.push('CPF é obrigatório')
+          errors.push('CPF em branco — linha será ignorada')
+          action = 'IGNORE'
         } else if (!isValidCPF(cleanCpf)) {
-          errors.push('CPF com formato ou dígitos inválidos')
-        } else if (existingCpfs.has(cleanCpf)) {
-          errors.push('CPF já cadastrado no Euro Motors Club')
-        } else if (seenCpfsInFile.has(cleanCpf)) {
-          errors.push('CPF duplicado nesta planilha')
+          errors.push('CPF inválido — linha será ignorada')
+          action = 'IGNORE'
+        } else if (existingCpfToId.has(cleanCpf)) {
+          action = 'UPDATE'
+          existingId = existingCpfToId.get(cleanCpf)
         } else {
-          seenCpfsInFile.add(cleanCpf)
+          action = 'CREATE'
         }
 
-        // Validação de datas
-        if (oficinaRaw && !parseDateFlexible(oficinaRaw)) {
-          errors.push('Data de oficina inválida (use DD/MM/AAAA)')
-        }
-        if (primeiraCompraRaw && !parseDateFlexible(primeiraCompraRaw)) {
-          errors.push('Data 1ª compra inválida (use DD/MM/AAAA)')
-        }
-        if (ultimaCompraRaw && !parseDateFlexible(ultimaCompraRaw)) {
-          errors.push('Data última compra inválida (use DD/MM/AAAA)')
+        // Validações de datas (apenas para linhas que não serão ignoradas)
+        if (action !== 'IGNORE') {
+          if (primeiraCompraRaw && !parseDateFlexible(primeiraCompraRaw)) {
+            errors.push('Data de venda inválida (use DD/MM/AAAA)')
+          }
+          if (oficinaRaw && !parseDateFlexible(oficinaRaw)) {
+            errors.push('Data da última oficina inválida (use DD/MM/AAAA)')
+          }
         }
 
-        // Cálculo da categoria
+        // Cálculo da categoria (mesmo para CREATE e UPDATE)
         const oficinaDate = parseDateFlexible(oficinaRaw)
         const calc = calcularCategoriaMembro({
           quantidade_motos_compradas: quantidade_motos,
@@ -263,41 +311,55 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           bike_model,
           bike_year,
           bike_chassi,
-          quantidade_motos_compradas: quantidade_motos,
-          data_ultima_passagem_oficina: oficinaRaw,
           data_primeira_compra: primeiraCompraRaw,
-          data_ultima_compra: ultimaCompraRaw,
+          quantidade_motos_compradas: quantidade_motos,
+          total_valor_vendido: isNaN(total_valor_vendido) ? 0 : total_valor_vendido,
+          numero_passagens_oficina: isNaN(numero_passagens_oficina) ? 0 : numero_passagens_oficina,
+          total_liquido_oficina: isNaN(total_liquido_oficina) ? 0 : total_liquido_oficina,
+          data_ultima_passagem_oficina: oficinaRaw,
           categoriaCalculada: calc.categoria,
-          statusCalculado: 'Pré-cadastrado',
+          statusCalculado: action === 'UPDATE' ? 'Atualizar' : 'Pré-cadastrado',
           errors,
-          isValid: errors.length === 0,
+          // Ignoradas não são válidas para importação; demais são válidas (erros de data só avisam)
+          isValid: action !== 'IGNORE' && errors.length === 0,
+          action,
+          existingId,
         })
       })
 
-      const validCount = parsedRows.filter((r) => r.isValid).length
-      const invalidCount = parsedRows.filter((r) => !r.isValid).length
+      const updatesCount = parsedRows.filter((r) => r.action === 'UPDATE' && r.isValid).length
+      const createsCount = parsedRows.filter((r) => r.action === 'CREATE' && r.isValid).length
+      const invalidCount = parsedRows.filter((r) => r.action === 'IGNORE' || !r.isValid).length
+      const validCount = updatesCount + createsCount
 
       setImportRows(parsedRows)
       setSummary({
         total: parsedRows.length,
         valid: validCount,
         invalid: invalidCount,
+        updates: updatesCount,
+        creates: createsCount,
       })
     } catch (err: any) {
-      alert('Erro ao processar o arquivo: ' + (err.message || 'Arquivo inválido'))
+      toast({
+        title: 'Erro ao processar arquivo',
+        description: err.message || 'Arquivo inválido.',
+        variant: 'destructive',
+      })
       resetState()
     } finally {
       setParsing(false)
     }
   }
 
-  // Confirmar e criar registros válidos
+  // Confirmar e executar UPSERT dos registros válidos
   const handleConfirmImport = async () => {
     const validRows = importRows.filter((r) => r.isValid)
     if (validRows.length === 0) return
 
     setLoading(true)
-    let successCount = 0
+    let createdCount = 0
+    let updatedCount = 0
     let failCount = 0
 
     try {
@@ -305,125 +367,179 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         try {
           const oficinaDate = parseDateFlexible(row.data_ultima_passagem_oficina)
           const primeiraDate = parseDateFlexible(row.data_primeira_compra)
-          const ultimaDate = parseDateFlexible(row.data_ultima_compra)
 
-          // Gera email fallback caso a planilha não tenha informado
-          const emailToUse =
-            row.email && row.email.includes('@')
-              ? row.email.trim().toLowerCase()
-              : `membro.${row.cpfClean || Math.random().toString(36).slice(2, 7)}@euromotors.club`
-
-          // Senha temporária aleatória segura (membro definirá no /validar-cadastro)
-          const randomPassword = 'EMC@' + Math.random().toString(36).slice(2, 10) + '2025'
-
-          const createdUser = await pb.collection('users').create({
-            name: row.nome,
-            email: emailToUse,
-            password: randomPassword,
-            passwordConfirm: randomPassword,
-            cpf: row.cpfClean,
-            phone: row.telefone,
-            city: row.cidade,
-            bike_brand: row.bike_brand || 'BMW Motorrad',
-            bike_model: row.bike_model,
-            bike_year: row.bike_year,
-            bike_chassi: row.bike_chassi,
-            quantidade_motos_compradas: row.quantidade_motos_compradas,
-            data_primeira_compra: primeiraDate ? primeiraDate.toISOString() : null,
-            data_ultima_compra: ultimaDate ? ultimaDate.toISOString() : null,
-            data_ultima_passagem_oficina: oficinaDate ? oficinaDate.toISOString() : null,
-            categoria: row.categoriaCalculada,
-            category: row.categoriaCalculada,
-            status_membro: 'PRE_CADASTRADO',
-            status: 'pendente',
-            role: 'member',
-            motivo_categoria: 'IMPORTACAO',
-            data_categoria_atualizada: new Date().toISOString(),
-          })
-
-          // Grava histórico de categoria
-          try {
-            await pb.collection('historico_categoria').create({
-              membro_id: createdUser.id,
-              categoria_anterior: null,
-              categoria_nova: row.categoriaCalculada,
-              data_alteracao: new Date().toISOString(),
-              motivo: 'IMPORTACAO',
-              origem: 'automatico',
-              justificativa: 'Importação inicial de planilha em massa',
+          if (row.action === 'UPDATE' && row.existingId) {
+            // ===== UPSERT: atualizar membro existente =====
+            await pb.collection('users').update(row.existingId, {
+              name: row.nome || undefined,
+              phone: row.telefone || undefined,
+              city: row.cidade || undefined,
+              email:
+                row.email && row.email.includes('@') ? row.email.toLowerCase().trim() : undefined,
+              bike_brand: row.bike_brand || 'BMW Motorrad',
+              bike_model: row.bike_model || undefined,
+              bike_year: row.bike_year || undefined,
+              bike_chassi: row.bike_chassi || undefined,
+              cpf: row.cpfClean,
+              quantidade_motos_compradas: row.quantidade_motos_compradas,
+              total_valor_vendido: row.total_valor_vendido,
+              numero_passagens_oficina: row.numero_passagens_oficina,
+              total_liquido_oficina: row.total_liquido_oficina,
+              data_primeira_compra: primeiraDate ? primeiraDate.toISOString() : null,
+              data_ultima_passagem_oficina: oficinaDate ? oficinaDate.toISOString() : null,
+              categoria: row.categoriaCalculada,
+              category: row.categoriaCalculada,
+              motivo_categoria: 'IMPORTACAO_ATUALIZACAO',
+              data_categoria_atualizada: new Date().toISOString(),
             })
-          } catch {
-            /* intentionally ignored */
-          }
 
-          // Se tiver compra de moto registrada, grava histórico
-          if (row.quantidade_motos_compradas > 0 && row.bike_model) {
+            // Registra histórico de categoria quando a categoria muda
             try {
-              await pb.collection('historico_compras_motos').create({
-                membro_id: createdUser.id,
-                cpf: row.cpfClean,
-                modelo: row.bike_model,
-                ano: row.bike_year,
-                chassi: row.bike_chassi,
-                data_compra: ultimaDate ? ultimaDate.toISOString() : new Date().toISOString(),
-                status_venda: 'ENTREGUE',
-                created_at: new Date().toISOString(),
+              await pb.collection('historico_categoria').create({
+                membro_id: row.existingId,
+                categoria_anterior: null,
+                categoria_nova: row.categoriaCalculada,
+                data_alteracao: new Date().toISOString(),
+                motivo: 'IMPORTACAO_ATUALIZACAO',
+                origem: 'automatico',
+                justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
               })
             } catch {
               /* intentionally ignored */
             }
-          }
 
-          // Se tiver oficina registrada, grava histórico
-          if (oficinaDate) {
+            updatedCount++
+          } else {
+            // ===== UPSERT: criar novo pré-cadastro =====
+            // Gera email fallback caso a planilha não tenha informado
+            const emailToUse =
+              row.email && row.email.includes('@')
+                ? row.email.trim().toLowerCase()
+                : `membro.${row.cpfClean || Math.random().toString(36).slice(2, 7)}@euromotors.club`
+
+            // Senha temporária aleatória segura (membro definirá no /validar-cadastro)
+            const randomPassword = 'EMC@' + Math.random().toString(36).slice(2, 10) + '2025'
+
+            const createdUser = await pb.collection('users').create({
+              name: row.nome,
+              email: emailToUse,
+              password: randomPassword,
+              passwordConfirm: randomPassword,
+              cpf: row.cpfClean,
+              phone: row.telefone,
+              city: row.cidade,
+              bike_brand: row.bike_brand || 'BMW Motorrad',
+              bike_model: row.bike_model,
+              bike_year: row.bike_year,
+              bike_chassi: row.bike_chassi,
+              quantidade_motos_compradas: row.quantidade_motos_compradas,
+              total_valor_vendido: row.total_valor_vendido,
+              numero_passagens_oficina: row.numero_passagens_oficina,
+              total_liquido_oficina: row.total_liquido_oficina,
+              data_primeira_compra: primeiraDate ? primeiraDate.toISOString() : null,
+              data_ultima_passagem_oficina: oficinaDate ? oficinaDate.toISOString() : null,
+              categoria: row.categoriaCalculada,
+              category: row.categoriaCalculada,
+              status_membro: 'PRE_CADASTRADO',
+              status: 'pendente',
+              role: 'member',
+              motivo_categoria: 'IMPORTACAO',
+              data_categoria_atualizada: new Date().toISOString(),
+            })
+
+            // Grava histórico de categoria
             try {
-              await pb.collection('historico_oficina').create({
+              await pb.collection('historico_categoria').create({
                 membro_id: createdUser.id,
-                cpf: row.cpfClean,
-                data_passagem: oficinaDate.toISOString(),
-                tipo_servico: 'Revisão Periódica',
-                ordem_servico: 'IMPORT-01',
-                status: 'CONCLUIDA',
-                created_at: new Date().toISOString(),
+                categoria_anterior: null,
+                categoria_nova: row.categoriaCalculada,
+                data_alteracao: new Date().toISOString(),
+                motivo: 'IMPORTACAO',
+                origem: 'automatico',
+                justificativa: 'Importação inicial de planilha em massa (UPSERT por CPF)',
               })
             } catch {
               /* intentionally ignored */
             }
-          }
 
-          successCount++
+            // Se tiver compra de moto registrada, grava histórico
+            if (row.quantidade_motos_compradas > 0 && row.bike_model) {
+              try {
+                await pb.collection('historico_compras_motos').create({
+                  membro_id: createdUser.id,
+                  cpf: row.cpfClean,
+                  modelo: row.bike_model,
+                  ano: row.bike_year,
+                  chassi: row.bike_chassi,
+                  data_compra: primeiraDate ? primeiraDate.toISOString() : new Date().toISOString(),
+                  status_venda: 'ENTREGUE',
+                  created_at: new Date().toISOString(),
+                })
+              } catch {
+                /* intentionally ignored */
+              }
+            }
+
+            // Se tiver oficina registrada, grava histórico
+            if (oficinaDate) {
+              try {
+                await pb.collection('historico_oficina').create({
+                  membro_id: createdUser.id,
+                  cpf: row.cpfClean,
+                  data_passagem: oficinaDate.toISOString(),
+                  tipo_servico: 'Revisão Periódica',
+                  ordem_servico: 'IMPORT-01',
+                  status: 'CONCLUIDA',
+                  created_at: new Date().toISOString(),
+                })
+              } catch {
+                /* intentionally ignored */
+              }
+            }
+
+            createdCount++
+          }
         } catch (err) {
           console.error('Erro ao importar linha', row.rowIndex, err)
           failCount++
         }
       }
 
+      const ignoredCount = summary?.invalid ?? 0
+
       setSummary((prev) =>
         prev
           ? {
               ...prev,
-              importedCount: successCount,
+              importedCount: createdCount + updatedCount,
             }
           : null,
       )
 
-      alert(
-        `${successCount} membros importados com sucesso!${
-          failCount > 0 ? ` ${failCount} registros falharam.` : ''
-        }`,
-      )
+      toast({
+        title: 'Importação concluída',
+        description: `${updatedCount} atualizados, ${createdCount} novos, ${ignoredCount} ignorados${
+          failCount > 0 ? ` (${failCount} falharam)` : ''
+        }.`,
+      })
+
       onSuccess()
       onOpenChange(false)
       resetState()
     } catch (err: any) {
-      alert('Erro geral durante importação: ' + err.message)
+      toast({
+        title: 'Erro durante importação',
+        description: err.message || 'Falha geral na importação.',
+        variant: 'destructive',
+      })
     } finally {
       setLoading(false)
     }
   }
 
   const filteredRows = importRows.filter((r) => {
-    if (filterTab === 'valid') return r.isValid
+    if (filterTab === 'create') return r.isValid && r.action === 'CREATE'
+    if (filterTab === 'update') return r.isValid && r.action === 'UPDATE'
     if (filterTab === 'invalid') return !r.isValid
     return true
   })
@@ -450,8 +566,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   Importação de Membros em Massa
                 </DialogTitle>
                 <DialogDescription className="text-slate-400 text-xs mt-0.5">
-                  Importe planilhas .xlsx ou .csv com cálculo automático de categorias e status
-                  Pré-cadastrado.
+                  UPSERT por CPF — atualiza membros existentes e cria novos pré-cadastros.
                 </DialogDescription>
               </div>
             </div>
@@ -494,7 +609,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   : 'Selecione ou arraste seu arquivo'}
               </p>
               <p className="text-xs text-slate-400 mb-4">
-                Suporta planilhas Excel (.xlsx, .xls) ou CSV com as 13 colunas obrigatórias
+                Suporta planilhas Excel (.xlsx, .xls) ou CSV com as 15 colunas do modelo
               </p>
               <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 border border-blue-500/30 text-xs text-blue-400 font-medium">
                 <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -505,51 +620,59 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             <div className="mt-6 max-w-xl w-full bg-slate-900/80 border border-slate-800 rounded-lg p-4 text-xs text-slate-400 space-y-1.5">
               <p className="font-semibold text-slate-200 flex items-center gap-1.5">
                 <Info className="w-4 h-4 text-blue-400" />
-                Regras de Validação e Categorização:
+                Regras de UPSERT por CPF:
               </p>
               <p>
-                • <strong>CPF:</strong> Obrigatório, válido e único no sistema.
+                • <strong>CPF já existe:</strong> atualiza todos os dados do membro (nome, moto,
+                valores, oficinas...).
               </p>
               <p>
-                • <strong>Platinum:</strong> 5+ motos compradas | <strong>Gold:</strong> 3 ou 4
-                motos | <strong>Prata:</strong> 1 ou 2 motos.
+                • <strong>CPF não existe:</strong> cria novo pré-cadastro com todos os dados da
+                planilha.
+              </p>
+              <p>
+                • <strong>CPF em branco ou inválido:</strong> a linha é ignorada com aviso (não
+                bloqueia a importação).
+              </p>
+              <p className="pt-1.5 border-t border-slate-800 mt-1.5">
+                • <strong>Platinum:</strong> 5+ motos | <strong>Gold:</strong> 3 ou 4 motos |{' '}
+                <strong>Prata:</strong> 1 ou 2 motos.
               </p>
               <p>
                 • <strong>Bronze:</strong> 0 motos com passagem na oficina nos últimos 6 meses.
-              </p>
-              <p>
-                • Todos os membros válidos serão criados com status <strong>Pré-cadastrado</strong>{' '}
-                para ativação pelo próprio membro.
               </p>
             </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col min-h-0 space-y-4 pt-4">
-            {/* Cards de Resumo */}
+            {/* Cards de Resumo — Atualizados / Criados / Ignorados */}
             <div className="grid grid-cols-3 gap-3">
-              <div className="bg-slate-900 border border-slate-800 rounded-lg p-3">
-                <div className="text-xs text-slate-400 font-medium">Total de Registros</div>
-                <div className="text-2xl font-bold text-white mt-1">{summary.total}</div>
+              <div className="bg-blue-950/40 border border-blue-800/40 rounded-lg p-3">
+                <div className="text-xs text-blue-400 font-medium flex items-center gap-1.5">
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  Serão ATUALIZADOS
+                </div>
+                <div className="text-2xl font-bold text-blue-300 mt-1">{summary.updates}</div>
               </div>
               <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-lg p-3">
                 <div className="text-xs text-emerald-400 font-medium flex items-center gap-1.5">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  Prontos para Importar
+                  <UserPlus className="w-3.5 h-3.5" />
+                  Serão CRIADOS
                 </div>
-                <div className="text-2xl font-bold text-emerald-300 mt-1">{summary.valid}</div>
+                <div className="text-2xl font-bold text-emerald-300 mt-1">{summary.creates}</div>
               </div>
-              <div className="bg-red-950/40 border border-red-800/40 rounded-lg p-3">
-                <div className="text-xs text-red-400 font-medium flex items-center gap-1.5">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  Com Erros / Duplicados
+              <div className="bg-amber-950/40 border border-amber-800/40 rounded-lg p-3">
+                <div className="text-xs text-amber-400 font-medium flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" />
+                  Linhas IGNORADAS
                 </div>
-                <div className="text-2xl font-bold text-red-300 mt-1">{summary.invalid}</div>
+                <div className="text-2xl font-bold text-amber-300 mt-1">{summary.invalid}</div>
               </div>
             </div>
 
             {/* Abas de Filtro da Prévia */}
             <div className="flex items-center justify-between">
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   type="button"
                   onClick={() => setFilterTab('all')}
@@ -563,25 +686,36 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                 </button>
                 <button
                   type="button"
-                  onClick={() => setFilterTab('valid')}
+                  onClick={() => setFilterTab('update')}
                   className={`px-3 py-1 text-xs font-semibold rounded-md border transition-colors ${
-                    filterTab === 'valid'
+                    filterTab === 'update'
+                      ? 'bg-blue-600 text-white border-blue-500'
+                      : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
+                  }`}
+                >
+                  Atualizar ({summary.updates})
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFilterTab('create')}
+                  className={`px-3 py-1 text-xs font-semibold rounded-md border transition-colors ${
+                    filterTab === 'create'
                       ? 'bg-emerald-600 text-white border-emerald-500'
                       : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
                   }`}
                 >
-                  Válidos ({summary.valid})
+                  Criar ({summary.creates})
                 </button>
                 <button
                   type="button"
                   onClick={() => setFilterTab('invalid')}
                   className={`px-3 py-1 text-xs font-semibold rounded-md border transition-colors ${
                     filterTab === 'invalid'
-                      ? 'bg-red-600 text-white border-red-500'
+                      ? 'bg-amber-600 text-white border-amber-500'
                       : 'bg-slate-900 text-slate-400 border-slate-800 hover:text-white'
                   }`}
                 >
-                  Com Erros ({summary.invalid})
+                  Ignorados ({summary.invalid})
                 </button>
               </div>
 
@@ -600,9 +734,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                     <th className="p-2.5">CPF</th>
                     <th className="p-2.5">Motocicleta</th>
                     <th className="p-2.5 text-center">Motos</th>
-                    <th className="p-2.5">Última Oficina</th>
+                    <th className="p-2.5 text-center">Ação</th>
                     <th className="p-2.5 text-center">Categoria</th>
-                    <th className="p-2.5">Status / Erros</th>
+                    <th className="p-2.5">Status / Avisos</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-800/60">
@@ -610,15 +744,19 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                     <tr
                       key={row.rowIndex}
                       className={`hover:bg-slate-800/40 transition-colors ${
-                        !row.isValid ? 'bg-red-950/20' : ''
+                        row.action === 'IGNORE' || !row.isValid
+                          ? 'bg-amber-950/20'
+                          : row.action === 'UPDATE'
+                            ? 'bg-blue-950/10'
+                            : ''
                       }`}
                     >
                       <td className="p-2.5 text-center text-slate-500 font-mono">{row.rowIndex}</td>
                       <td className="p-2.5 font-medium text-white">
-                        {row.nome || <span className="text-red-400 italic">Vazio</span>}
+                        {row.nome || <span className="text-amber-400 italic">Vazio</span>}
                       </td>
                       <td className="p-2.5 font-mono text-slate-300">
-                        {row.cpf || <span className="text-red-400 italic">Vazio</span>}
+                        {row.cpf || <span className="text-amber-400 italic">Vazio</span>}
                       </td>
                       <td className="p-2.5 text-slate-300">
                         {row.bike_model ? (
@@ -630,9 +768,22 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                       <td className="p-2.5 text-center font-bold text-blue-400">
                         {row.quantidade_motos_compradas}
                       </td>
-                      <td className="p-2.5 text-slate-300">
-                        {row.data_ultima_passagem_oficina || (
-                          <span className="text-slate-500">—</span>
+                      <td className="p-2.5 text-center">
+                        {row.action === 'UPDATE' ? (
+                          <span className="inline-flex items-center gap-1 text-blue-400 font-bold">
+                            <RefreshCw className="w-3 h-3" />
+                            Atualizar
+                          </span>
+                        ) : row.action === 'CREATE' ? (
+                          <span className="inline-flex items-center gap-1 text-emerald-400 font-bold">
+                            <UserPlus className="w-3 h-3" />
+                            Criar
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-amber-400 font-bold">
+                            <AlertTriangle className="w-3 h-3" />
+                            Ignorar
+                          </span>
                         )}
                       </td>
                       <td className="p-2.5 text-center">
@@ -642,14 +793,14 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                         {row.isValid ? (
                           <span className="inline-flex items-center gap-1 text-emerald-400 font-medium">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            Válido (Pré-cadastrado)
+                            {row.statusCalculado}
                           </span>
                         ) : (
                           <div className="space-y-0.5">
                             {row.errors.map((err, i) => (
                               <div
                                 key={i}
-                                className="inline-flex items-center gap-1 text-red-400 text-[11px] font-medium"
+                                className="inline-flex items-center gap-1 text-amber-400 text-[11px] font-medium"
                               >
                                 <AlertCircle className="w-3 h-3 shrink-0" />
                                 {err}
@@ -707,7 +858,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   ) : (
                     <>
                       <CheckCircle2 className="w-4 h-4 mr-1.5" />
-                      Confirmar e Importar {summary.valid} Membros
+                      Confirmar Importação ({summary.updates} upd + {summary.creates} novo)
                     </>
                   )}
                 </Button>

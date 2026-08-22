@@ -31,6 +31,9 @@ export interface UserProfile {
   data_ultima_passagem_oficina?: string
   data_categoria_atualizada?: string
   motivo_categoria?: string
+  total_valor_vendido?: number
+  numero_passagens_oficina?: number
+  total_liquido_oficina?: number
   member_id?: string
   phone?: string
   cpf?: string

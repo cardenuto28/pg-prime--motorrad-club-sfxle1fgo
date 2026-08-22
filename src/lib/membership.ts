@@ -85,6 +85,10 @@ export function calcularCategoriaMembro(params: {
   quantidade_motos_compradas?: number
   data_ultima_passagem_oficina?: string | Date | null
   status_membro_atual?: string
+  // Novos campos financeiros/de oficina — disponíveis para futuras regras de categorização
+  total_valor_vendido?: number
+  numero_passagens_oficina?: number
+  total_liquido_oficina?: number
 }): CategoryCalculationResult {
   const motos = Number(params.quantidade_motos_compradas || 0)
   const isPreCadastrado =

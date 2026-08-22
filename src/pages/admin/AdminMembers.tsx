@@ -1024,6 +1024,9 @@ const EditMemberModal: React.FC<{
         role: user.role || 'member',
         categoria: user.categoria || 'SILVER',
         quantidade_motos_compradas: user.quantidade_motos_compradas ?? 0,
+        total_valor_vendido: user.total_valor_vendido ?? 0,
+        numero_passagens_oficina: user.numero_passagens_oficina ?? 0,
+        total_liquido_oficina: user.total_liquido_oficina ?? 0,
         data_ultima_passagem_oficina: user.data_ultima_passagem_oficina || '',
         data_primeira_compra: user.data_primeira_compra || '',
         data_ultima_compra: user.data_ultima_compra || '',
@@ -1087,6 +1090,9 @@ const EditMemberModal: React.FC<{
         cpf: form.cpf,
         city: form.city,
         quantidade_motos_compradas: Number(form.quantidade_motos_compradas) || 0,
+        total_valor_vendido: Number(form.total_valor_vendido) || 0,
+        numero_passagens_oficina: Number(form.numero_passagens_oficina) || 0,
+        total_liquido_oficina: Number(form.total_liquido_oficina) || 0,
         data_ultima_passagem_oficina: form.data_ultima_passagem_oficina || null,
         bike_brand: form.bike_brand,
         bike_model: form.bike_model,
@@ -1194,6 +1200,38 @@ const EditMemberModal: React.FC<{
               min={0}
               value={form.quantidade_motos_compradas ?? 0}
               onChange={(e) => set('quantidade_motos_compradas', parseInt(e.target.value, 10) || 0)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-bold text-blue-400"
+            />
+          </Field>
+
+          <Field label="Total Valor Vendido (R$)" icon={null}>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.total_valor_vendido ?? 0}
+              onChange={(e) => set('total_valor_vendido', parseFloat(e.target.value) || 0)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-bold text-blue-400"
+            />
+          </Field>
+
+          <Field label="Nº Passagens Oficina" icon={null}>
+            <Input
+              type="number"
+              min={0}
+              value={form.numero_passagens_oficina ?? 0}
+              onChange={(e) => set('numero_passagens_oficina', parseInt(e.target.value, 10) || 0)}
+              className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-bold text-blue-400"
+            />
+          </Field>
+
+          <Field label="Total Líquido Oficina (R$)" icon={null}>
+            <Input
+              type="number"
+              min={0}
+              step="0.01"
+              value={form.total_liquido_oficina ?? 0}
+              onChange={(e) => set('total_liquido_oficina', parseFloat(e.target.value) || 0)}
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-bold text-blue-400"
             />
           </Field>
