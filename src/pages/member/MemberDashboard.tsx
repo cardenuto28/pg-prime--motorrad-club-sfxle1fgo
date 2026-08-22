@@ -233,9 +233,15 @@ const MemberDashboard: React.FC = () => {
         </div>
       </section>
 
-      {/* PARTE 2 — Score de Relacionamento do membro (somente score + nível textual) */}
+      {/* PARTE 3.1 — Score de Relacionamento do membro (somente score + nível textual) */}
       {(() => {
-        const score = Number(user?.score_oficina || 0)
+        const rawScore = Number(user?.score_oficina || 0)
+        const temScoreCalculado =
+          !isNaN(rawScore) &&
+          rawScore > 0 &&
+          !!user?.data_ultimo_calculo &&
+          String(user.data_ultimo_calculo).trim() !== ''
+        const score = temScoreCalculado ? rawScore : 0
         const meta = nivelRelacionamentoMeta(user?.nivel_relacionamento || '')
         return (
           <section className="bg-gradient-to-br from-[#0c1322] via-[#090e18] to-[#0c1424] border border-cyan-600/40 rounded-xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
@@ -246,27 +252,50 @@ const MemberDashboard: React.FC = () => {
                   ⚙️ SEU SCORE DE RELACIONAMENTO
                 </span>
               </div>
-              <div className="flex flex-col sm:flex-row sm:items-end gap-4">
-                <div>
-                  <h2 className="text-3xl sm:text-4xl font-black text-white font-montserrat tracking-tight">
-                    <span className={meta.textColor}>{score}</span>
-                    <span className="text-slate-500 text-2xl">/100</span>
-                  </h2>
-                  <p className={`text-sm font-bold mt-1 ${meta.textColor}`}>{meta.label}</p>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                  <div className="w-full h-3 rounded-full bg-[#1c2538] overflow-hidden">
-                    <div
-                      className={`h-full ${meta.barColor} transition-all`}
-                      style={{ width: `${score}%` }}
-                    />
+              {temScoreCalculado ? (
+                <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                  <div>
+                    <h2 className="text-3xl sm:text-4xl font-black text-white font-montserrat tracking-tight">
+                      <span className={meta.textColor}>{score}</span>
+                      <span className="text-slate-500 text-2xl">/100</span>
+                    </h2>
+                    <p className={`text-sm font-bold mt-1 ${meta.textColor}`}>{meta.label}</p>
                   </div>
-                  <p className="text-[10px] text-slate-400 mt-1.5">
-                    Seu nível de relacionamento com o Euro Motors Motorrad Club é calculado
-                    automaticamente com base no seu histórico de oficinas.
-                  </p>
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="w-full h-3 rounded-full bg-[#1c2538] overflow-hidden">
+                      <div
+                        className={`h-full ${meta.barColor} transition-all`}
+                        style={{ width: `${score}%` }}
+                      />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">
+                      Seu nível de relacionamento com o Euro Motors Motorrad Club é calculado
+                      automaticamente com base no seu histórico de oficinas.
+                    </p>
+                  </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col sm:flex-row sm:items-end gap-4">
+                  <div>
+                    <h2 className="text-3xl sm:text-4xl font-black text-white font-montserrat tracking-tight">
+                      <span className="text-slate-500">—</span>
+                      <span className="text-slate-600 text-2xl">/100</span>
+                    </h2>
+                    <p className="text-sm font-bold mt-1 text-slate-400">
+                      Aguardando primeira importação
+                    </p>
+                  </div>
+                  <div className="flex-1 min-w-[200px]">
+                    <div className="w-full h-3 rounded-full bg-[#1c2538] overflow-hidden">
+                      <div className="h-full bg-slate-700 transition-all" style={{ width: '0%' }} />
+                    </div>
+                    <p className="text-[10px] text-slate-400 mt-1.5">
+                      Seu score será calculado automaticamente assim que o histórico de oficinas for
+                      importado pela concessionária.
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
           </section>
         )

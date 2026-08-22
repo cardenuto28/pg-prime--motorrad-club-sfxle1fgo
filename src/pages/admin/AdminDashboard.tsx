@@ -25,7 +25,13 @@ import {
   storeVisitService,
 } from '@/services/api'
 import { formatDate, isRidePast } from '@/lib/member'
-import { calcularCategoriaMembro, normalizeCategory, parseTags } from '@/lib/membership'
+import {
+  calcularCategoriaMembro,
+  calcularScoreCompleto,
+  normalizeCategory,
+  parseDateFlexible,
+  mesesEntre,
+} from '@/lib/membership'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import {
   Shield,
@@ -33,10 +39,10 @@ import {
   Crown,
   Star,
   AlertTriangle,
-  ShieldAlert,
   UserX,
   Gauge,
   TrendingUp,
+  Clock,
 } from 'lucide-react'
 
 interface RideStatusBadgeProps {
@@ -130,22 +136,34 @@ const AdminDashboard: React.FC = () => {
     let bronzeExpiringCount = 0
     let bronzeInactiveCount = 0
 
-    // PARTE 2 — contadores de Score de Oficina e Tags Inteligentes
+    // PARTE 2/3.1 — contadores de Score de Oficina e Tags Inteligentes (dados REAIS)
     let scoreSum = 0
+    let scoreMembersCount = 0 // membros que já têm score calculado (>0 ou com histórico de oficina)
     let scoreHigh85Count = 0
     let vipAtivoCount = 0
     let vipAfastadoCount = 0
     let proximoGoldCount = 0
     let proximoPlatinumCount = 0
     let primeiraPassagemPendenteCount = 0
+    let bronzeProximoVencimentoCount = 0
+
+    const agora = new Date()
 
     users.forEach((u) => {
+      // Recalcula categoria/status usando os campos REAIS do banco (inclui bike_brand/model)
       const calc = calcularCategoriaMembro({
         quantidade_motos_compradas: u.quantidade_motos_compradas,
         data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
         status_membro_atual: u.status_membro || u.status,
+        total_valor_vendido: u.total_valor_vendido,
+        numero_passagens_oficina: u.numero_passagens_oficina,
+        total_liquido_oficina: u.total_liquido_oficina,
+        bike_brand: u.bike_brand,
+        bike_model: u.bike_model,
+        data_primeira_compra: u.data_primeira_compra,
       })
 
+      // Categoria efetiva: prioriza o campo persistido no banco, senão usa o calculado.
       const effectiveCat = normalizeCategory(u.categoria || u.category || calc.categoria)
 
       if (effectiveCat === 'PLATINUM') platinumCount++
@@ -163,19 +181,69 @@ const AdminDashboard: React.FC = () => {
         bronzeInactiveCount++
       }
 
-      // PARTE 2 — Score e Tags
-      const score = Number(u.score_oficina || 0)
-      scoreSum += score
+      // BRONZE PRÓXIMOS DO VENCIMENTO — Bronze cuja última passagem válida
+      // está entre 5 e 6 meses atrás (janela de ATENÇÃO, antes de virar inativo).
+      if (effectiveCat === 'BRONZE') {
+        // data_ultima_passagem_valida (preferencial) ou data_ultima_passagem_oficina
+        const rawPassagem = u.data_ultima_passagem_valida || u.data_ultima_passagem_oficina || ''
+        const passagemDate = parseDateFlexible(rawPassagem)
+        if (passagemDate) {
+          const meses = mesesEntre(passagemDate, agora)
+          if (meses >= 5 && meses <= 6) bronzeProximoVencimentoCount++
+        }
+      }
+
+      // PARTE 3.1 — Score e Tags calculados a partir dos campos REAIS do banco.
+      // Usa score_oficina persistido quando existe; senão recalcula on-the-fly.
+      // para refletir importações recentes mesmo antes do snapshot ser salvo.
+      let score = Number(u.score_oficina)
+      const temScorePersistido =
+        !isNaN(score) && score > 0 && u.data_ultimo_calculo && u.data_ultimo_calculo.trim() !== ''
+      if (!temScorePersistido) {
+        const recalc = calcularScoreCompleto({
+          total_liquido_oficina: u.total_liquido_oficina,
+          numero_passagens_oficina: u.numero_passagens_oficina,
+          categoria_clube: calc.categoria_clube,
+          total_veiculos_elegiveis: calc.total_veiculos_elegiveis,
+          data_primeira_compra: u.data_primeira_compra,
+          data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
+        })
+        score = recalc.score_oficina
+      }
+      if (isNaN(score)) score = 0
+
+      // Só soma/média membros que efetivamente têm histórico de oficina
+      // (passagens > 0 ou valor de oficina > 0). Membros sem nenhum histórico
+      // não "puxam" a média para baixo nem contam como score baixo.
+      const temHistoricoOficina =
+        Number(u.numero_passagens_oficina || 0) > 0 || Number(u.total_liquido_oficina || 0) > 0
+      if (temHistoricoOficina || temScorePersistido) {
+        scoreSum += score
+        scoreMembersCount++
+      }
       if (score >= 85) scoreHigh85Count++
-      const tags = parseTags(u.tags)
-      if (tags.includes('VIP ATIVO')) vipAtivoCount++
-      if (tags.includes('VIP AFASTADO')) vipAfastadoCount++
-      if (tags.includes('PRÓXIMO DO GOLD')) proximoGoldCount++
-      if (tags.includes('PRÓXIMO DO PLATINUM')) proximoPlatinumCount++
-      if (tags.includes('PRIMEIRA PASSAGEM PENDENTE')) primeiraPassagemPendenteCount++
+
+      // Tags Inteligentes — recalcadas dos campos REAIS
+      const catClube = (calc.categoria_clube || '').toUpperCase()
+      const totalVeiculos = Number(calc.total_veiculos_elegiveis || 0)
+      const catIsVip = catClube === 'GOLD' || catClube === 'PLATINUM'
+
+      if (catIsVip && score >= 70) vipAtivoCount++
+      if (catIsVip && score < 30) vipAfastadoCount++
+      if (catClube === 'PRATA' && totalVeiculos === 2) proximoGoldCount++
+      if (catClube === 'GOLD' && totalVeiculos === 4) proximoPlatinumCount++
+
+      // PRIMEIRA PASSAGEM PENDENTE — data_venda preenchida (data_primeira_compra)
+      // e ultima_data_oficina vazia, sem passagens registradas.
+      const temVenda = !!(u.data_primeira_compra && String(u.data_primeira_compra).trim())
+      const semOficina = !(
+        u.data_ultima_passagem_oficina && String(u.data_ultima_passagem_oficina).trim()
+      )
+      const semPassagens = !Number(u.numero_passagens_oficina || 0)
+      if (temVenda && semOficina && semPassagens) primeiraPassagemPendenteCount++
     })
 
-    const scoreMedio = users.length > 0 ? scoreSum / users.length : 0
+    const scoreMedio = scoreMembersCount > 0 ? scoreSum / scoreMembersCount : 0
 
     const upcomingRides = rides
       .filter((r) => !isRidePast(r.date) && r.status !== 'cancelado' && r.status !== 'realizado')
@@ -216,6 +284,12 @@ const AdminDashboard: React.FC = () => {
         quantidade_motos_compradas: u.quantidade_motos_compradas,
         data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
         status_membro_atual: u.status_membro || u.status,
+        total_valor_vendido: u.total_valor_vendido,
+        numero_passagens_oficina: u.numero_passagens_oficina,
+        total_liquido_oficina: u.total_liquido_oficina,
+        bike_brand: u.bike_brand,
+        bike_model: u.bike_model,
+        data_primeira_compra: u.data_primeira_compra,
       })
       const cat = normalizeCategory(u.categoria || u.category || calc.categoria)
 
@@ -285,14 +359,16 @@ const AdminDashboard: React.FC = () => {
       bronzeActiveCount,
       bronzeExpiringCount,
       bronzeInactiveCount,
-      // PARTE 2 — Score e Tags
+      // PARTE 2/3.1 — Score e Tags
       scoreMedio,
+      scoreMembersCount,
       scoreHigh85Count,
       vipAtivoCount,
       vipAfastadoCount,
       proximoGoldCount,
       proximoPlatinumCount,
       primeiraPassagemPendenteCount,
+      bronzeProximoVencimentoCount,
       nextRide,
       nextRideBikes,
       nextRideParticipants,
@@ -466,11 +542,19 @@ const AdminDashboard: React.FC = () => {
               </span>
             </div>
             <p className="text-xl font-black text-white font-montserrat">
-              {stats.scoreMedio.toFixed(1)}
-              <span className="text-[10px] text-slate-500 font-normal">/100</span>
+              {stats.scoreMembersCount > 0 ? (
+                <>
+                  {stats.scoreMedio.toFixed(1)}
+                  <span className="text-[10px] text-slate-500 font-normal">/100</span>
+                </>
+              ) : (
+                <span className="text-slate-500">—</span>
+              )}
             </p>
+            <span className="text-[9px] text-slate-500">
+              {stats.scoreMembersCount} membro(s) com histórico
+            </span>
           </div>
-
           <div className="bg-[#0a0d14] border border-emerald-900/40 rounded-lg p-3 space-y-1">
             <div className="flex items-center gap-1.5 text-emerald-400">
               <TrendingUp className="w-3.5 h-3.5" />
@@ -545,6 +629,19 @@ const AdminDashboard: React.FC = () => {
               {stats.primeiraPassagemPendenteCount}
             </p>
             <span className="text-[9px] text-orange-400/80">Comprou, sem oficina</span>
+          </div>
+
+          <div className="bg-[#0a0d14] border border-amber-900/40 rounded-lg p-3 space-y-1 col-span-2 sm:col-span-1">
+            <div className="flex items-center gap-1.5 text-amber-400">
+              <Clock className="w-3.5 h-3.5" />
+              <span className="text-[10px] font-bold uppercase tracking-wider font-montserrat">
+                Bronze Próximos do Vencimento
+              </span>
+            </div>
+            <p className="text-xl font-black text-white font-montserrat">
+              {stats.bronzeProximoVencimentoCount}
+            </p>
+            <span className="text-[9px] text-amber-400/80">Última passagem 5–6 meses</span>
           </div>
         </div>
       </section>
