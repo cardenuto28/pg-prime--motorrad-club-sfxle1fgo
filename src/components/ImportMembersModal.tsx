@@ -26,6 +26,9 @@ import {
   isValidDocumento,
   formatDocumento,
   detectTipoDocumento,
+  normalizeDocumento,
+  isValidEmail,
+  generateFallbackEmail,
   parseDateFlexible,
   calcularCategoriaMembro,
   calcularScoreCompleto,
@@ -132,8 +135,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
   })
 
   // PARTE 3 — Resumo final de importação exibido em modal dedicado após a conclusão.
-  // Contém os contadores detalhados (criados, atualizados, erros por linha, etc.)
-  // e a lista de erros por linha, para o admin revisar.
   const [finalSummary, setFinalSummary] = useState<{
     nomeArquivo: string
     linhasProcessadas: number
@@ -146,8 +147,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     listaErros: Array<{ linha: number; cpf: string; erro: string; motivo: string }>
   } | null>(null)
 
-  // PARTE 2 — Faixas configuráveis de score carregadas uma vez ao abrir o modal.
-  // Variáveis `let` no escopo do componente (acessadas no handleFileChange e handleConfirmImport).
+  // PARTE 2 — Faixas configuráveis de score
   let currentValorRanges: any[] | undefined
   let currentFrequenciaRanges: any[] | undefined
 
@@ -262,23 +262,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       currentValorRanges = valorRanges
       currentFrequenciaRanges = frequenciaRanges
 
-      /**
-       * Normaliza um documento (CPF/CNPJ) para uso como chave de UPSERT:
-       * remove pontuação e, quando o Excel descartou o zero à esquerda,
-       * completa novamente (10 → 11 dígitos para CPF, 13 → 14 para CNPJ).
-       * Aplicado tanto na carga dos usuários existentes quanto nas linhas
-       * da planilha, para que as chaves batam de forma simétrica.
-       */
-      const normalizarDocChave = (raw: string | number | undefined | null): string => {
-        if (raw === undefined || raw === null) return ''
-        const str = typeof raw === 'number' ? String(Math.round(raw)) : String(raw)
-        const clean = str.replace(/\D/g, '')
-        if (clean.length === 0) return ''
-        if (clean.length <= 11) return clean.padStart(11, '0')
-        if (clean.length <= 14) return clean.padStart(14, '0')
-        return clean
-      }
-
       // 1. Carrega todos os usuários do banco e monta um mapa de CPF/CNPJ (somente dígitos) → usuário completo.
       //    Precisamos dos campos cadastrais protegidos (NOME, TELEFONE, EMAIL, CIDADE) para o UPSERT.
       const existingUsers = await pb.collection('users').getFullList({
@@ -287,7 +270,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       const existingCpfToUser = new Map<string, any>()
       existingUsers.forEach((u: any) => {
         if (u.cpf) {
-          const clean = normalizarDocChave(u.cpf)
+          const clean = normalizeDocumento(u.cpf)
           if (clean) existingCpfToUser.set(clean, u)
         }
       })
@@ -319,22 +302,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
 
         const errors: string[] = []
 
-        // 15 colunas na ordem exata do modelo:
-        // 0  NOME              -> nome
-        // 1  TELEFONE          -> telefone
-        // 2  EMAIL            -> email
-        // 3  CPF              -> cpf (identificador único do UPSERT)
-        // 4  CIDADE           -> cidade
-        // 5  MARCA            -> bike_brand
-        // 6  DESCRICAO_MODELO -> bike_model
-        // 7  ANO_MODELO       -> bike_year
-        // 8  CHASSI           -> bike_chassi
-        // 9  DATA_VENDA       -> data_primeira_compra
-        // 10 TOTAL_COMPRAS    -> quantidade_motos_compradas
-        // 11 TOTAL_VALOR_VENDIDO -> total_valor_vendido
-        // 12 NUMERO_PASSAGENS -> numero_passagens_oficina
-        // 13 TOTAL_LIQUIDO_OFICINA -> total_liquido_oficina
-        // 14 ULTIMA_DATA_OFICINA -> data_ultima_passagem_oficina
         const nome = String(row[0] || '').trim()
         const telefone = String(row[1] || '').trim()
         const email = String(row[2] || '').trim()
@@ -375,9 +342,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         )
         const oficinaRaw = String(row[14] || '').trim()
 
-        // Documento (CPF/CNPJ) — normaliza, autocorrige zero à esquerda perdido no
-        // Excel (10 → 11 para CPF, 13 → 14 para CNPJ) e valida como CPF ou CNPJ.
-        const cleanCpf = normalizarDocChave(row[3])
+        // Documento (CPF/CNPJ) — normaliza, autocorrige zeros à esquerda (ex: CPF com menos de 11 dígitos
+        // completa até 11; CNPJ entre 12 e 14 completa até 14) e valida como CPF ou CNPJ.
+        const cleanCpf = normalizeDocumento(row[3])
         const tipoDoc = detectTipoDocumento(cleanCpf)
 
         // Validação de documento — em branco ou inválido => linha ignorada com aviso
@@ -410,7 +377,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           }
         }
 
-        // Cálculo da categoria (mesmo para CREATE e UPDATE) — usa a regra de veículos elegíveis + Bronze
+        // Cálculo da categoria (mesmo para CREATE e UPDATE)
         const oficinaDate = parseDateFlexible(oficinaRaw)
         const primeiraDate = parseDateFlexible(primeiraCompraRaw)
         const calc = calcularCategoriaMembro({
@@ -433,15 +400,14 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           total_veiculos_elegiveis: calc.total_veiculos_elegiveis,
           data_primeira_compra: primeiraDate,
           data_ultima_passagem_oficina: oficinaDate,
-          // Faixas configuradas (carregadas uma vez no handleFileChange)
           valorRanges: currentValorRanges,
           frequenciaRanges: currentFrequenciaRanges,
         })
 
-        // ---- Proteção de campos cadastrais (Parte 1, seção 6) ----
-        // Se o registro já existe e o campo vem vazio na planilha, manter o valor existente.
+        // ---- Proteção de campos cadastrais (Parte 1, seção 6 e Correção 2) ----
+        // Se o registro já existe e o campo vem vazio ou inválido na planilha, manter o valor existente.
         // Campos protegidos: NOME, TELEFONE, EMAIL, CIDADE.
-        // (Campos não protegidos são sempre sobrescritos — lógica na confirmação da importação.)
+        // Para EMAIL no UPDATE: se o email da planilha for vazio OU inválido, MANTER o email atual já cadastrado.
         const protectedNome =
           action === 'UPDATE' && existingUser && !nome ? String(existingUser.name || '') : nome
         const protectedTelefone =
@@ -449,7 +415,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             ? String(existingUser.phone || '')
             : telefone
         const protectedEmail =
-          action === 'UPDATE' && existingUser && !email ? String(existingUser.email || '') : email
+          action === 'UPDATE' && existingUser && (!email || !isValidEmail(email))
+            ? String(existingUser.email || '')
+            : email
         const protectedCidade =
           action === 'UPDATE' && existingUser && !cidade ? String(existingUser.city || '') : cidade
 
@@ -490,7 +458,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           tags: scoreCalc.tags,
           proximaMelhorAcao: scoreCalc.proxima_melhor_acao,
           errors,
-          // Ignoradas não são válidas para importação; demais são válidas (erros de data só avisam)
           isValid: action !== 'IGNORE' && errors.length === 0,
           action,
           existingId,
@@ -523,21 +490,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     }
   }
 
-  // Confirmar e executar UPSERT dos registros válidos
-  //
-  // PARTE 3 — Tratamento de erros por linha:
-  //   Uma linha com erro NÃO paralisa o arquivo inteiro. O erro é capturado,
-  //   registrado na lista de erros (linha, CPF, erro, motivo) e exibido no
-  //   resumo final. O processamento continua para as demais linhas.
-  //
-  // PARTE 3 — Snapshot de métricas:
-  //   A cada membro atualizado/criado, um registro é salvo na collection
-  //   `historico_metricas_membro` com o snapshot das métricas do momento da
-  //   importação (fire-and-forget), permitindo evoluir o histórico do cliente ao longo do tempo.
-  //
-  // PARTE 3 — Log de importação:
-  //   Ao final, um registro é salvo na collection `import_logs` com o resumo
-  //   completo da importação (nome do arquivo, contadores, erros, status).
   const handleConfirmImport = async () => {
     const validRows = importRows.filter((r) => r.isValid)
     if (validRows.length === 0) return
@@ -572,20 +524,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
 
           if (row.action === 'UPDATE' && row.existingId) {
             // ===== UPSERT: atualizar membro existente =====
-            //
-            // Regra de SUBSTITUIÇÃO (Parte 1, seção 7):
-            //   TOTAL_COMPRAS, TOTAL_VALOR_VENDIDO, NUMERO_PASSAGENS, TOTAL_LIQUIDO_OFICINA
-            //   já vêm consolidados da planilha — NÃO somar, SUBSTITUIR pelo valor mais recente.
-            //
-            // Regra de proteção de campos cadastrais (Parte 1, seção 6):
-            //   NOME, TELEFONE, EMAIL, CIDADE — se a planilha vier vazia, manter o valor existente.
-            //   (A proteção já foi aplicada no parsing — row.nome/telefone/email/cidade contêm o valor protegido.)
-            //
-            // Campos NÃO protegidos (sempre sobrescrever, mesmo vazio/zero):
-            //   MARCA, DESCRICAO_MODELO, ANO_MODELO, CHASSI, DATA_VENDA, TOTAL_COMPRAS,
-            //   TOTAL_VALOR_VENDIDO, NUMERO_PASSAGENS, TOTAL_LIQUIDO_OFICINA, ULTIMA_DATA_OFICINA.
-
-            // PARTE 3 — Detecta mudanças para o resumo (categoria alterada / score atualizado)
             const oldCat = (row.existingUser?.categoria || row.existingUser?.category || '')
               .toString()
               .toUpperCase()
@@ -594,12 +532,12 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             const oldScore = Number(row.existingUser?.score_oficina || 0)
             const scoreMudou = oldScore !== row.scoreOficina
 
-            await pb.collection('users').update(row.existingId, {
+            // Regra 2: No UPDATE, se o email da planilha for válido e diferente do atual, atualizar.
+            // Se for inválido ou vazio, MANTER o email atual (não enviar campo email no payload para não alterar).
+            const updatePayload: Record<string, any> = {
               name: row.nome || undefined,
               phone: row.telefone || undefined,
               city: row.cidade || undefined,
-              email:
-                row.email && row.email.includes('@') ? row.email.toLowerCase().trim() : undefined,
               bike_brand: row.bike_brand || 'BMW Motorrad',
               bike_model: row.bike_model || undefined,
               bike_year: row.bike_year || undefined,
@@ -632,7 +570,18 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               nivel_relacionamento: row.nivelRelacionamento,
               tags: JSON.stringify(row.tags),
               proxima_melhor_acao: row.proximaMelhorAcao,
-            })
+            }
+
+            // Apenas atualiza o email se for um email válido fornecido na planilha e diferente do atual
+            const cleanedEmail = row.email ? row.email.toLowerCase().trim() : ''
+            if (isValidEmail(cleanedEmail)) {
+              const currentEmail = (row.existingUser?.email || '').toLowerCase().trim()
+              if (cleanedEmail !== currentEmail) {
+                updatePayload.email = cleanedEmail
+              }
+            }
+
+            await pb.collection('users').update(row.existingId, updatePayload)
 
             // Registra histórico de categoria quando a categoria muda (fire-and-forget: sem await)
             if (catMudou) {
@@ -651,6 +600,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
                   console.warn('Falha no histórico de categoria (update):', e)
                 })
             }
+
             if (scoreMudou) {
               scoresAtualizadosCount++
             }
@@ -676,11 +626,11 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             updatedCount++
           } else {
             // ===== UPSERT: criar novo pré-cadastro =====
-            // Gera email fallback caso a planilha não tenha informado
-            const emailToUse =
-              row.email && row.email.includes('@')
-                ? row.email.trim().toLowerCase()
-                : `membro.${row.cpfClean || Math.random().toString(36).slice(2, 7)}@euromotors.club`
+            // Regra 1: Valida o email real se vier preenchido; se vazio ou inválido, gera fallback por CPF/CNPJ
+            const emailClean = row.email ? row.email.trim().toLowerCase() : ''
+            const emailToUse = isValidEmail(emailClean)
+              ? emailClean
+              : generateFallbackEmail(row.cpfClean)
 
             // Senha temporária aleatória segura (membro definirá no /validar-cadastro)
             const randomPassword = 'EMC@' + Math.random().toString(36).slice(2, 10) + '2025'
@@ -803,7 +753,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             createdCount++
           }
         } catch (err: any) {
-          // PARTE 3 — Tratamento de erros por linha: registra mas NÃO paralisa o arquivo.
           console.error('Erro ao importar linha', row.rowIndex, err)
           console.error('Erro completo:', JSON.stringify(err, Object.getOwnPropertyNames(err)))
           failCount++
@@ -1122,8 +1071,8 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               </p>
               <p>
                 • <strong>CPF (11 dígitos) ou CNPJ (14 dígitos):</strong> aceitos e detectados
-                automaticamente. CPFs com zero à esquerda perdido no Excel (10 dígitos) são
-                corrigidos automaticamente.
+                automaticamente. CPFs com menos de 11 dígitos são completados com zeros à esquerda
+                automaticamente.
               </p>
               <p>
                 • <strong>Documento em branco ou inválido:</strong> a linha é ignorada com aviso

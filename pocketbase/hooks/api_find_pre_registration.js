@@ -13,12 +13,27 @@ routerAdd('POST', '/api/club/find-pre-registration', (e) => {
   try {
     let member = null
 
-    // 1. Tenta buscar por CPF
-    if (cleanSearch.length >= 11) {
+    // 1. Tenta buscar por CPF / CNPJ
+    if (cleanSearch.length >= 7) {
+      const normalizedCpf =
+        cleanSearch.length <= 11
+          ? cleanSearch.padStart(11, '0')
+          : cleanSearch.length <= 14
+            ? cleanSearch.padStart(14, '0')
+            : cleanSearch
+
       try {
-        const records = $app.findRecordsByFilter('_pb_users_auth_', 'cpf ~ {:cpf}', '', 1, 0, {
-          cpf: cleanSearch,
-        })
+        const records = $app.findRecordsByFilter(
+          '_pb_users_auth_',
+          'cpf = {:cpf} || cpf ~ {:clean}',
+          '',
+          1,
+          0,
+          {
+            cpf: normalizedCpf,
+            clean: cleanSearch,
+          },
+        )
         if (records && records.length > 0) {
           member = records[0]
         }

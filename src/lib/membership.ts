@@ -101,14 +101,43 @@ export function isValidDocumento(docRaw: string | undefined | null): boolean {
 export const isValidDocumentoCPF = isValidDocumento
 
 /**
- * Normaliza CPF/CNPJ: remove pontos, traços, barras e espaços.
- * Exemplos:
- *  - "123.456.789-00"      -> "12345678900"
- *  - "12.345.678/0001-90" -> "12345678000190"
+ * Valida formato de email básico seguro.
  */
-export function normalizeDocumento(docRaw: string | undefined | null): string {
-  if (!docRaw) return ''
-  return String(docRaw).replace(/[.\-/\s]/g, '')
+export function isValidEmail(email: string | undefined | null): boolean {
+  if (!email) return false
+  const trimmed = String(email).trim().toLowerCase()
+  // Padrão RFC 5322 simplificado e seguro para validação de emails
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)
+}
+
+/**
+ * Normaliza CPF/CNPJ: remove pontos, traços, barras e espaços e completa zeros à esquerda
+ * quando o documento vier incompleto (ex: 9 dígitos de CPF "155.260.278" -> "00155260278").
+ * - Se tiver entre 1 e 11 dígitos -> completa com zeros à esquerda até 11 dígitos (CPF).
+ * - Se tiver entre 12 e 14 dígitos -> completa com zeros à esquerda até 14 dígitos (CNPJ).
+ */
+export function normalizeDocumento(docRaw: string | number | undefined | null): string {
+  if (docRaw === undefined || docRaw === null) return ''
+  const str = typeof docRaw === 'number' ? String(Math.round(docRaw)) : String(docRaw)
+  const clean = str.replace(/\D/g, '')
+  if (clean.length === 0) return ''
+  if (clean.length <= 11) return clean.padStart(11, '0')
+  if (clean.length <= 14) return clean.padStart(14, '0')
+  return clean
+}
+
+/**
+ * Gera email de fallback exclusivo baseado no CPF/CNPJ normalizado.
+ * Exemplo:
+ * - CPF: "02336018802@euromotors.club"
+ * - CNPJ: "08060202000130@euromotors.club"
+ */
+export function generateFallbackEmail(docClean: string | undefined | null): string {
+  const clean = normalizeDocumento(docClean)
+  if (clean) {
+    return `${clean}@euromotors.club`
+  }
+  return `membro.${Math.random().toString(36).slice(2, 9)}@euromotors.club`
 }
 
 /** Alias antigo (compatibilidade) — agora normaliza CPF e CNPJ. */

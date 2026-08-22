@@ -23,9 +23,15 @@ onRecordCreate((e) => {
 
   // 1. Validação de CPF único se preenchido
   const cpfRaw = record.getString('cpf') || ''
-  const cleanCpf = cpfRaw.replace(/[.\-\s]/g, '')
-
+  let cleanCpf = cpfRaw.replace(/\D/g, '')
   if (cleanCpf) {
+    if (cleanCpf.length <= 11) {
+      cleanCpf = cleanCpf.padStart(11, '0')
+    } else if (cleanCpf.length <= 14) {
+      cleanCpf = cleanCpf.padStart(14, '0')
+    }
+    record.set('cpf', cleanCpf)
+
     try {
       const existing = $app.findRecordsByFilter('_pb_users_auth_', 'cpf ~ {:cpf}', '', 1, 0, {
         cpf: cleanCpf,
@@ -40,7 +46,6 @@ onRecordCreate((e) => {
       // Se não encontrou registros, tudo certo
     }
   }
-
   // 2. Cálculo (Parte 1) — espelha calcularCategoriaMembro de src/lib/membership.ts
   const motos = record.getInt('quantidade_motos_compradas') || 0
   const passagensOficina = record.getInt('numero_passagens_oficina') || 0
