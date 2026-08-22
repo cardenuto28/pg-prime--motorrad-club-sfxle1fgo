@@ -24,7 +24,6 @@ import {
 } from 'lucide-react'
 import {
   isValidDocumento,
-  normalizeDocumento,
   formatDocumento,
   detectTipoDocumento,
   parseDateFlexible,
@@ -249,10 +248,13 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
        * Aplicado tanto na carga dos usuários existentes quanto nas linhas
        * da planilha, para que as chaves batam de forma simétrica.
        */
-      const normalizarDocChave = (raw: string | undefined | null): string => {
-        let clean = normalizeDocumento(raw)
-        if (clean.length === 10) clean = '0' + clean
-        else if (clean.length === 13) clean = '0' + clean
+      const normalizarDocChave = (raw: string | number | undefined | null): string => {
+        if (raw === undefined || raw === null) return ''
+        const str = typeof raw === 'number' ? String(Math.round(raw)) : String(raw)
+        const clean = str.replace(/\D/g, '')
+        if (clean.length === 0) return ''
+        if (clean.length <= 11) return clean.padStart(11, '0')
+        if (clean.length <= 14) return clean.padStart(14, '0')
         return clean
       }
 
@@ -279,7 +281,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
       // Converte para JSON (cabeçalho na primeira linha)
       const rawRows: any[] = XLSX.utils.sheet_to_json(worksheet, {
         header: 1,
-        raw: false,
+        raw: true,
         defval: '',
       })
 
@@ -319,26 +321,42 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         const cidade = String(row[4] || '').trim()
         const bike_brand = String(row[5] || 'BMW Motorrad').trim()
         const bike_model = String(row[6] || '').trim()
-        const bike_year = parseInt(String(row[7] || ''), 10) || new Date().getFullYear()
+        const bike_year =
+          parseInt(
+            typeof row[7] === 'number' ? String(Math.round(row[7])) : String(row[7] || ''),
+            10,
+          ) || new Date().getFullYear()
         const bike_chassi = String(row[8] || '').trim()
         const primeiraCompraRaw = String(row[9] || '').trim()
-        const quantidade_motos = parseInt(String(row[10] || '0'), 10) || 0
+        const quantidade_motos =
+          parseInt(
+            typeof row[10] === 'number' ? String(Math.round(row[10])) : String(row[10] || ''),
+            10,
+          ) || 0
         const total_valor_vendido = parseFloat(
-          String(row[11] || '0')
-            .replace(/\./g, '')
-            .replace(',', '.'),
+          typeof row[11] === 'number'
+            ? row[11].toFixed(2)
+            : String(row[11] || '0')
+                .replace(/\./g, '')
+                .replace(',', '.'),
         )
-        const numero_passagens_oficina = parseInt(String(row[12] || '0'), 10) || 0
+        const numero_passagens_oficina =
+          parseInt(
+            typeof row[12] === 'number' ? String(Math.round(row[12])) : String(row[12] || ''),
+            10,
+          ) || 0
         const total_liquido_oficina = parseFloat(
-          String(row[13] || '0')
-            .replace(/\./g, '')
-            .replace(',', '.'),
+          typeof row[13] === 'number'
+            ? row[13].toFixed(2)
+            : String(row[13] || '0')
+                .replace(/\./g, '')
+                .replace(',', '.'),
         )
         const oficinaRaw = String(row[14] || '').trim()
 
         // Documento (CPF/CNPJ) — normaliza, autocorrige zero à esquerda perdido no
         // Excel (10 → 11 para CPF, 13 → 14 para CNPJ) e valida como CPF ou CNPJ.
-        const cleanCpf = normalizarDocChave(cpfRaw)
+        const cleanCpf = normalizarDocChave(row[3])
         const tipoDoc = detectTipoDocumento(cleanCpf)
 
         // Validação de documento — em branco ou inválido => linha ignorada com aviso
