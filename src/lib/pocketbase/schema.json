@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-22T15:35:30.288Z",
+  "generatedAt": "2026-08-22T15:52:46.099Z",
   "collections": [
     {
       "name": "users",
@@ -193,6 +193,174 @@
         {
           "name": "total_liquido_oficina",
           "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tem_moto_comprada",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_veiculos_elegiveis",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "categoria_clube",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_ultima_passagem_valida",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "meses_desde_ultima_passagem",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dias_desde_venda",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "meses_desde_venda",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_valor_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_frequencia",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nivel_relacionamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_ultimo_calculo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "proxima_melhor_acao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_liquido_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tem_moto_comprada",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "total_veiculos_elegiveis",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "categoria_clube",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_ultima_passagem_valida",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "meses_desde_ultima_passagem",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "dias_desde_venda",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "meses_desde_venda",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_valor_oficina",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "score_frequencia",
+          "type": "number",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "nivel_relacionamento",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "data_ultimo_calculo",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "proxima_melhor_acao",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "tags",
+          "type": "text",
           "required": false,
           "system": false
         }

@@ -34,6 +34,21 @@ export interface UserProfile {
   total_valor_vendido?: number
   numero_passagens_oficina?: number
   total_liquido_oficina?: number
+  // PARTE 1 — Novos campos de categoria e métricas
+  tem_moto_comprada?: 'SIM' | 'NÃO' | string
+  total_veiculos_elegiveis?: number
+  categoria_clube?: '' | 'BRONZE' | 'PRATA' | 'GOLD' | 'PLATINUM' | string
+  data_ultima_passagem_valida?: string
+  meses_desde_ultima_passagem?: number
+  dias_desde_venda?: number
+  meses_desde_venda?: number
+  score_oficina?: number
+  score_valor_oficina?: number
+  score_frequencia?: number
+  nivel_relacionamento?: string
+  data_ultimo_calculo?: string
+  proxima_melhor_acao?: string
+  tags?: string
   member_id?: string
   phone?: string
   cpf?: string

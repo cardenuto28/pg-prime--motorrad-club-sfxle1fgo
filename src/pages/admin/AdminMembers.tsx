@@ -449,18 +449,19 @@ const AdminMembers: React.FC = () => {
                 <Th>Nome / CPF</Th>
                 <Th>Tipo</Th>
                 <Th>Categoria</Th>
+                <Th className="text-center">Status</Th>
+                <Th className="text-center">Veículos Elegíveis</Th>
                 <Th className="text-center">Motos</Th>
                 <Th>Últ. Oficina</Th>
                 <Th>Cidade</Th>
                 <Th>Moto / Chassi</Th>
-                <Th>Status</Th>
                 <Th className="text-right">Ações</Th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center">
+                  <td colSpan={10} className="py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -468,7 +469,7 @@ const AdminMembers: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={10} className="py-12 text-center text-xs text-slate-500">
                     Nenhum membro encontrado.
                   </td>
                 </tr>
@@ -515,6 +516,27 @@ const AdminMembers: React.FC = () => {
                         </button>
                       </div>
                     </td>
+                    <td className="px-4 py-3 text-center">
+                      <MemberStatusBadge status={u.status} statusMembro={u.status_membro} />
+                    </td>
+                    <td className="px-4 py-3 text-center">
+                      <span className="inline-flex flex-col items-center leading-tight">
+                        <span className="text-xs font-bold text-emerald-400">
+                          {u.total_veiculos_elegiveis ?? 0}
+                        </span>
+                        <span
+                          className={`text-[9px] font-bold tracking-wider ${
+                            (u.tem_moto_comprada || '').toUpperCase() === 'SIM'
+                              ? 'text-blue-400'
+                              : 'text-slate-500'
+                          }`}
+                        >
+                          {(u.tem_moto_comprada || '').toUpperCase() === 'SIM'
+                            ? 'C/ MOTO'
+                            : 'S/ MOTO'}
+                        </span>
+                      </span>
+                    </td>
                     <td className="px-4 py-3 text-center text-xs font-bold text-blue-400">
                       {u.quantidade_motos_compradas ?? 0}
                     </td>
@@ -536,9 +558,6 @@ const AdminMembers: React.FC = () => {
                           </span>
                         )}
                       </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <MemberStatusBadge status={u.status} statusMembro={u.status_membro} />
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex items-center justify-end gap-1">
@@ -1041,6 +1060,16 @@ const EditMemberModal: React.FC<{
         pillion_name: user.pillion_name || '',
         pillion_phone: user.pillion_phone || '',
         status: user.status,
+        // PARTE 1 — campos calculados (somente leitura no modal)
+        tem_moto_comprada: user.tem_moto_comprada || '',
+        total_veiculos_elegiveis: user.total_veiculos_elegiveis ?? 0,
+        categoria_clube: user.categoria_clube || '',
+        status_membro: user.status_membro || '',
+        meses_desde_ultima_passagem: user.meses_desde_ultima_passagem ?? 0,
+        data_ultima_passagem_valida: user.data_ultima_passagem_valida || '',
+        dias_desde_venda: user.dias_desde_venda ?? 0,
+        meses_desde_venda: user.meses_desde_venda ?? 0,
+        data_ultimo_calculo: user.data_ultimo_calculo || '',
       })
       setChassiError('')
     }
@@ -1246,6 +1275,74 @@ const EditMemberModal: React.FC<{
               }
               onChange={(e) => set('data_ultima_passagem_oficina', e.target.value)}
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
+            />
+          </Field>
+
+          {/* PARTE 1 — Campos calculados (somente leitura) */}
+          <div className="sm:col-span-2 pt-2 border-t border-[#1c2538]">
+            <p className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest font-montserrat mb-3 flex items-center gap-1.5">
+              <Shield className="w-3.5 h-3.5" /> Categoria do Clube (calculado automaticamente)
+            </p>
+          </div>
+
+          <Field label="Tem Moto Comprada" icon={null}>
+            <Input
+              readOnly
+              value={(form.tem_moto_comprada as string) || '—'}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-blue-400 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Total Veículos Elegíveis" icon={null}>
+            <Input
+              readOnly
+              value={form.total_veiculos_elegiveis ?? 0}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-emerald-400 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Categoria Clube" icon={null}>
+            <Input
+              readOnly
+              value={(form.categoria_clube as string) || '—'}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-amber-400 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Status Membro" icon={null}>
+            <Input
+              readOnly
+              value={(form.status_membro as string) || '—'}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-emerald-400 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Meses Desde Últ. Passagem" icon={null}>
+            <Input
+              readOnly
+              value={form.meses_desde_ultima_passagem ?? 0}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-slate-300 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Dias Desde Venda" icon={null}>
+            <Input
+              readOnly
+              value={form.dias_desde_venda ?? 0}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-slate-300 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Meses Desde Venda" icon={null}>
+            <Input
+              readOnly
+              value={form.meses_desde_venda ?? 0}
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 font-bold text-slate-300 cursor-not-allowed"
+            />
+          </Field>
+          <Field label="Data Últ. Passagem Válida" icon={<Calendar className="w-3 h-3" />}>
+            <Input
+              readOnly
+              value={
+                form.data_ultima_passagem_valida
+                  ? new Date(form.data_ultima_passagem_valida).toLocaleDateString('pt-BR')
+                  : '—'
+              }
+              className="bg-[#0e131d] border-[#222c3f] text-white text-xs h-9 text-slate-300 cursor-not-allowed"
             />
           </Field>
 

@@ -21,7 +21,13 @@ import {
   RefreshCw,
   UserPlus,
 } from 'lucide-react'
-import { isValidCPF, formatCPF, parseDateFlexible, calcularCategoriaMembro } from '@/lib/membership'
+import {
+  isValidCPF,
+  normalizeCPF,
+  formatCPF,
+  parseDateFlexible,
+  calcularCategoriaMembro,
+} from '@/lib/membership'
 import pb from '@/lib/pocketbase/client'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { useToast } from '@/hooks/use-toast'
@@ -54,10 +60,19 @@ interface ImportRow {
   data_ultima_passagem_oficina: string
   categoriaCalculada: string
   statusCalculado: string
+  // PARTE 1 — novos campos calculados
+  temMotoComprada: 'SIM' | 'NÃO'
+  totalVeiculosElegiveis: number
+  categoriaClube: string
+  dataUltimaPassagemValida: string
+  mesesDesdeUltimaPassagem: number
+  diasDesdeVenda: number
+  mesesDesdeVenda: number
   errors: string[]
   isValid: boolean
   action: RowAction
   existingId?: string
+  existingUser?: any
 }
 
 interface ImportMembersModalProps {
@@ -185,17 +200,20 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     setParsing(true)
 
     try {
-      // 1. Carrega todos os usuários do banco e monta um mapa de CPF (somente dígitos) → id
+      // 1. Carrega todos os usuários do banco e monta um mapa de CPF (somente dígitos) → usuário completo.
+      //    Precisamos dos campos cadastrais protegidos (NOME, TELEFONE, EMAIL, CIDADE) para o UPSERT.
       const existingUsers = await pb.collection('users').getFullList({
-        fields: 'id,cpf,email',
+        fields: 'id,cpf,email,name,phone,city',
       })
-      const existingCpfToId = new Map<string, string>()
+      const existingCpfToUser = new Map<string, any>()
       existingUsers.forEach((u: any) => {
         if (u.cpf) {
-          const clean = String(u.cpf).replace(/\D/g, '')
-          if (clean) existingCpfToId.set(clean, u.id)
+          const clean = normalizeCPF(u.cpf)
+          if (clean) existingCpfToUser.set(clean, u)
         }
       })
+      const existingCpfToId = new Map<string, string>()
+      existingCpfToUser.forEach((u, _cpf) => existingCpfToId.set(_cpf, u.id))
 
       const data = await selectedFile.arrayBuffer()
       const workbook = XLSX.read(data, { type: 'array', cellDates: true })
@@ -262,11 +280,12 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         )
         const oficinaRaw = String(row[14] || '').trim()
 
-        const cleanCpf = cpfRaw.replace(/\D/g, '')
+        const cleanCpf = normalizeCPF(cpfRaw)
 
         // Validação de CPF — em branco ou inválido => linha ignorada com aviso (não bloqueia a importação)
         let action: RowAction = 'CREATE'
         let existingId: string | undefined
+        let existingUser: any
 
         if (!cleanCpf) {
           errors.push('CPF em branco — linha será ignorada')
@@ -274,9 +293,10 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         } else if (!isValidCPF(cleanCpf)) {
           errors.push('CPF inválido — linha será ignorada')
           action = 'IGNORE'
-        } else if (existingCpfToId.has(cleanCpf)) {
+        } else if (existingCpfToUser.has(cleanCpf)) {
           action = 'UPDATE'
           existingId = existingCpfToId.get(cleanCpf)
+          existingUser = existingCpfToUser.get(cleanCpf)
         } else {
           action = 'CREATE'
         }
@@ -291,22 +311,44 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           }
         }
 
-        // Cálculo da categoria (mesmo para CREATE e UPDATE)
+        // Cálculo da categoria (mesmo para CREATE e UPDATE) — usa a regra de veículos elegíveis + Bronze
         const oficinaDate = parseDateFlexible(oficinaRaw)
+        const primeiraDate = parseDateFlexible(primeiraCompraRaw)
         const calc = calcularCategoriaMembro({
           quantidade_motos_compradas: quantidade_motos,
           data_ultima_passagem_oficina: oficinaDate,
           status_membro_atual: 'PRE_CADASTRADO',
+          total_valor_vendido,
+          numero_passagens_oficina,
+          total_liquido_oficina,
+          bike_brand,
+          bike_model,
+          data_primeira_compra: primeiraDate,
         })
+
+        // ---- Proteção de campos cadastrais (Parte 1, seção 6) ----
+        // Se o registro já existe e o campo vem vazio na planilha, manter o valor existente.
+        // Campos protegidos: NOME, TELEFONE, EMAIL, CIDADE.
+        // (Campos não protegidos são sempre sobrescritos — lógica na confirmação da importação.)
+        const protectedNome =
+          action === 'UPDATE' && existingUser && !nome ? String(existingUser.name || '') : nome
+        const protectedTelefone =
+          action === 'UPDATE' && existingUser && !telefone
+            ? String(existingUser.phone || '')
+            : telefone
+        const protectedEmail =
+          action === 'UPDATE' && existingUser && !email ? String(existingUser.email || '') : email
+        const protectedCidade =
+          action === 'UPDATE' && existingUser && !cidade ? String(existingUser.city || '') : cidade
 
         parsedRows.push({
           rowIndex: index + 2, // linha 1 é cabeçalho
-          nome,
+          nome: protectedNome,
           cpf: formatCPF(cleanCpf) || cpfRaw,
           cpfClean: cleanCpf,
-          telefone,
-          email,
-          cidade,
+          telefone: protectedTelefone,
+          email: protectedEmail,
+          cidade: protectedCidade,
           bike_brand,
           bike_model,
           bike_year,
@@ -319,11 +361,20 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           data_ultima_passagem_oficina: oficinaRaw,
           categoriaCalculada: calc.categoria,
           statusCalculado: action === 'UPDATE' ? 'Atualizar' : 'Pré-cadastrado',
+          // PARTE 1 — novos campos calculados
+          temMotoComprada: calc.tem_moto_comprada,
+          totalVeiculosElegiveis: calc.total_veiculos_elegiveis,
+          categoriaClube: calc.categoria_clube,
+          dataUltimaPassagemValida: calc.data_ultima_passagem_valida,
+          mesesDesdeUltimaPassagem: calc.meses_desde_ultima_passagem,
+          diasDesdeVenda: calc.dias_desde_venda,
+          mesesDesdeVenda: calc.meses_desde_venda,
           errors,
           // Ignoradas não são válidas para importação; demais são válidas (erros de data só avisam)
           isValid: action !== 'IGNORE' && errors.length === 0,
           action,
           existingId,
+          existingUser,
         })
       })
 
@@ -370,6 +421,18 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
 
           if (row.action === 'UPDATE' && row.existingId) {
             // ===== UPSERT: atualizar membro existente =====
+            //
+            // Regra de SUBSTITUIÇÃO (Parte 1, seção 7):
+            //   TOTAL_COMPRAS, TOTAL_VALOR_VENDIDO, NUMERO_PASSAGENS, TOTAL_LIQUIDO_OFICINA
+            //   já vêm consolidados da planilha — NÃO somar, SUBSTITUIR pelo valor mais recente.
+            //
+            // Regra de proteção de campos cadastrais (Parte 1, seção 6):
+            //   NOME, TELEFONE, EMAIL, CIDADE — se a planilha vier vazia, manter o valor existente.
+            //   (A proteção já foi aplicada no parsing — row.nome/telefone/email/cidade contêm o valor protegido.)
+            //
+            // Campos NÃO protegidos (sempre sobrescrever, mesmo vazio/zero):
+            //   MARCA, DESCRICAO_MODELO, ANO_MODELO, CHASSI, DATA_VENDA, TOTAL_COMPRAS,
+            //   TOTAL_VALOR_VENDIDO, NUMERO_PASSAGENS, TOTAL_LIQUIDO_OFICINA, ULTIMA_DATA_OFICINA.
             await pb.collection('users').update(row.existingId, {
               name: row.nome || undefined,
               phone: row.telefone || undefined,
@@ -381,6 +444,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               bike_year: row.bike_year || undefined,
               bike_chassi: row.bike_chassi || undefined,
               cpf: row.cpfClean,
+              // Campos consolidados — SUBSTITUIR (não somar):
               quantidade_motos_compradas: row.quantidade_motos_compradas,
               total_valor_vendido: row.total_valor_vendido,
               numero_passagens_oficina: row.numero_passagens_oficina,
@@ -391,6 +455,15 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               category: row.categoriaCalculada,
               motivo_categoria: 'IMPORTACAO_ATUALIZACAO',
               data_categoria_atualizada: new Date().toISOString(),
+              // PARTE 1 — campos calculados (recálculo automático pós-importação):
+              tem_moto_comprada: row.temMotoComprada,
+              total_veiculos_elegiveis: row.totalVeiculosElegiveis,
+              categoria_clube: row.categoriaClube,
+              data_ultima_passagem_valida: row.dataUltimaPassagemValida || null,
+              meses_desde_ultima_passagem: row.mesesDesdeUltimaPassagem,
+              dias_desde_venda: row.diasDesdeVenda,
+              meses_desde_venda: row.mesesDesdeVenda,
+              data_ultimo_calculo: new Date().toISOString(),
             })
 
             // Registra histórico de categoria quando a categoria muda
@@ -445,6 +518,15 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
               role: 'member',
               motivo_categoria: 'IMPORTACAO',
               data_categoria_atualizada: new Date().toISOString(),
+              // PARTE 1 — campos calculados (recálculo automático pós-importação):
+              tem_moto_comprada: row.temMotoComprada,
+              total_veiculos_elegiveis: row.totalVeiculosElegiveis,
+              categoria_clube: row.categoriaClube,
+              data_ultima_passagem_valida: row.dataUltimaPassagemValida || null,
+              meses_desde_ultima_passagem: row.mesesDesdeUltimaPassagem,
+              dias_desde_venda: row.diasDesdeVenda,
+              meses_desde_venda: row.mesesDesdeVenda,
+              data_ultimo_calculo: new Date().toISOString(),
             })
 
             // Grava histórico de categoria
