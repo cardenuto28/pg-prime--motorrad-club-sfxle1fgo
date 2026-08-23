@@ -386,29 +386,29 @@ export function exportAdminManualPdf() {
     'Perfis de Admin',
   )
 
-  // --- SEÇÃO 2: GESTÃO DE MEMBROS ---
-  addSectionTitle('2. GESTÃO DE MEMBROS')
+  // --- SEÇÃO 2: GESTÃO DE MEMBROS & 14 ETAPAS DE IMPORTAÇÃO ---
+  addSectionTitle('2. GESTÃO DE MEMBROS & 14 ETAPAS DE IMPORTAÇÃO')
   addParagraph('Caminho no painel: Admin → Membros')
   addSubSection('2.1 Buscar e filtrar')
   addBullet('Barra de pesquisa', 'Localize por nome completo, CPF ou e-mail.')
   addBullet(
     'Filtros disponíveis',
-    'Categoria (Bronze / Prata / Gold / Platinum) e Status (Ativo / Pendente / Inativo / Bloqueado / Pré-cadastrado).',
+    'Categoria (Bronze / Prata / Gold / Platinum), Status (Ativo / Pendente / Inativo / Bloqueado / Pré-cadastrado), Nível de Relacionamento e Tags Inteligentes.',
   )
 
-  addSubSection('2.2 Editar membro')
+  addSubSection('2.2 Editar membro & Recálculo')
   addBullet('Modal de edição', 'Clique no nome do membro na lista para abrir a tela de edição.')
   addBullet(
     'Campos editáveis',
-    'Nome, telefone, e-mail, cidade, marca/modelo/ano da moto e chassi.',
+    'Nome, telefone, e-mail, cidade, marca/modelo/ano da moto, chassi, passagens de oficina e total líquido.',
   )
   addBullet(
     'Ajuste manual de categoria',
     'Exige justificativa obrigatória e fica gravado permanentemente no histórico de auditoria.',
   )
   addBullet(
-    'Recalcular categoria',
-    'Recalcula automaticamente a categoria com base nos pontos e regras de compra/oficina.',
+    'Recalcular categoria e Score',
+    'Recalcula imediatamente a categoria, o Score de Oficina (0-100), nível de relacionamento, tags e próxima melhor ação.',
   )
 
   addSubSection('2.3 Status do membro')
@@ -428,46 +428,190 @@ export function exportAdminManualPdf() {
     'Status do Membro',
   )
 
-  addSubSection('2.4 Deletar membro')
+  addSubSection('2.4 As 14 etapas da importação em massa (Pipeline Automatizado)')
   addParagraph(
-    'Ícone de lixeira (🗑️) na coluna Ações → modal de confirmação → exclusão definitiva do cadastro.',
-  )
-
-  addSubSection('2.5 Importar membros em massa')
-  addParagraph(
-    'Clique em IMPORTAR MEMBROS e selecione arquivo Excel (.xlsx) ou CSV. Colunas aceitas:',
+    'Ao importar a planilha, o sistema executa um pipeline rigoroso de 14 etapas integradas:',
   )
   addTable(
-    [['Coluna', 'Descrição', 'Obrigatório']],
+    [['Etapa', 'Nome da Etapa', 'Descrição Operacional']],
     [
-      ['nome', 'Nome completo do membro', 'Sim (Obrigatório)'],
-      ['cpf', 'CPF (apenas números ou formatado)', 'Sim (Obrigatório)'],
-      ['telefone', 'WhatsApp com DDD', 'Sim (Obrigatório)'],
-      ['email', 'E-mail válido de contato', 'Sim (Obrigatório)'],
-      ['cidade', 'Cidade de residência', 'Sim (Obrigatório)'],
-      ['bike_brand', 'Marca da moto (ex: BMW)', 'Sim (Obrigatório)'],
-      ['bike_model', 'Modelo da moto (ex: R 1250 GS)', 'Sim (Obrigatório)'],
-      ['bike_year', 'Ano de fabricação', 'Sim (Obrigatório)'],
-      ['bike_chassi', 'Chassi completo da motocicleta', 'Não'],
-      ['quantidade_motos_compradas', 'Total histórico de motos compradas', 'Não'],
-      ['data_ultima_passagem_oficina', 'Data da última revisão (DD/MM/AAAA)', 'Não'],
-      ['data_primeira_compra', 'Data da primeira compra', 'Não'],
-      ['data_ultima_compra', 'Data da última compra', 'Não'],
+      ['1', 'Leitura Raw', 'Parsing binário da planilha Excel (.xlsx/.xls) ou arquivo CSV.'],
+      [
+        '2',
+        'Normalização de Documento',
+        'Limpeza de pontuações e auto-preenchimento com zeros à esquerda.',
+      ],
+      [
+        '3',
+        'Validação de CPF/CNPJ',
+        'Verificação matemática de validade; linhas inválidas são ignoradas.',
+      ],
+      [
+        '4',
+        'UPSERT (Criar vs Atualizar)',
+        'Mapeia por CPF: se já existe marca UPDATE; se não, CREATE.',
+      ],
+      [
+        '5',
+        'Cálculo de Categoria',
+        'Determina Platinum (5+ motos), Gold (3-4), Prata (1-2) ou Bronze.',
+      ],
+      [
+        '6',
+        'Cálculo do Score de Oficina',
+        'Calcula Score Valor (0-70) + Score Frequência (0-30) = Score Total.',
+      ],
+      [
+        '7',
+        'Geração de Tags Inteligentes',
+        'Atribui tags automáticas como VIP ATIVO, VIP AFASTADO, ALTO VALOR, etc.',
+      ],
+      [
+        '8',
+        'Próxima Melhor Ação',
+        'Define a ação prioritária de atendimento para comercial e pós-vendas.',
+      ],
+      [
+        '9',
+        'Proteção de Campos',
+        'No UPDATE, preserva Nome, Telefone, Email e Cidade se vierem vazios.',
+      ],
+      [
+        '10',
+        'Consolidação de Métricas',
+        'Valores de vendas e pós-vendas substituem o snapshot anterior.',
+      ],
+      [
+        '11',
+        'Gravação no Banco (Users)',
+        'Persistência atômica dos membros com delay anti-rate-limit.',
+      ],
+      [
+        '12',
+        'Históricos e Auditoria',
+        'Grava histórico de categoria, compras de moto, oficina e métricas.',
+      ],
+      [
+        '13',
+        'Log da Importação',
+        'Registra na collection import_logs total de linhas, sucessos e falhas.',
+      ],
+      [
+        '14',
+        'Resumo e Relatório Final',
+        'Exibe modal com contagem de criados, atualizados e alteração de scores.',
+      ],
     ],
     undefined,
-    'Colunas de Importação',
-  )
-  addParagraph(
-    '• Preview automático: o sistema valida e exibe registros válidos e com inconsistências antes da gravação.',
-  )
-  addParagraph(
-    '• Todos os registros importados entram com status "Pré-cadastrado" e categoria calculada.',
-  )
-  addParagraph(
-    '• Baixe o modelo oficial clicando em "Baixar modelo" dentro do modal de importação.',
+    '14 Etapas Importacao',
   )
 
-  // --- SEÇÃO 3: GESTÃO DE PASSEIOS ---
+  // --- SEÇÃO 3: SCORE DE OFICINA (0 a 100 PONTOS) ---
+  addSectionTitle('3. SCORE DE OFICINA (0 A 100 PONTOS) & RELACIONAMENTO')
+  addParagraph(
+    'Conceito: O Score é INDEPENDENTE da Categoria. Categoria mede histórico de compra; Score mede intensidade de relacionamento com a oficina.',
+  )
+
+  addSubSection('3.1 Regra Absoluta')
+  addParagraph(
+    'SCORE NÃO ALTERA CATEGORIA. Ex: PLATINUM com Score 15 continua PLATINUM. BRONZE com Score 95 continua BRONZE.',
+  )
+
+  addSubSection('3.2 Composição do Score (Score Valor + Score Frequência = Máx 100)')
+  addParagraph('Score Valor (0 a 70 pontos) — baseado em TOTAL_LIQUIDO_OFICINA:')
+  addTable(
+    [['Faixa de Total Líquido Oficina (R$)', 'Pontos Atribuídos']],
+    [
+      ['R$ 0,00', '0 pontos'],
+      ['Até R$ 2.500,00', '10 pontos'],
+      ['R$ 2.501,00 a R$ 5.000,00', '20 pontos'],
+      ['R$ 5.001,00 a R$ 10.000,00', '35 pontos'],
+      ['R$ 10.001,00 a R$ 20.000,00', '50 pontos'],
+      ['R$ 20.001,00 a R$ 35.000,00', '60 pontos'],
+      ['Acima de R$ 35.000,00', '70 pontos (máximo)'],
+    ],
+    undefined,
+    'Score Valor',
+  )
+
+  addParagraph('Score Frequência (0 a 30 pontos) — baseado em NUMERO_PASSAGENS:')
+  addTable(
+    [['Quantidade de Passagens na Oficina', 'Pontos Atribuídos']],
+    [
+      ['0 passagens', '0 pontos'],
+      ['1 a 2 passagens', '5 pontos'],
+      ['3 a 5 passagens', '10 pontos'],
+      ['6 a 10 passagens', '20 pontos'],
+      ['11 ou mais passagens', '30 pontos (máximo)'],
+    ],
+    undefined,
+    'Score Frequencia',
+  )
+
+  addSubSection('3.3 Níveis de Relacionamento (baseado no Score Total)')
+  addTable(
+    [['Faixa de Score', 'Nível de Relacionamento', 'Perfil do Membro']],
+    [
+      ['0 a 29 pontos', 'BAIXO RELACIONAMENTO', 'Ausente da oficina / risco de inatividade'],
+      ['30 a 49 pontos', 'RELACIONAMENTO MODERADO', 'Frequência esporádica ou serviços pontuais'],
+      ['50 a 69 pontos', 'RELACIONAMENTO ATIVO', 'Cliente assíduo com revisões periódicas'],
+      ['70 a 84 pontos', 'RELACIONAMENTO FORTE', 'Alto engajamento pós-vendas e serviços'],
+      ['85 a 100 pontos', 'RELACIONAMENTO EXCEPCIONAL', 'Cliente topo de linha de pós-vendas'],
+    ],
+    undefined,
+    'Niveis Relacionamento',
+  )
+
+  addSubSection('3.4 Exemplo Prático')
+  addParagraph(
+    'Cliente com TOTAL_LIQUIDO_OFICINA = R$ 23.000 e NUMERO_PASSAGENS = 8 → Score Valor: 60 + Score Frequência: 20 = Score Total: 80/100 → Nível: RELACIONAMENTO FORTE.',
+  )
+
+  addSubSection('3.5 Três leituras independentes de cada cliente')
+  addParagraph('• CATEGORIA: BRONZE / PRATA / GOLD / PLATINUM (histórico de aquisição de motos)')
+  addParagraph('• SCORE OFICINA: 0 a 100 pontos (intensidade de relacionamento com o pós-vendas)')
+  addParagraph('• STATUS: ATIVO / ATENÇÃO / INATIVO (situação operacional atual)')
+  addParagraph('Exemplo consolidado no sistema: GOLD · SCORE 88 · ATIVO')
+
+  addSubSection('3.6 Campos Oficiais do Score')
+  addParagraph(
+    'Campos persistidos: SCORE_OFICINA, SCORE_VALOR_OFICINA, SCORE_FREQUENCIA, NIVEL_RELACIONAMENTO e DATA_ULTIMO_CALCULO.',
+  )
+
+  // --- SEÇÃO 4: TAGS INTELIGENTES & PRÓXIMA MELHOR AÇÃO ---
+  addSectionTitle('4. TAGS INTELIGENTES & PRÓXIMA MELHOR AÇÃO')
+  addSubSection('4.1 Tags Inteligentes geradas automaticamente')
+  addTable(
+    [['Tag Inteligente', 'Condição de Acionamento']],
+    [
+      ['VIP ATIVO', 'GOLD ou PLATINUM + Score >= 70'],
+      ['VIP AFASTADO', 'GOLD ou PLATINUM + Score < 30'],
+      ['ALTO VALOR PÓS-VENDAS', 'Score >= 85 (qualquer categoria)'],
+      ['PRÓXIMO DO GOLD', 'PRATA + 2 veículos elegíveis'],
+      ['PRÓXIMO DO PLATINUM', 'GOLD + 4 veículos elegíveis'],
+      ['PRIMEIRA PASSAGEM PENDENTE', 'DATA_VENDA preenchida + sem oficina (passagens = 0)'],
+    ],
+    undefined,
+    'Tags Inteligentes',
+  )
+
+  addSubSection('4.2 Próxima Melhor Ação (Hierarquia de Prioridade)')
+  addTable(
+    [['Prioridade', 'Tag Ativa', 'Próxima Melhor Ação']],
+    [
+      ['1ª Prioridade', 'PRIMEIRA PASSAGEM PENDENTE', 'CONTATAR PARA PRIMEIRA PASSAGEM'],
+      ['2ª Prioridade', 'VIP AFASTADO', 'REATIVAR PÓS-VENDAS'],
+      ['3ª Prioridade', 'PRÓXIMO DO GOLD', 'CLIENTE PRÓXIMO DO GOLD'],
+      ['4ª Prioridade', 'PRÓXIMO DO PLATINUM', 'CLIENTE PRÓXIMO DO PLATINUM'],
+      ['5ª Prioridade', 'ALTO VALOR PÓS-VENDAS', 'CLIENTE DE ALTO VALOR'],
+      ['6ª Prioridade', 'VIP ATIVO', 'PRIORIDADE DE RELACIONAMENTO'],
+      ['—', 'Nenhuma tag', 'SEM AÇÃO'],
+    ],
+    undefined,
+    'Proxima Melhor Acao',
+  )
+
+  // --- SEÇÃO 5: GESTÃO DE PASSEIOS ---
   addSectionTitle('3. GESTÃO DE PASSEIOS')
   addParagraph('Caminho no painel: Admin → Passeios')
   addSubSection('3.1 Criar passeio')
@@ -507,8 +651,8 @@ export function exportAdminManualPdf() {
     'Abra o passeio → aba Inscritos: lista com piloto, garupa, moto, contatos de emergência e check-in. Contadores automáticos de motos inscritas e participantes totais.',
   )
 
-  // --- SEÇÃO 4: INSCRIÇÕES ---
-  addSectionTitle('4. INSCRIÇÕES')
+  // --- SEÇÃO 6: INSCRIÇÕES ---
+  addSectionTitle('6. INSCRIÇÕES')
   addParagraph('Caminho no painel: Admin → Inscrições')
   addParagraph('• Painel unificado com todas as inscrições registradas em todos os passeios.')
   addParagraph(
@@ -518,14 +662,14 @@ export function exportAdminManualPdf() {
     '• Detalhamento por participante: presença de garupa, telefone de emergência, confirmação e aceite de regulamento.',
   )
 
-  // --- SEÇÃO 5: PROGRAMA DE PONTOS E CATEGORIAS ---
-  addSectionTitle('5. PROGRAMA DE PONTOS E CATEGORIAS')
-  addSubSection('5.1 Como funciona')
+  // --- SEÇÃO 7: PROGRAMA DE PONTOS E CATEGORIAS ---
+  addSectionTitle('7. PROGRAMA DE PONTOS E CATEGORIAS')
+  addSubSection('7.1 Como funciona')
   addParagraph(
     'O sistema classifica automaticamente cada membro em uma categoria com base na pontuação acumulada e regras de aquisição/oficina.',
   )
 
-  addSubSection('5.2 Categorias e Pontuação')
+  addSubSection('7.2 Categorias e Pontuação')
   addTable(
     [['Categoria', 'Pontuação Mínima', 'Identificador Visual']],
     [
@@ -538,7 +682,7 @@ export function exportAdminManualPdf() {
     'Categorias e Pontos',
   )
 
-  addSubSection('5.3 Como os membros ganham pontos')
+  addSubSection('7.3 Como os membros ganham pontos')
   addTable(
     [['Ação Realizada', 'Pontos Concedidos', 'Frequência Máxima']],
     [
@@ -552,7 +696,7 @@ export function exportAdminManualPdf() {
     'Regras de Pontuação',
   )
 
-  addSubSection('5.4 Regras importantes')
+  addSubSection('7.4 Regras importantes')
   addParagraph(
     '• Evolução imediata: ao atingir a pontuação necessária, a categoria sobe na hora no app do membro.',
   )
@@ -563,10 +707,10 @@ export function exportAdminManualPdf() {
     '• O administrador tem autonomia para ajuste manual mediante justificativa registrada.',
   )
 
-  // --- SEÇÃO 6: QR CODE DA LOJA ---
-  addSectionTitle('6. QR CODE DA LOJA (CHECK-IN DE VISITA)')
+  // --- SEÇÃO 8: QR CODE DA LOJA ---
+  addSectionTitle('8. QR CODE DA LOJA (CHECK-IN DE VISITA)')
   addParagraph('Caminho no painel: Admin → QR Code Loja')
-  addSubSection('6.1 Como funciona')
+  addSubSection('8.1 Como funciona')
   addParagraph(
     '• Totem ou placa com QR Code exposto no balcão de atendimento da concessionária Euro Motors.',
   )
@@ -578,34 +722,32 @@ export function exportAdminManualPdf() {
     '• Segurança criptográfica: o token muda todos os dias à meia-noite (o QR Code impresso no dia anterior não funciona hoje).',
   )
 
-  addSubSection('6.2 Rotina diária recomendada')
+  addSubSection('8.2 Rotina diária recomendada')
   addParagraph('1. Acesse: Admin → QR Code Loja no início do expediente.')
   addParagraph('2. Clique no botão 🖨️ IMPRIMIR QR CODE.')
   addParagraph('3. Coloque a folha impressa no balcão de atendimento/recepção.')
   addParagraph('4. No dia seguinte, imprima o novo QR Code do dia.')
 
-  // --- SEÇÃO 7: DASHBOARD ---
-  addSectionTitle('7. DASHBOARD')
+  // --- SEÇÃO 9: DASHBOARD ---
+  addSectionTitle('9. DASHBOARD EXECUTIVO & INDICADORES')
   addParagraph('Caminho no painel: Admin → Dashboard')
   addParagraph('Indicadores em tempo real:')
   addParagraph(
     '• Total de membros cadastrados, novos membros nos últimos 30 dias e membros ativos.',
   )
   addParagraph(
+    '• Indicadores de Score de Oficina: distribuição por Níveis de Relacionamento, VIPs Ativos e VIPs Afastados.',
+  )
+  addParagraph(
     '• Próximo passeio agendado, total de motos inscritas, total de participantes e vagas restantes.',
   )
-  addParagraph('• Total consolidado de passeios oficiais já realizados pelo Clube.')
-  addParagraph('Cards analíticos por categoria:')
-  addParagraph('• Platinum ativos | Gold ativos | Prata ativos | Bronze ativos.')
+  addParagraph('• Cards analíticos por categoria: Platinum, Gold, Prata e Bronze ativos.')
   addParagraph(
-    '• Alertas de Bronze próximos do vencimento e Bronze inativos (oficina vencida >6 meses).',
-  )
-  addParagraph(
-    'Ranking de Presença: Top membros por pontuação geral com medalhas de destaque (🥇 🥈 🥉).',
+    '• Ranking de Presença: Top membros por pontuação geral com medalhas de destaque (🥇 🥈 🥉).',
   )
 
-  // --- SEÇÃO 8: BENEFÍCIOS ---
-  addSectionTitle('8. BENEFÍCIOS')
+  // --- SEÇÃO 10: BENEFÍCIOS ---
+  addSectionTitle('10. BENEFÍCIOS')
   addParagraph('Caminho no painel: Admin → Benefícios')
   addParagraph(
     '• Gestão completa (Criar, Editar, Excluir) das vantagens exclusivas para os membros.',
@@ -617,8 +759,8 @@ export function exportAdminManualPdf() {
     '• Matriz de Benefícios: imagem institucional completa gerada e exibida na Home pública e na área logada.',
   )
 
-  // --- SEÇÃO 9: PARCEIROS ---
-  addSectionTitle('9. PARCEIROS')
+  // --- SEÇÃO 11: PARCEIROS ---
+  addSectionTitle('11. PARCEIROS')
   addParagraph('Caminho no painel: Admin → Parceiros')
   addParagraph(
     '• Cadastro de empresas e estabelecimentos parceiros (hotéis, restaurantes, oficinas, lojas).',
@@ -627,8 +769,8 @@ export function exportAdminManualPdf() {
     '• Campos: nome da empresa, logo, descrição da parceria/desconto, link oficial e categorias contempladas.',
   )
 
-  // --- SEÇÃO 10: BANNERS E GALERIA ---
-  addSectionTitle('10. BANNERS E GALERIA')
+  // --- SEÇÃO 12: BANNERS E GALERIA ---
+  addSectionTitle('12. BANNERS E GALERIA')
   addSubSection('Banners')
   addParagraph(
     'Caminho: Admin → Banners. Controle dos banners rotativos do topo da página principal (upload, ordem e ativação).',
@@ -638,21 +780,21 @@ export function exportAdminManualPdf() {
     'Caminho: Admin → Galeria. Upload de álbuns e registros fotográficos dos passeios e encontros oficiais.',
   )
 
-  // --- SEÇÃO 11: COMUNICADOS ---
-  addSectionTitle('11. COMUNICADOS')
+  // --- SEÇÃO 13: COMUNICADOS ---
+  addSectionTitle('13. COMUNICADOS')
   addParagraph('Caminho no painel: Admin → Comunicados')
   addParagraph(
     '• Publicação de comunicados oficiais, avisos urgentes e novidades para a comunidade.',
   )
   addParagraph('• Campos: título, texto, imagem de capa opcional e marcação de urgência/destaque.')
 
-  // --- SEÇÃO 12: RELATÓRIOS ---
-  addSectionTitle('12. RELATÓRIOS')
+  // --- SEÇÃO 14: RELATÓRIOS ---
+  addSectionTitle('14. RELATÓRIOS E EXPORTAÇÕES')
   addParagraph('Caminho no painel: Admin -> Relatórios')
   addTable(
     [['Relatório', 'Conteúdo Gerado', 'Formatos']],
     [
-      ['Membros', 'Lista completa com nome, CPF, categoria, motos e pontuação', 'CSV / PDF'],
+      ['Membros', 'Lista completa com nome, CPF, categoria, Score de Oficina e motos', 'CSV / PDF'],
       ['Passeios', 'Histórico completo de passeios realizados e agendados', 'CSV / PDF'],
       ['Inscrições', 'Lista detalhada de inscritos e participantes por passeio', 'CSV / PDF'],
       ['Ranking', 'Classificação geral dos membros mais ativos por pontuação', 'CSV / PDF'],
@@ -662,12 +804,16 @@ export function exportAdminManualPdf() {
   )
   addParagraph('Filtros: por categoria, por status e por intervalo de datas.')
 
-  // --- SEÇÃO 13: CONFIGURAÇÕES ---
-  addSectionTitle('13. CONFIGURAÇÕES')
-  addParagraph('Caminho no painel: Admin -> Configurações')
+  // --- SEÇÃO 15: CONFIGURAÇÕES ---
+  addSectionTitle('15. CONFIGURAÇÕES DO SISTEMA & FAIXAS DE SCORE')
+  addParagraph('Caminho no painel: Admin -> Configurações e Admin -> Score de Oficina')
   addTable(
     [['Configuração', 'Descrição e Aplicação']],
     [
+      [
+        'Faixas do Score de Oficina',
+        'Configuração customizada dos limites e pontos de valor e frequência',
+      ],
       ['Instagram URL', 'Link do perfil oficial do Instagram (exibido no rodapé e Home)'],
       ['Facebook URL', 'Link da página oficial do Facebook'],
       ['Telefone de contato', 'WhatsApp/telefone oficial exibido na página de Contato'],
@@ -678,11 +824,11 @@ export function exportAdminManualPdf() {
     'Configurações Gerais',
   )
 
-  // --- SEÇÃO 14: FLUXOS PRINCIPAIS ---
-  addSectionTitle('14. FLUXOS PRINCIPAIS DO SISTEMA')
+  // --- SEÇÃO 16: FLUXOS PRINCIPAIS ---
+  addSectionTitle('16. FLUXOS PRINCIPAIS DO SISTEMA')
   addBullet(
     'Fluxo 1 (Importação em massa)',
-    'Admin faz upload da planilha → Sistema valida registros → Preview com resumo de válidos/erros → Admin confirma → Membros entram como "Pré-cadastrado" → Categoria calculada automaticamente.',
+    'Admin faz upload da planilha → Sistema executa as 14 etapas automatizadas → Preview com resumo de válidos/erros → Admin confirma → Membros entram como "Pré-cadastrado" ou são atualizados com Score e Categoria calculados.',
   )
   addBullet(
     'Fluxo 2 (Cliente ativa cadastro)',
@@ -697,8 +843,8 @@ export function exportAdminManualPdf() {
     'Membro logado escolhe o passeio → Clica em "QUERO PARTICIPAR" → Dados preenchidos automaticamente → Informa se leva garupa (dados do garupa) → Contato de emergência + aceite de regulamento → Confirmação imediata da vaga.',
   )
 
-  // --- SEÇÃO 15: CARTEIRINHA DIGITAL ---
-  addSectionTitle('15. CARTEIRINHA DIGITAL E VALIDAÇÃO QR CODE')
+  // --- SEÇÃO 17: CARTEIRINHA DIGITAL ---
+  addSectionTitle('17. CARTEIRINHA DIGITAL E VALIDAÇÃO QR CODE')
   addParagraph('Caminho do membro: Área do Membro → Carteirinha')
   addParagraph(
     '• Exibe: nome do piloto, categoria com badge oficial colorida, ID exclusivo e QR Code.',
@@ -710,11 +856,11 @@ export function exportAdminManualPdf() {
     '• Privacidade: dados sensíveis (CPF, telefone, e-mail) NUNCA são expostos na página de validação pública.',
   )
 
-  // --- SEÇÃO 16: SEGURANÇA E AUDITORIA ---
-  addSectionTitle('16. SEGURANÇA E AUDITORIA')
+  // --- SEÇÃO 18: SEGURANÇA E AUDITORIA ---
+  addSectionTitle('18. SEGURANÇA E AUDITORIA')
   addBullet(
     'Histórico de Auditoria',
-    'Toda alteração de categoria ou status fica registrada com autor, data/hora, valor anterior, novo valor e justificativa.',
+    'Toda alteração de categoria, Score ou status fica registrada com autor, data/hora, valor anterior, novo valor e justificativa.',
   )
   addBullet(
     'Controle de Acesso',
@@ -726,8 +872,13 @@ export function exportAdminManualPdf() {
   )
   addBullet('Unicidade de CPF', 'O sistema bloqueia cadastros duplicados com o mesmo CPF.')
 
-  // --- SEÇÃO 17: DÚVIDAS FREQUENTES ---
-  addSectionTitle('17. DÚVIDAS FREQUENTES (FAQ)')
+  // --- SEÇÃO 19: DÚVIDAS FREQUENTES ---
+  addSectionTitle('19. DÚVIDAS FREQUENTES (FAQ)')
+  addSubSection('P: O Score de Oficina pode rebaixar a categoria de um membro?')
+  addParagraph(
+    'R: NÃO. O Score de Oficina mede a intensidade do relacionamento pós-vendas e é totalmente independente da Categoria. Um Platinum com Score baixo continua Platinum (recebe tag VIP AFASTADO para ação de pós-vendas).',
+  )
+
   addSubSection('P: Um membro Bronze perdeu o status. Como reativar?')
   addParagraph(
     'R: O status Bronze expira após 6 meses sem passagem pela oficina. Quando o cliente fizer uma nova visita à loja (check-in QR Code) ou tiver uma nova passagem de oficina registrada no sistema, o status é reativado automaticamente como Bronze ativo.',
