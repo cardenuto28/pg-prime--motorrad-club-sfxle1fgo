@@ -27,7 +27,9 @@ import {
   AlertTriangle,
 } from 'lucide-react'
 import { exportMembersPdf } from '@/lib/pdfExport'
+import { exportMembersExcel } from '@/lib/excelExport'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
+import { FileSpreadsheet } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -212,7 +214,10 @@ const AdminMembers: React.FC = () => {
   const load = useCallback(async () => {
     setLoading(true)
     try {
-      const all = await userService.getAllUsers()
+      // Utiliza busca no PocketBase se houver termo digitado
+      const all = await userService.getAllUsers({
+        search: search.trim() || undefined,
+      })
       setUsers(all)
     } catch (e) {
       console.error('Erro ao carregar membros:', e)
@@ -224,23 +229,29 @@ const AdminMembers: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [toast])
+  }, [search, toast])
 
   useEffect(() => {
-    load()
+    const timer = setTimeout(() => {
+      load()
+    }, 300)
+    return () => clearTimeout(timer)
   }, [load])
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
 
     return users.filter((u) => {
-      // 1. Busca textual
+      // 1. Busca textual local adicional (Nome, CPF/CNPJ, Email, Telefone, Cidade, Moto, Chassi)
       if (q) {
         const matches =
           (u.name || '').toLowerCase().includes(q) ||
           (u.email || '').toLowerCase().includes(q) ||
           (u.cpf || '').toLowerCase().includes(q) ||
+          (u.phone || '').toLowerCase().includes(q) ||
+          (u.city || '').toLowerCase().includes(q) ||
           (u.bike_model || '').toLowerCase().includes(q) ||
+          (u.bike_brand || '').toLowerCase().includes(q) ||
           (u.bike_chassi || '').toLowerCase().includes(q)
         if (!matches) return false
       }
@@ -449,10 +460,31 @@ const AdminMembers: React.FC = () => {
                   })
                   return
                 }
+                exportMembersExcel(filtered)
+                toast({
+                  title: 'Excel Gerado',
+                  description: `${filtered.length} membros exportados em planilha XLSX.`,
+                })
+              }}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-emerald-400 hover:text-white hover:bg-emerald-950/40 text-xs gap-1.5 h-9"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> EXPORTAR EXCEL
+            </Button>
+            <Button
+              onClick={() => {
+                if (filtered.length === 0) {
+                  toast({
+                    title: 'Sem dados',
+                    description: 'Nenhum membro para exportar.',
+                    variant: 'destructive',
+                  })
+                  return
+                }
                 exportMembersPdf(filtered)
                 toast({
                   title: 'PDF Gerado',
-                  description: 'Lista de membros exportada em PDF.',
+                  description: `${filtered.length} membros exportados em PDF.`,
                 })
               }}
               variant="outline"
@@ -493,7 +525,7 @@ const AdminMembers: React.FC = () => {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por nome, e-mail, CPF, moto ou chassi..."
+              placeholder="Pesquisar por nome, CPF/CNPJ, e-mail, telefone, cidade..."
               className="pl-9 bg-[#141b27] border-[#222c3f] text-white text-xs placeholder:text-slate-500 h-9"
             />
           </div>

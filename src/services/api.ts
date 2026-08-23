@@ -299,8 +299,18 @@ export const userService = {
     return pb.authStore.model as unknown as UserProfile
   },
 
-  async getAllUsers(): Promise<UserProfile[]> {
-    const records = await pb.collection('users').getFullList({ sort: '-created' })
+  async getAllUsers(options?: { search?: string; filter?: string }): Promise<UserProfile[]> {
+    let filterString = options?.filter || ''
+    if (options?.search && options.search.trim()) {
+      const q = options.search.trim().replace(/['"\\]/g, '')
+      const searchFilter = `(name ~ '${q}' || cpf ~ '${q}' || email ~ '${q}' || phone ~ '${q}' || city ~ '${q}')`
+      filterString = filterString ? `${filterString} && ${searchFilter}` : searchFilter
+    }
+
+    const records = await pb.collection('users').getFullList({
+      filter: filterString || undefined,
+      sort: '-created',
+    })
     return records as unknown as UserProfile[]
   },
 

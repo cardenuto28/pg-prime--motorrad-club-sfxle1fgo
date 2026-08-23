@@ -25,6 +25,11 @@ import {
   storeVisitService,
 } from '@/services/api'
 import { formatDate, isRidePast } from '@/lib/member'
+import { exportDashboardPdf } from '@/lib/pdfExport'
+import { exportDashboardExcel } from '@/lib/excelExport'
+import { Button } from '@/components/ui/button'
+import { useToast } from '@/hooks/use-toast'
+import { FileText, FileSpreadsheet } from 'lucide-react'
 import {
   calcularCategoriaMembro,
   calcularScoreCompleto,
@@ -88,6 +93,7 @@ const RideStatusPill: React.FC<RideStatusBadgeProps> = ({ status }) => {
 }
 
 const AdminDashboard: React.FC = () => {
+  const { toast } = useToast()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [rides, setRides] = useState<Ride[]>([])
   const [regs, setRegs] = useState<Registration[]>([])
@@ -391,13 +397,47 @@ const AdminDashboard: React.FC = () => {
     <div className="space-y-8">
       {/* Header */}
       <section className="bg-gradient-to-br from-[#0f131c] to-[#0a0d14] border border-[#1d2638] rounded-md p-5 sm:p-6">
-        <p className="text-[10px] text-slate-500 uppercase tracking-widest font-montserrat">
-          Painel Administrativo
-        </p>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight mt-1">
-          Dashboard
-        </h1>
-        <p className="text-xs text-slate-400 mt-1">Visão geral do Euro Motors Motorrad Club</p>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <p className="text-[10px] text-slate-500 uppercase tracking-widest font-montserrat">
+              Painel Administrativo
+            </p>
+            <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight mt-1">
+              Dashboard
+            </h1>
+            <p className="text-xs text-slate-400 mt-1">
+              Visão geral e métricas do Euro Motors Motorrad Club
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-2.5">
+            <Button
+              onClick={() => {
+                exportDashboardExcel(stats, stats.topActiveMembers)
+                toast({
+                  title: 'Excel Gerado',
+                  description: 'Relatório do Dashboard exportado em XLSX.',
+                })
+              }}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-emerald-400 hover:text-white hover:bg-emerald-950/40 text-xs gap-1.5 h-9"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> EXPORTAR EXCEL
+            </Button>
+            <Button
+              onClick={() => {
+                exportDashboardPdf(stats, stats.topActiveMembers)
+                toast({
+                  title: 'PDF Gerado',
+                  description: 'Relatório do Dashboard exportado em PDF.',
+                })
+              }}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
+            >
+              <FileText className="w-4 h-4 text-blue-400" /> EXPORTAR PDF
+            </Button>
+          </div>
+        </div>
       </section>
 
       {/* Métricas principais */}

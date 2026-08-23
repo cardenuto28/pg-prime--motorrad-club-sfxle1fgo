@@ -28,6 +28,9 @@ import {
 } from '@/services/api'
 import { MemberStatusBadge, formatDate } from '@/lib/member'
 import { CategoryBadge } from '@/components/CategoryBadge'
+import { exportMemberProfilePdf } from '@/lib/pdfExport'
+import { exportMemberProfileExcel } from '@/lib/excelExport'
+import { FileText, FileSpreadsheet } from 'lucide-react'
 import {
   calcularCategoriaMembro,
   normalizeCategory,
@@ -139,26 +142,56 @@ const AdminMemberDetail: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      {/* Breadcrumb / voltar */}
-      <div className="flex items-center justify-between">
+      {/* Breadcrumb / voltar & Ações de Exportação */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <Button
           variant="ghost"
           size="sm"
           onClick={() => navigate('/admin/membros')}
-          className="text-slate-400 hover:text-white"
+          className="text-slate-400 hover:text-white w-fit"
         >
           <ArrowLeft className="w-4 h-4 mr-1.5" />
           Voltar para Lista
         </Button>
-        <Link
-          to={`/verificar/${user.id}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[11px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider flex items-center gap-1"
-        >
-          <CreditCard className="w-3.5 h-3.5" /> VER CARTEIRINHA{' '}
-          <ChevronRight className="w-3.5 h-3.5" />
-        </Link>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => {
+              exportMemberProfileExcel(user, metricas)
+              toast({
+                title: 'Excel Gerado',
+                description: `Ficha de ${user.name || 'Membro'} exportada em XLSX.`,
+              })
+            }}
+            variant="outline"
+            size="sm"
+            className="border-emerald-800/60 bg-emerald-950/30 text-emerald-300 hover:text-white hover:bg-emerald-950/60 text-xs gap-1.5 h-8"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> EXPORTAR EXCEL
+          </Button>
+          <Button
+            onClick={() => {
+              exportMemberProfilePdf(user, metricas)
+              toast({
+                title: 'PDF Gerado',
+                description: `Ficha 360º de ${user.name || 'Membro'} exportada em PDF.`,
+              })
+            }}
+            variant="outline"
+            size="sm"
+            className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-8"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" /> EXPORTAR PDF
+          </Button>
+          <Link
+            to={`/verificar/${user.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[11px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider flex items-center gap-1 ml-1"
+          >
+            <CreditCard className="w-3.5 h-3.5" /> VER CARTEIRINHA{' '}
+            <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
       </div>
 
       {/* ===== CABEÇALHO 360º ===== */}

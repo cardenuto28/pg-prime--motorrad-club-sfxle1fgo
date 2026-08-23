@@ -7,7 +7,11 @@ import {
   ChevronLeft,
   ChevronRight,
   MessageCircle,
+  FileSpreadsheet,
+  FileText,
 } from 'lucide-react'
+import { exportRideRegistrationsExcel } from '@/lib/excelExport'
+import { exportRideRegistrationsPdf } from '@/lib/pdfExport'
 import { Registration, registrationService } from '@/services/api'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -239,13 +243,64 @@ const AdminRegistrations: React.FC = () => {
               Inscrições nos Passeios
             </h1>
           </div>
-          <Button
-            onClick={exportCsv}
-            variant="outline"
-            className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
-          >
-            <Download className="w-4 h-4" /> EXPORTAR CSV
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <Button
+              onClick={() => {
+                if (filtered.length === 0) {
+                  toast({
+                    title: 'Sem dados',
+                    description: 'Não há inscrições para exportar.',
+                    variant: 'destructive',
+                  })
+                  return
+                }
+                exportRideRegistrationsExcel({ name: 'Todas as Inscrições' }, filtered)
+                toast({
+                  title: 'Excel Gerado',
+                  description: `${filtered.length} inscrições exportadas em planilha XLSX.`,
+                })
+              }}
+              variant="outline"
+              className="border-emerald-800/60 bg-emerald-950/30 text-emerald-300 hover:text-white hover:bg-emerald-950/60 text-xs gap-1.5 h-9"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> EXPORTAR EXCEL
+            </Button>
+            <Button
+              onClick={() => {
+                if (filtered.length === 0) {
+                  toast({
+                    title: 'Sem dados',
+                    description: 'Não há inscrições para exportar.',
+                    variant: 'destructive',
+                  })
+                  return
+                }
+                exportRideRegistrationsPdf(
+                  {
+                    name: 'Relatório Geral de Inscrições',
+                    date: 'Consolidado',
+                    destination: 'Passeios do Clube',
+                  },
+                  filtered,
+                )
+                toast({
+                  title: 'PDF Gerado',
+                  description: `${filtered.length} inscrições exportadas em PDF.`,
+                })
+              }}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
+            >
+              <FileText className="w-4 h-4 text-blue-400" /> EXPORTAR PDF
+            </Button>
+            <Button
+              onClick={exportCsv}
+              variant="outline"
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs gap-1.5 h-9"
+            >
+              <Download className="w-4 h-4" /> EXPORTAR CSV
+            </Button>
+          </div>
         </div>
       </section>
 

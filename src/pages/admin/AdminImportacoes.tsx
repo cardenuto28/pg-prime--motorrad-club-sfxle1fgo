@@ -15,6 +15,9 @@ import { Button } from '@/components/ui/button'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { useToast } from '@/hooks/use-toast'
 import { importLogService, type ImportLog } from '@/services/api'
+import { exportImportLogsPdf } from '@/lib/pdfExport'
+import { exportImportLogsExcel } from '@/lib/excelExport'
+import { FileText } from 'lucide-react'
 
 /**
  * PARTE 3 — Página de Histórico de Importações (/admin/importacoes)
@@ -128,20 +131,66 @@ export default function AdminImportacoes() {
             Registro de todas as planilhas de membros processadas pelo sistema.
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={loadLogs}
-          disabled={loading}
-          className="border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800"
-        >
-          {loading ? (
-            <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
-          ) : (
-            <RefreshCw className="w-4 h-4 mr-1.5" />
-          )}
-          Atualizar
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button
+            onClick={() => {
+              if (logs.length === 0) {
+                toast({
+                  title: 'Sem dados',
+                  description: 'Nenhum histórico de importação para exportar.',
+                  variant: 'destructive',
+                })
+                return
+              }
+              exportImportLogsExcel(logs)
+              toast({
+                title: 'Excel Gerado',
+                description: `${logs.length} registros exportados em planilha XLSX.`,
+              })
+            }}
+            variant="outline"
+            size="sm"
+            className="border-emerald-800/60 bg-emerald-950/30 text-emerald-300 hover:text-white hover:bg-emerald-950/60 text-xs gap-1.5 h-8"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> EXPORTAR EXCEL
+          </Button>
+          <Button
+            onClick={() => {
+              if (logs.length === 0) {
+                toast({
+                  title: 'Sem dados',
+                  description: 'Nenhum histórico de importação para exportar.',
+                  variant: 'destructive',
+                })
+                return
+              }
+              exportImportLogsPdf(logs)
+              toast({
+                title: 'PDF Gerado',
+                description: `${logs.length} registros exportados em PDF.`,
+              })
+            }}
+            variant="outline"
+            size="sm"
+            className="border-slate-700 bg-slate-900 text-slate-300 hover:text-white text-xs gap-1.5 h-8"
+          >
+            <FileText className="w-3.5 h-3.5 text-blue-400" /> EXPORTAR PDF
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={loadLogs}
+            disabled={loading}
+            className="border-slate-700 bg-slate-900 text-slate-300 hover:text-white hover:bg-slate-800 h-8"
+          >
+            {loading ? (
+              <Loader2 className="w-4 h-4 mr-1.5 animate-spin" />
+            ) : (
+              <RefreshCw className="w-4 h-4 mr-1.5" />
+            )}
+            Atualizar
+          </Button>
+        </div>
       </div>
 
       {/* Resumo rápido */}

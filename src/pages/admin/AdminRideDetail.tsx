@@ -28,6 +28,8 @@ import {
 } from 'lucide-react'
 import { QrCheckInModal } from '@/components/QrCheckInModal'
 import { exportRideRegistrationsPdf } from '@/lib/pdfExport'
+import { exportRideRegistrationsExcel } from '@/lib/excelExport'
+import { FileSpreadsheet } from 'lucide-react'
 import {
   Ride,
   Registration,
@@ -400,6 +402,28 @@ const AdminRideDetail: React.FC = () => {
               className="bg-[#0066FF] hover:bg-blue-600 text-white font-extrabold text-xs tracking-wider gap-1.5 h-9 shadow-lg shadow-blue-900/30 font-montserrat"
             >
               <Camera className="w-4 h-4 animate-pulse" /> 📷 INICIAR CHECK-IN
+            </Button>
+            <Button
+              onClick={() => {
+                if (!ride) return
+                if (regs.length === 0) {
+                  toast({
+                    title: 'Sem inscritos',
+                    description: 'Não há inscritos neste passeio para exportar.',
+                    variant: 'destructive',
+                  })
+                  return
+                }
+                exportRideRegistrationsExcel(ride, regs)
+                toast({
+                  title: 'Excel Gerado',
+                  description: 'Lista de inscritos e check-in exportada em XLSX.',
+                })
+              }}
+              variant="outline"
+              className="border-emerald-800/60 bg-emerald-950/30 text-emerald-300 hover:text-white hover:bg-emerald-950/60 text-xs gap-1.5 h-9"
+            >
+              <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> EXPORTAR EXCEL
             </Button>
             <Button
               onClick={() => {

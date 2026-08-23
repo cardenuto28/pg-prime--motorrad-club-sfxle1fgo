@@ -27,7 +27,9 @@ import { useToast } from '@/hooks/use-toast'
 import { formatDate } from '@/lib/member'
 import { RideStatusBadge } from '@/lib/ride'
 import { exportActiveRankingPdf } from '@/lib/pdfExport'
+import { exportToExcel } from '@/lib/excelExport'
 import { CategoryBadge } from '@/components/CategoryBadge'
+import { FileSpreadsheet } from 'lucide-react'
 import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
 import { Sparkles, Crown, Star, ArrowUpRight } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -538,6 +540,46 @@ const AdminReports: React.FC = () => {
               'Visitas Loja',
               'Pontos Totais',
             ]}
+            onExportExcel={() => {
+              if (activeRanking.length === 0) {
+                toast({
+                  title: 'Sem dados',
+                  description: 'Não há dados de ranking para exportar.',
+                  variant: 'destructive',
+                })
+                return
+              }
+              exportToExcel({
+                sheetName: 'Ranking Membros',
+                fileName: `ranking_membros_mais_ativos_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                headers: [
+                  'Posição',
+                  'Nome',
+                  'Email',
+                  'Categoria',
+                  'Passeios (Check-ins)',
+                  'Pontos Passeios',
+                  'Visitas Loja',
+                  'Pontos Visitas',
+                  'Pontos Totais',
+                ],
+                data: activeRanking.map((item, idx) => [
+                  `${idx + 1}º`,
+                  item.user.name || '',
+                  item.user.email || '',
+                  item.category || 'BRONZE',
+                  item.totalAttended,
+                  item.ridePoints,
+                  item.storeVisitsCount,
+                  item.storePoints,
+                  item.totalPoints,
+                ]),
+              })
+              toast({
+                title: 'Excel Gerado',
+                description: 'Ranking de membros com pontuação exportado em XLSX.',
+              })
+            }}
             onExportPdf={() => {
               if (activeRanking.length === 0) {
                 toast({
@@ -669,6 +711,18 @@ const AdminReports: React.FC = () => {
           <ReportTable
             title="Membros por cidade"
             headers={['Cidade', 'Membros']}
+            onExportExcel={() => {
+              exportToExcel({
+                sheetName: 'Membros por Cidade',
+                fileName: `membros_por_cidade_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                headers: ['Cidade', 'Membros'],
+                data: byCity.map((c) => [c.city, c.count]),
+              })
+              toast({
+                title: 'Excel Gerado',
+                description: 'Membros por cidade exportados em XLSX.',
+              })
+            }}
             onExport={() =>
               exportCsv(
                 [['Cidade', 'Membros'], ...byCity.map((c) => [c.city, c.count])],
@@ -692,6 +746,15 @@ const AdminReports: React.FC = () => {
           <ReportTable
             title="Membros por modelo de moto"
             headers={['Moto', 'Membros']}
+            onExportExcel={() => {
+              exportToExcel({
+                sheetName: 'Membros por Moto',
+                fileName: `membros_por_moto_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                headers: ['Moto', 'Membros'],
+                data: byBike.map((b) => [b.bike, b.count]),
+              })
+              toast({ title: 'Excel Gerado', description: 'Membros por moto exportados em XLSX.' })
+            }}
             onExport={() =>
               exportCsv(
                 [['Moto', 'Membros'], ...byBike.map((b) => [b.bike, b.count])],
@@ -715,6 +778,22 @@ const AdminReports: React.FC = () => {
           <ReportTable
             title="Passeios com inscrições"
             headers={['Passeio', 'Data', 'Status', 'Motos', 'Participantes', 'Ocupação']}
+            onExportExcel={() => {
+              exportToExcel({
+                sheetName: 'Passeios Inscrições',
+                fileName: `passeios_inscricoes_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                headers: ['Passeio', 'Data', 'Status', 'Motos', 'Participantes', 'Ocupação (%)'],
+                data: ridesWithRegs.map((r) => [
+                  r.ride.name,
+                  formatDate(r.ride.date),
+                  r.ride.status,
+                  r.bikes,
+                  r.participants,
+                  r.occupancy,
+                ]),
+              })
+              toast({ title: 'Excel Gerado', description: 'Passeios exportados em XLSX.' })
+            }}
             onExport={() =>
               exportCsv(
                 [
@@ -791,15 +870,26 @@ const ReportTable: React.FC<{
   title: string
   headers: string[]
   onExport: () => void
+  onExportExcel?: () => void
   onExportPdf?: () => void
   children: React.ReactNode
-}> = ({ title, headers, onExport, onExportPdf, children }) => (
+}> = ({ title, headers, onExport, onExportExcel, onExportPdf, children }) => (
   <section className="bg-[#0e131d] border border-[#1c2538] rounded-md overflow-hidden">
-    <div className="flex items-center justify-between px-4 py-3 border-b border-[#1c2538]">
+    <div className="flex flex-wrap items-center justify-between px-4 py-3 border-b border-[#1c2538] gap-2">
       <h2 className="text-xs font-extrabold text-white uppercase tracking-widest font-montserrat">
         {title}
       </h2>
-      <div className="flex items-center gap-1.5">
+      <div className="flex flex-wrap items-center gap-1.5">
+        {onExportExcel && (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={onExportExcel}
+            className="border-emerald-800/60 bg-emerald-950/30 text-emerald-300 hover:text-white hover:bg-emerald-950/60 text-[11px] h-8 gap-1.5"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> EXCEL
+          </Button>
+        )}
         {onExportPdf && (
           <Button
             variant="outline"
