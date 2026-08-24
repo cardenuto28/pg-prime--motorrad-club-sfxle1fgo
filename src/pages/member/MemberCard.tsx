@@ -21,14 +21,153 @@ import { useToast } from '@/hooks/use-toast'
 import memberCardLogo from '@/assets/image-ae9a6.png'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { normalizeCategory } from '@/lib/membership'
+import { MemberCategory } from '@/services/api'
+
+interface CardColorTheme {
+  category: MemberCategory
+  hex: string
+  twText: string
+  twBorder: string
+  twBgMesh: string
+  glowTopRight: string
+  glowTopLeft: string
+  logoGlow: string
+  outerBorder: string
+  lineGradient: string
+  lineShadow: string
+  qrShadow: string
+  iconBg: string
+  iconBorder: string
+  iconText: string
+  mStripes: [string, string, string]
+  sloganDot: string
+  roadStroke: string
+  previewText: string
+}
+
+const CARD_THEMES: Record<MemberCategory, CardColorTheme> = {
+  PLATINUM: {
+    category: 'PLATINUM',
+    hex: '#60a5fa',
+    twText: 'text-blue-400',
+    twBorder: 'border-blue-400/40',
+    twBgMesh: '#60a5fa',
+    glowTopRight: 'bg-blue-500/25',
+    glowTopLeft: 'bg-blue-400/15',
+    logoGlow: 'bg-blue-500/20',
+    outerBorder: 'border-blue-400/30',
+    lineGradient: 'via-[#60a5fa]',
+    lineShadow: 'shadow-[0_0_8px_#60a5fa]',
+    qrShadow: 'shadow-[0_0_20px_rgba(96,165,250,0.35)]',
+    iconBg: 'bg-[#0b1329]',
+    iconBorder: 'border-blue-500/40',
+    iconText: 'text-blue-400',
+    mStripes: ['bg-blue-500', 'bg-blue-400', 'bg-blue-600'],
+    sloganDot: 'text-blue-400',
+    roadStroke: '#60a5fa',
+    previewText: 'text-blue-400',
+  },
+  GOLD: {
+    category: 'GOLD',
+    hex: '#f59e0b',
+    twText: 'text-amber-500',
+    twBorder: 'border-amber-500/40',
+    twBgMesh: '#f59e0b',
+    glowTopRight: 'bg-amber-500/25',
+    glowTopLeft: 'bg-amber-400/15',
+    logoGlow: 'bg-amber-500/20',
+    outerBorder: 'border-amber-500/30',
+    lineGradient: 'via-[#f59e0b]',
+    lineShadow: 'shadow-[0_0_8px_#f59e0b]',
+    qrShadow: 'shadow-[0_0_20px_rgba(245,158,11,0.35)]',
+    iconBg: 'bg-[#1c1507]',
+    iconBorder: 'border-amber-500/40',
+    iconText: 'text-amber-400',
+    mStripes: ['bg-amber-500', 'bg-amber-400', 'bg-amber-600'],
+    sloganDot: 'text-amber-400',
+    roadStroke: '#f59e0b',
+    previewText: 'text-amber-400',
+  },
+  SILVER: {
+    category: 'SILVER',
+    hex: '#94a3b8',
+    twText: 'text-slate-400',
+    twBorder: 'border-slate-400/40',
+    twBgMesh: '#94a3b8',
+    glowTopRight: 'bg-slate-400/20',
+    glowTopLeft: 'bg-slate-300/10',
+    logoGlow: 'bg-slate-400/20',
+    outerBorder: 'border-slate-400/30',
+    lineGradient: 'via-[#94a3b8]',
+    lineShadow: 'shadow-[0_0_8px_#94a3b8]',
+    qrShadow: 'shadow-[0_0_20px_rgba(148,163,184,0.35)]',
+    iconBg: 'bg-[#111622]',
+    iconBorder: 'border-slate-500/40',
+    iconText: 'text-slate-300',
+    mStripes: ['bg-slate-400', 'bg-slate-300', 'bg-slate-500'],
+    sloganDot: 'text-slate-400',
+    roadStroke: '#94a3b8',
+    previewText: 'text-slate-300',
+  },
+  BRONZE: {
+    category: 'BRONZE',
+    hex: '#ea580c',
+    twText: 'text-orange-600',
+    twBorder: 'border-orange-600/40',
+    twBgMesh: '#ea580c',
+    glowTopRight: 'bg-orange-600/25',
+    glowTopLeft: 'bg-orange-500/15',
+    logoGlow: 'bg-orange-600/20',
+    outerBorder: 'border-orange-600/30',
+    lineGradient: 'via-[#ea580c]',
+    lineShadow: 'shadow-[0_0_8px_#ea580c]',
+    qrShadow: 'shadow-[0_0_20px_rgba(234,88,12,0.35)]',
+    iconBg: 'bg-[#1e1008]',
+    iconBorder: 'border-orange-600/40',
+    iconText: 'text-orange-400',
+    mStripes: ['bg-orange-600', 'bg-orange-500', 'bg-orange-700'],
+    sloganDot: 'text-orange-500',
+    roadStroke: '#ea580c',
+    previewText: 'text-orange-400',
+  },
+  INATIVO: {
+    category: 'INATIVO',
+    hex: '#64748b',
+    twText: 'text-slate-500',
+    twBorder: 'border-slate-500/40',
+    twBgMesh: '#64748b',
+    glowTopRight: 'bg-slate-500/20',
+    glowTopLeft: 'bg-slate-600/10',
+    logoGlow: 'bg-slate-500/15',
+    outerBorder: 'border-slate-500/30',
+    lineGradient: 'via-[#64748b]',
+    lineShadow: 'shadow-[0_0_8px_#64748b]',
+    qrShadow: 'shadow-[0_0_20px_rgba(100,116,139,0.35)]',
+    iconBg: 'bg-[#0f141c]',
+    iconBorder: 'border-slate-600/40',
+    iconText: 'text-slate-400',
+    mStripes: ['bg-slate-500', 'bg-slate-400', 'bg-slate-600'],
+    sloganDot: 'text-slate-500',
+    roadStroke: '#64748b',
+    previewText: 'text-slate-400',
+  },
+}
+
+export function getCardTheme(category?: string | null): CardColorTheme {
+  const norm = normalizeCategory(category)
+  return CARD_THEMES[norm] || CARD_THEMES.INATIVO
+}
 
 export const MemberCard: React.FC = () => {
   const { user } = useAuth()
   const { toast } = useToast()
 
+  const rawCategory = user?.categoria_clube || user?.categoria || user?.category || null
+  const cardTheme = useMemo(() => getCardTheme(rawCategory), [rawCategory])
+
   const memberIdFormatted = useMemo(() => formatMemberId(user), [user])
   const effectiveCategory = useMemo(() => {
-    return user?.categoria || getMemberCategory(user)
+    return user?.categoria_clube || user?.categoria || getMemberCategory(user)
   }, [user])
 
   // URL pública de verificação
@@ -130,14 +269,18 @@ export const MemberCard: React.FC = () => {
           <div
             className="absolute inset-0 opacity-[0.06] pointer-events-none"
             style={{
-              backgroundImage: `radial-gradient(#3b82f6 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(${cardTheme.twBgMesh} 1px, transparent 1px)`,
               backgroundSize: '16px 16px',
             }}
           />
 
-          {/* Glowing blue accent flare top right / middle */}
-          <div className="absolute -top-16 right-1/4 w-96 h-48 bg-blue-600/20 rounded-full blur-3xl pointer-events-none" />
-          <div className="absolute top-1/4 -left-16 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl pointer-events-none" />
+          {/* Glowing accent flares top right / middle based on category */}
+          <div
+            className={`absolute -top-16 right-1/4 w-96 h-48 ${cardTheme.glowTopRight} rounded-full blur-3xl pointer-events-none transition-colors duration-500`}
+          />
+          <div
+            className={`absolute top-1/4 -left-16 w-80 h-80 ${cardTheme.glowTopLeft} rounded-full blur-3xl pointer-events-none transition-colors duration-500`}
+          />
 
           {/* Mountains & Road silhouetted background texture at bottom/center */}
           <svg
@@ -167,15 +310,17 @@ export const MemberCard: React.FC = () => {
             />
             <path
               d="M380 320 Q395 400 382 500"
-              stroke="#0066FF"
+              stroke={cardTheme.roadStroke}
               strokeWidth="2"
               strokeDasharray="6 6"
-              opacity="0.4"
+              opacity="0.55"
             />
           </svg>
 
           {/* Outer Border Glow Ring */}
-          <div className="absolute inset-0 rounded-2xl border border-blue-500/20 pointer-events-none" />
+          <div
+            className={`absolute inset-0 rounded-2xl border ${cardTheme.outerBorder} pointer-events-none transition-colors duration-500`}
+          />
           <div className="absolute inset-[1px] rounded-2xl border border-white/5 pointer-events-none" />
 
           {/* Inner Content Grid */}
@@ -190,8 +335,10 @@ export const MemberCard: React.FC = () => {
                   <h2 className="text-2xl sm:text-4xl font-black tracking-[0.1em] text-white uppercase font-montserrat leading-none mt-0.5">
                     MEMBRO
                   </h2>
-                  {/* Subtle bright blue line under MEMBRO */}
-                  <div className="h-[2px] w-full bg-gradient-to-r from-transparent via-[#0088ff] to-transparent mt-1 shadow-[0_0_8px_#0088ff]" />
+                  {/* Subtle bright colored line under MEMBRO */}
+                  <div
+                    className={`h-[2px] w-full bg-gradient-to-r from-transparent ${cardTheme.lineGradient} to-transparent mt-1 ${cardTheme.lineShadow} transition-all duration-500`}
+                  />
                 </div>
               </div>
             </div>
@@ -203,7 +350,9 @@ export const MemberCard: React.FC = () => {
                 <div className="relative group transition-transform duration-300 hover:scale-105 flex items-center justify-center">
                   <div className="relative flex items-center justify-center">
                     {/* Subtle backglow */}
-                    <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full pointer-events-none" />
+                    <div
+                      className={`absolute inset-0 ${cardTheme.logoGlow} blur-xl rounded-full pointer-events-none transition-colors duration-500`}
+                    />
                     {/* Shield Logo Image */}
                     <img
                       src={memberCardLogo}
@@ -218,7 +367,9 @@ export const MemberCard: React.FC = () => {
               <div className="col-span-12 sm:col-span-5 space-y-3 sm:space-y-3.5 pl-1">
                 {/* 1. Nome do Membro */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
+                  <div
+                    className={`w-8 h-8 rounded-full ${cardTheme.iconBg} border ${cardTheme.iconBorder} flex items-center justify-center ${cardTheme.iconText} flex-shrink-0 shadow-inner transition-colors duration-300`}
+                  >
                     <User className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
@@ -233,7 +384,9 @@ export const MemberCard: React.FC = () => {
 
                 {/* 2. Categoria com Badge e Selo */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
+                  <div
+                    className={`w-8 h-8 rounded-full ${cardTheme.iconBg} border ${cardTheme.iconBorder} flex items-center justify-center ${cardTheme.iconText} flex-shrink-0 shadow-inner transition-colors duration-300`}
+                  >
                     <Crown className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
@@ -248,7 +401,9 @@ export const MemberCard: React.FC = () => {
 
                 {/* 3. Status de Associação */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
+                  <div
+                    className={`w-8 h-8 rounded-full ${cardTheme.iconBg} border ${cardTheme.iconBorder} flex items-center justify-center ${cardTheme.iconText} flex-shrink-0 shadow-inner transition-colors duration-300`}
+                  >
                     <Calendar className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
@@ -271,7 +426,9 @@ export const MemberCard: React.FC = () => {
 
                 {/* 4. ID do Membro */}
                 <div className="flex items-start gap-2.5 sm:gap-3">
-                  <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
+                  <div
+                    className={`w-8 h-8 rounded-full ${cardTheme.iconBg} border ${cardTheme.iconBorder} flex items-center justify-center ${cardTheme.iconText} flex-shrink-0 shadow-inner transition-colors duration-300`}
+                  >
                     <Shield className="w-4 h-4" />
                   </div>
                   <div className="min-w-0">
@@ -287,7 +444,9 @@ export const MemberCard: React.FC = () => {
                 {/* 5. Chassi da Moto (se cadastrado) */}
                 {user?.bike_chassi && (
                   <div className="flex items-start gap-2.5 sm:gap-3">
-                    <div className="w-8 h-8 rounded-full bg-[#0d1522] border border-[#22334e] flex items-center justify-center text-blue-400 flex-shrink-0 shadow-inner">
+                    <div
+                      className={`w-8 h-8 rounded-full ${cardTheme.iconBg} border ${cardTheme.iconBorder} flex items-center justify-center ${cardTheme.iconText} flex-shrink-0 shadow-inner transition-colors duration-300`}
+                    >
                       <CreditCard className="w-4 h-4" />
                     </div>
                     <div className="min-w-0">
@@ -303,14 +462,18 @@ export const MemberCard: React.FC = () => {
               </div>
               {/* Right Col: QR Code + Exclusive Tag (Col 3) */}
               <div className="col-span-12 sm:col-span-3 flex flex-col items-center justify-center space-y-2 border-t sm:border-t-0 sm:border-l border-[#1a2538] pt-3 sm:pt-0 sm:pl-4">
-                <span className="text-[8px] sm:text-[8.5px] font-black tracking-[0.15em] text-blue-400 uppercase font-montserrat text-center leading-tight">
+                <span
+                  className={`text-[8px] sm:text-[8.5px] font-black tracking-[0.15em] ${cardTheme.twText} uppercase font-montserrat text-center leading-tight transition-colors duration-300`}
+                >
                   ESCANEIE PARA
                   <br />
                   <span className="text-slate-300">VALIDAÇÃO / ACESSO</span>
                 </span>
 
-                {/* QR Code Container with subtle frame & mini logo in center */}
-                <div className="relative p-2 bg-white rounded-xl shadow-[0_0_20px_rgba(0,102,255,0.3)] group cursor-pointer">
+                {/* QR Code Container with dynamic glow frame & mini logo in center */}
+                <div
+                  className={`relative p-2 bg-white rounded-xl ${cardTheme.qrShadow} group cursor-pointer transition-shadow duration-500`}
+                >
                   <a
                     href={verifyUrl}
                     target="_blank"
@@ -337,7 +500,9 @@ export const MemberCard: React.FC = () => {
 
                 {/* Exclusive badge at bottom right */}
                 <div className="flex items-center gap-1.5 text-slate-400 text-center pt-0.5">
-                  <Lock className="w-3 h-3 text-blue-400 flex-shrink-0" />
+                  <Lock
+                    className={`w-3 h-3 ${cardTheme.twText} flex-shrink-0 transition-colors duration-300`}
+                  />
                   <span className="text-[7.5px] sm:text-[8px] font-bold tracking-wider uppercase leading-tight font-montserrat text-slate-300">
                     ACESSO EXCLUSIVO
                     <br />
@@ -382,15 +547,21 @@ export const MemberCard: React.FC = () => {
               {/* Slogan & Racing Stripes */}
               <div className="flex items-center gap-3">
                 <p className="text-[8px] sm:text-[9.5px] font-extrabold tracking-[0.25em] text-slate-300 uppercase font-montserrat">
-                  ESTRADA <span className="text-blue-500">•</span> LIBERDADE{' '}
-                  <span className="text-blue-500">•</span> IRMANDADE
+                  ESTRADA <span className={cardTheme.sloganDot}>•</span> LIBERDADE{' '}
+                  <span className={cardTheme.sloganDot}>•</span> IRMANDADE
                 </p>
 
-                {/* BMW M-style / Racing accent lines */}
+                {/* BMW M-style / Racing accent lines colored by category */}
                 <div className="flex items-center gap-0.5">
-                  <div className="w-1 h-3 -skew-x-12 bg-blue-500" />
-                  <div className="w-1 h-3 -skew-x-12 bg-blue-400" />
-                  <div className="w-1 h-3 -skew-x-12 bg-blue-600" />
+                  <div
+                    className={`w-1 h-3 -skew-x-12 ${cardTheme.mStripes[0]} transition-colors duration-300`}
+                  />
+                  <div
+                    className={`w-1 h-3 -skew-x-12 ${cardTheme.mStripes[1]} transition-colors duration-300`}
+                  />
+                  <div
+                    className={`w-1 h-3 -skew-x-12 ${cardTheme.mStripes[2]} transition-colors duration-300`}
+                  />
                 </div>
               </div>
             </div>
