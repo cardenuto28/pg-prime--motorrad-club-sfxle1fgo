@@ -844,14 +844,42 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         }
       }
 
-      // CORREÇÃO 1: Envia todos os históricos em lote após o término de todas as linhas principais (delay de 150ms)
+      // Envia historico_categoria com controle de taxa: delay de 750ms entre cada create,
+      // pausa de 2000ms a cada 10 requisições, e retry automático com backoff exponencial para 429
+      let histCatIndex = 0
       for (const payload of historicoCategoriaPayloads) {
-        try {
-          await pb.collection('historico_categoria').create(payload)
-        } catch (e) {
-          console.warn('Falha ao gravar lote historico_categoria:', e)
+        let attempts = 0
+        const maxAttempts = 3
+        while (attempts < maxAttempts) {
+          try {
+            await pb.collection('historico_categoria').create(payload)
+            break
+          } catch (e: any) {
+            attempts++
+            const isRateLimit =
+              e?.status === 429 || e?.response?.status === 429 || e?.statusCode === 429
+            if (isRateLimit && attempts < maxAttempts) {
+              const backoffMs = Math.pow(2, attempts) * 1000 // 2s, 4s
+              console.warn(
+                `Rate limit (429) em historico_categoria. Tentativa ${attempts}/${maxAttempts}. Aguardando ${backoffMs}ms...`,
+              )
+              await delay(backoffMs)
+            } else {
+              if (attempts >= maxAttempts) {
+                console.warn('Falha ao gravar lote historico_categoria após tentativas:', e)
+              } else if (!isRateLimit) {
+                console.warn('Falha ao gravar lote historico_categoria:', e)
+                break
+              }
+            }
+          }
         }
-        await delay(150)
+
+        histCatIndex++
+        await delay(750)
+        if (histCatIndex % 10 === 0) {
+          await delay(2000)
+        }
       }
 
       for (const payload of historicoMetricasPayloads) {
