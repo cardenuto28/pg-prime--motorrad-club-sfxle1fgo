@@ -407,8 +407,8 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         // ---- Proteção de campos cadastrais (Parte 1, seção 6 e Correção 2) ----
         // Se o registro já existe e o campo vem vazio ou inválido na planilha, manter o valor existente.
         // Campos protegidos: NOME, TELEFONE, EMAIL, CIDADE.
-        // Para EMAIL no UPDATE: se o email da planilha for vazio OU inválido, MANTER o email atual já cadastrado.
-        // Para CREATE: se o email da planilha for vazio OU inválido, usar o fallback exclusivo por CPF/CNPJ.
+        // Para EMAIL no UPDATE: se o email da planilha for válido, pode atualizar se diferente do atual; se vazio ou inválido, MANTER o email atual já cadastrado.
+        // Para CREATE: ignorar completamente o email da planilha e SEMPRE usar fallback por CPF/CNPJ exclusivo (o membro definirá seu email real no /validar-cadastro).
         const protectedNome =
           action === 'UPDATE' && existingUser && !nome ? String(existingUser.name || '') : nome
         const protectedTelefone =
@@ -420,9 +420,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             ? existingUser && (!email || !isValidEmail(email))
               ? String(existingUser.email || '')
               : email
-            : isValidEmail(email)
-              ? email
-              : generateFallbackEmail(cleanCpf)
+            : generateFallbackEmail(cleanCpf)
         const protectedCidade =
           action === 'UPDATE' && existingUser && !cidade ? String(existingUser.city || '') : cidade
 
@@ -520,6 +518,53 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     const dataStr = today.toISOString().slice(0, 10) // YYYY-MM-DD
     const horaStr = today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
+    // Filas para salvar históricos em lote após término de todas as linhas (evita 429)
+    const historicoCategoriaPayloads: Array<{
+      membro_id: string
+      categoria_anterior: string | null
+      categoria_nova: string
+      data_alteracao: string
+      motivo: string
+      origem: string
+      justificativa: string
+    }> = []
+
+    const historicoMetricasPayloads: Array<{
+      membro_id: string
+      data_importacao: string
+      categoria: string
+      score_oficina: number
+      total_compras: number
+      total_valor_vendido: number
+      numero_passagens: number
+      total_liquido_oficina: number
+      status: string
+      nivel_relacionamento: string
+    }> = []
+
+    const historicoMotosPayloads: Array<{
+      membro_id: string
+      cpf: string
+      modelo: string
+      ano: number
+      chassi: string
+      data_compra: string
+      status_venda: string
+      created_at: string
+    }> = []
+
+    const historicoOficinaPayloads: Array<{
+      membro_id: string
+      cpf: string
+      data_passagem: string
+      tipo_servico: string
+      ordem_servico: string
+      status: string
+      created_at: string
+    }> = []
+
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
+
     try {
       let processedIndex = 0
       for (const row of validRows) {
@@ -537,7 +582,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             const oldScore = Number(row.existingUser?.score_oficina || 0)
             const scoreMudou = oldScore !== row.scoreOficina
 
-            // Regra 2: No UPDATE, se o email da planilha for válido e diferente do atual, atualizar.
+            // Regra: No UPDATE, se o email da planilha for válido e diferente do atual, atualizar.
             // Se for inválido ou vazio, MANTER o email atual (não enviar campo email no payload para não alterar).
             const updatePayload: Record<string, any> = {
               name: row.nome || undefined,
@@ -588,54 +633,43 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
 
             await pb.collection('users').update(row.existingId, updatePayload)
 
-            // Registra histórico de categoria quando a categoria muda (fire-and-forget: sem await)
+            // Registra histórico de categoria quando a categoria muda (enfileira payload)
             if (catMudou) {
               categoriasAlteradasCount++
-              pb.collection('historico_categoria')
-                .create({
-                  membro_id: row.existingId,
-                  categoria_anterior: oldCat || null,
-                  categoria_nova: row.categoriaCalculada,
-                  data_alteracao: new Date().toISOString(),
-                  motivo: 'IMPORTACAO_ATUALIZACAO',
-                  origem: 'automatico',
-                  justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
-                })
-                .catch((e) => {
-                  console.warn('Falha no histórico de categoria (update):', e)
-                })
+              historicoCategoriaPayloads.push({
+                membro_id: row.existingId,
+                categoria_anterior: oldCat || null,
+                categoria_nova: row.categoriaCalculada,
+                data_alteracao: new Date().toISOString(),
+                motivo: 'IMPORTACAO_ATUALIZACAO',
+                origem: 'automatico',
+                justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
+              })
             }
 
             if (scoreMudou) {
               scoresAtualizadosCount++
             }
 
-            // PARTE 3 — Salva snapshot das métricas do membro (fire-and-forget: sem await)
-            historicoMetricasService
-              .create({
-                membro_id: row.existingId,
-                data_importacao: dataStr,
-                categoria: row.categoriaCalculada,
-                score_oficina: row.scoreOficina,
-                total_compras: row.quantidade_motos_compradas,
-                total_valor_vendido: row.total_valor_vendido,
-                numero_passagens: row.numero_passagens_oficina,
-                total_liquido_oficina: row.total_liquido_oficina,
-                status: row.statusCalculado,
-                nivel_relacionamento: row.nivelRelacionamento,
-              })
-              .catch((e) => {
-                console.warn('Falha no snapshot de métricas (update):', e)
-              })
+            // PARTE 3 — Snapshot das métricas do membro (enfileira payload)
+            historicoMetricasPayloads.push({
+              membro_id: row.existingId,
+              data_importacao: dataStr,
+              categoria: row.categoriaCalculada,
+              score_oficina: row.scoreOficina,
+              total_compras: row.quantidade_motos_compradas,
+              total_valor_vendido: row.total_valor_vendido,
+              numero_passagens: row.numero_passagens_oficina,
+              total_liquido_oficina: row.total_liquido_oficina,
+              status: row.statusCalculado,
+              nivel_relacionamento: row.nivelRelacionamento,
+            })
 
             updatedCount++
           } else {
             // ===== UPSERT: criar novo pré-cadastro =====
-            // Regra 1: Valida o email real se vier preenchido; se vazio ou inválido, gera fallback por CPF/CNPJ
-            const emailClean = row.email ? row.email.trim().toLowerCase() : ''
-            const emailToUse = isValidEmail(emailClean)
-              ? emailClean
-              : generateFallbackEmail(row.cpfClean)
+            // CORREÇÃO 2: SEMPRE usar generateFallbackEmail por CPF/CNPJ exclusivo — ignora email da planilha
+            const emailToUse = generateFallbackEmail(row.cpfClean)
 
             // Senha temporária aleatória segura (membro definirá no /validar-cadastro)
             const randomPassword = 'EMC@' + Math.random().toString(36).slice(2, 10) + '2025'
@@ -687,73 +721,57 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             categoriasAlteradasCount++
             scoresAtualizadosCount++
 
-            // Grava histórico de categoria (fire-and-forget: sem await)
-            pb.collection('historico_categoria')
-              .create({
-                membro_id: createdUser.id,
-                categoria_anterior: null,
-                categoria_nova: row.categoriaCalculada,
-                data_alteracao: new Date().toISOString(),
-                motivo: 'IMPORTACAO',
-                origem: 'automatico',
-                justificativa: 'Importação inicial de planilha em massa (UPSERT por CPF)',
-              })
-              .catch((e) => {
-                console.warn('Falha no histórico de categoria (create):', e)
-              })
+            // Enfileira histórico de categoria
+            historicoCategoriaPayloads.push({
+              membro_id: createdUser.id,
+              categoria_anterior: null,
+              categoria_nova: row.categoriaCalculada,
+              data_alteracao: new Date().toISOString(),
+              motivo: 'IMPORTACAO',
+              origem: 'automatico',
+              justificativa: 'Importação inicial de planilha em massa (UPSERT por CPF)',
+            })
 
-            // Se tiver compra de moto registrada, grava histórico (fire-and-forget)
+            // Se tiver compra de moto registrada, enfileira histórico
             if (row.quantidade_motos_compradas > 0 && row.bike_model) {
-              pb.collection('historico_compras_motos')
-                .create({
-                  membro_id: createdUser.id,
-                  cpf: row.cpfClean,
-                  modelo: row.bike_model,
-                  ano: row.bike_year,
-                  chassi: row.bike_chassi,
-                  data_compra: primeiraDate ? primeiraDate.toISOString() : new Date().toISOString(),
-                  status_venda: 'ENTREGUE',
-                  created_at: new Date().toISOString(),
-                })
-                .catch((e) => {
-                  console.warn('Falha no histórico de compras de moto:', e)
-                })
-            }
-
-            // Se tiver oficina registrada, grava histórico (fire-and-forget)
-            if (oficinaDate) {
-              pb.collection('historico_oficina')
-                .create({
-                  membro_id: createdUser.id,
-                  cpf: row.cpfClean,
-                  data_passagem: oficinaDate.toISOString(),
-                  tipo_servico: 'Revisão Periódica',
-                  ordem_servico: 'IMPORT-01',
-                  status: 'CONCLUIDA',
-                  created_at: new Date().toISOString(),
-                })
-                .catch((e) => {
-                  console.warn('Falha no histórico de oficina:', e)
-                })
-            }
-
-            // PARTE 3 — Salva snapshot das métricas do novo membro (fire-and-forget: sem await)
-            historicoMetricasService
-              .create({
+              historicoMotosPayloads.push({
                 membro_id: createdUser.id,
-                data_importacao: dataStr,
-                categoria: row.categoriaCalculada,
-                score_oficina: row.scoreOficina,
-                total_compras: row.quantidade_motos_compradas,
-                total_valor_vendido: row.total_valor_vendido,
-                numero_passagens: row.numero_passagens_oficina,
-                total_liquido_oficina: row.total_liquido_oficina,
-                status: row.statusCalculado,
-                nivel_relacionamento: row.nivelRelacionamento,
+                cpf: row.cpfClean,
+                modelo: row.bike_model,
+                ano: row.bike_year,
+                chassi: row.bike_chassi,
+                data_compra: primeiraDate ? primeiraDate.toISOString() : new Date().toISOString(),
+                status_venda: 'ENTREGUE',
+                created_at: new Date().toISOString(),
               })
-              .catch((e) => {
-                console.warn('Falha no snapshot de métricas (create):', e)
+            }
+
+            // Se tiver oficina registrada, enfileira histórico
+            if (oficinaDate) {
+              historicoOficinaPayloads.push({
+                membro_id: createdUser.id,
+                cpf: row.cpfClean,
+                data_passagem: oficinaDate.toISOString(),
+                tipo_servico: 'Revisão Periódica',
+                ordem_servico: 'IMPORT-01',
+                status: 'CONCLUIDA',
+                created_at: new Date().toISOString(),
               })
+            }
+
+            // PARTE 3 — Enfileira snapshot das métricas do novo membro
+            historicoMetricasPayloads.push({
+              membro_id: createdUser.id,
+              data_importacao: dataStr,
+              categoria: row.categoriaCalculada,
+              score_oficina: row.scoreOficina,
+              total_compras: row.quantidade_motos_compradas,
+              total_valor_vendido: row.total_valor_vendido,
+              numero_passagens: row.numero_passagens_oficina,
+              total_liquido_oficina: row.total_liquido_oficina,
+              status: row.statusCalculado,
+              nivel_relacionamento: row.nivelRelacionamento,
+            })
 
             createdCount++
           }
@@ -817,9 +835,50 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             failCount,
             percent: currentPercent,
           })
-          // Delay de 100ms entre linhas para evitar rate limiting (429)
-          await new Promise((resolve) => setTimeout(resolve, 100))
+          // CORREÇÃO 1: Delay de 250ms entre linhas principais (UPDATE/CREATE)
+          await delay(250)
+          // A cada 50 linhas, delay extra de 500ms para respiro
+          if (processedIndex % 50 === 0) {
+            await delay(500)
+          }
         }
+      }
+
+      // CORREÇÃO 1: Envia todos os históricos em lote após o término de todas as linhas principais (delay de 150ms)
+      for (const payload of historicoCategoriaPayloads) {
+        try {
+          await pb.collection('historico_categoria').create(payload)
+        } catch (e) {
+          console.warn('Falha ao gravar lote historico_categoria:', e)
+        }
+        await delay(150)
+      }
+
+      for (const payload of historicoMetricasPayloads) {
+        try {
+          await historicoMetricasService.create(payload)
+        } catch (e) {
+          console.warn('Falha ao gravar lote historico_metricas_membro:', e)
+        }
+        await delay(150)
+      }
+
+      for (const payload of historicoMotosPayloads) {
+        try {
+          await pb.collection('historico_compras_motos').create(payload)
+        } catch (e) {
+          console.warn('Falha ao gravar lote historico_compras_motos:', e)
+        }
+        await delay(150)
+      }
+
+      for (const payload of historicoOficinaPayloads) {
+        try {
+          await pb.collection('historico_oficina').create(payload)
+        } catch (e) {
+          console.warn('Falha ao gravar lote historico_oficina:', e)
+        }
+        await delay(150)
       }
 
       const ignoredCount = summary?.invalid ?? 0
@@ -834,9 +893,10 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           : null,
       )
 
-      // PARTE 3 — Salva o registro de log da importação na collection import_logs
+      // PARTE 3 — Salva o registro de log da importação na collection import_logs (CORREÇÃO 3: trunca para os primeiros 50 erros se for muito grande)
       const statusLog =
         failCount === 0 ? 'CONCLUIDO' : failCount === validRows.length ? 'FALHOU' : 'PARCIAL'
+      const truncatedErrors = errorsByLine.slice(0, 50)
       await importLogService.create({
         nome_arquivo: file?.name || 'planilha.xlsx',
         data: dataStr,
@@ -844,7 +904,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         linhas_processadas: totalProcessadas,
         clientes_criados: createdCount,
         clientes_atualizados: updatedCount,
-        erros: JSON.stringify(errorsByLine),
+        erros: JSON.stringify(truncatedErrors),
         status: statusLog,
       })
 
