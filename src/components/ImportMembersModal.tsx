@@ -519,16 +519,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     const horaStr = today.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
 
     // Filas para salvar históricos em lote após término de todas as linhas (evita 429)
-    const historicoCategoriaPayloads: Array<{
-      membro_id: string
-      categoria_anterior: string | null
-      categoria_nova: string
-      data_alteracao: string
-      motivo: string
-      origem: string
-      justificativa: string
-    }> = []
-
     const historicoMetricasPayloads: Array<{
       membro_id: string
       data_importacao: string
@@ -633,18 +623,9 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
 
             await pb.collection('users').update(row.existingId, updatePayload)
 
-            // Registra histórico de categoria quando a categoria muda (enfileira payload)
+            // Registra contagem quando a categoria muda
             if (catMudou) {
               categoriasAlteradasCount++
-              historicoCategoriaPayloads.push({
-                membro_id: row.existingId,
-                categoria_anterior: oldCat || null,
-                categoria_nova: row.categoriaCalculada,
-                data_alteracao: new Date().toISOString(),
-                motivo: 'IMPORTACAO_ATUALIZACAO',
-                origem: 'automatico',
-                justificativa: 'Atualização via importação de planilha (UPSERT por CPF)',
-              })
             }
 
             if (scoreMudou) {
@@ -720,17 +701,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             // Novo membro → categoria e score sempre "alterados" em relação ao estado anterior (inexistente)
             categoriasAlteradasCount++
             scoresAtualizadosCount++
-
-            // Enfileira histórico de categoria
-            historicoCategoriaPayloads.push({
-              membro_id: createdUser.id,
-              categoria_anterior: null,
-              categoria_nova: row.categoriaCalculada,
-              data_alteracao: new Date().toISOString(),
-              motivo: 'IMPORTACAO',
-              origem: 'automatico',
-              justificativa: 'Importação inicial de planilha em massa (UPSERT por CPF)',
-            })
 
             // Se tiver compra de moto registrada, enfileira histórico
             if (row.quantidade_motos_compradas > 0 && row.bike_model) {
@@ -841,44 +811,6 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
           if (processedIndex % 50 === 0) {
             await delay(500)
           }
-        }
-      }
-
-      // Envia historico_categoria com controle de taxa: delay de 750ms entre cada create,
-      // pausa de 2000ms a cada 10 requisições, e retry automático com backoff exponencial para 429
-      let histCatIndex = 0
-      for (const payload of historicoCategoriaPayloads) {
-        let attempts = 0
-        const maxAttempts = 3
-        while (attempts < maxAttempts) {
-          try {
-            await pb.collection('historico_categoria').create(payload)
-            break
-          } catch (e: any) {
-            attempts++
-            const isRateLimit =
-              e?.status === 429 || e?.response?.status === 429 || e?.statusCode === 429
-            if (isRateLimit && attempts < maxAttempts) {
-              const backoffMs = Math.pow(2, attempts) * 1000 // 2s, 4s
-              console.warn(
-                `Rate limit (429) em historico_categoria. Tentativa ${attempts}/${maxAttempts}. Aguardando ${backoffMs}ms...`,
-              )
-              await delay(backoffMs)
-            } else {
-              if (attempts >= maxAttempts) {
-                console.warn('Falha ao gravar lote historico_categoria após tentativas:', e)
-              } else if (!isRateLimit) {
-                console.warn('Falha ao gravar lote historico_categoria:', e)
-                break
-              }
-            }
-          }
-        }
-
-        histCatIndex++
-        await delay(750)
-        if (histCatIndex % 10 === 0) {
-          await delay(2000)
         }
       }
 
