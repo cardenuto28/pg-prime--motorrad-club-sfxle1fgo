@@ -213,7 +213,7 @@ const AdminAnnouncements: React.FC = () => {
               Gestão de Comunicados
             </p>
             <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight mt-1">
-              Comunicados do Club
+              Comunicados do Clube
             </h1>
             {urgentCount > 0 && (
               <div className="mt-2 inline-flex items-center gap-1.5 text-[10px] font-bold text-red-300 bg-red-950/60 border border-red-700/50 px-2.5 py-1 rounded uppercase tracking-widest">
