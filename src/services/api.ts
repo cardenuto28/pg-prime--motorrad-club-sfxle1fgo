@@ -161,6 +161,7 @@ export interface Registration {
   pillion_phone?: string
   emergency_contact_name?: string
   emergency_contact_phone?: string
+  km_atual?: number
   accepted_rules: boolean
   accepted_terms: boolean
   accepted_terms_at?: string
@@ -536,6 +537,7 @@ export const registrationService = {
     pillion_phone?: string
     emergency_contact_name: string
     emergency_contact_phone: string
+    km_atual: number
     accepted_rules?: boolean
     accepted_terms?: boolean
     accepted_terms_at?: string

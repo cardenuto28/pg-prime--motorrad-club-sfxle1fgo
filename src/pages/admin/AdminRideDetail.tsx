@@ -311,6 +311,7 @@ const AdminRideDetail: React.FC = () => {
         'CPF',
         'Cidade',
         'Moto',
+        'KM Atual',
         'Garupa',
         'Pessoas',
         'Status',
@@ -334,6 +335,7 @@ const AdminRideDetail: React.FC = () => {
           cpf,
           city,
           bike,
+          r.km_atual != null ? `${Number(r.km_atual).toLocaleString('pt-BR')} km` : '—',
           r.has_pillion ? 'Sim' : 'Não',
           String(r.has_pillion ? 2 : 1),
           r.status,
@@ -556,6 +558,7 @@ const AdminRideDetail: React.FC = () => {
                 <Th>E-mail</Th>
                 <Th>Moto</Th>
                 <Th>Ano</Th>
+                <Th>KM Atual</Th>
                 <Th>Garupa</Th>
                 <Th>Pessoas</Th>
                 <Th>Check-in</Th>
@@ -567,7 +570,7 @@ const AdminRideDetail: React.FC = () => {
             <tbody>
               {pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={12} className="py-12 text-center text-xs text-slate-500">
                     Nenhum inscrito encontrado.
                   </td>
                 </tr>
@@ -610,6 +613,11 @@ const AdminRideDetail: React.FC = () => {
                       <td className="px-4 py-3 text-xs text-slate-400">{email}</td>
                       <td className="px-4 py-3 text-xs text-slate-400">{bikeModel}</td>
                       <td className="px-4 py-3 text-xs text-slate-400">{bikeYear}</td>
+                      <td className="px-4 py-3 text-xs font-mono text-blue-300 font-semibold">
+                        {reg.km_atual != null
+                          ? `${Number(reg.km_atual).toLocaleString('pt-BR')} km`
+                          : '—'}
+                      </td>
                       <td className="px-4 py-3 text-xs text-slate-400">
                         {reg.has_pillion ? (
                           <span
@@ -955,6 +963,14 @@ const AdminRideDetail: React.FC = () => {
                     ]
                       .filter(Boolean)
                       .join(' ') || '—'
+              }
+            />
+            <ContactRow
+              label="KM Atual da Moto"
+              value={
+                phoneInfo?.km_atual != null
+                  ? `${Number(phoneInfo.km_atual).toLocaleString('pt-BR')} km`
+                  : 'Não informado'
               }
             />
             <ContactRow

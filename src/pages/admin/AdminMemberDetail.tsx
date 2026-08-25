@@ -22,7 +22,9 @@ import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import {
   UserProfile,
+  Registration,
   userService,
+  registrationService,
   historicoMetricasService,
   type HistoricoMetricaMembro,
 } from '@/services/api'
@@ -80,15 +82,17 @@ const AdminMemberDetail: React.FC = () => {
   const { toast } = useToast()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [metricas, setMetricas] = useState<HistoricoMetricaMembro[]>([])
+  const [ridesHistory, setRidesHistory] = useState<Registration[]>([])
   const [loading, setLoading] = useState(true)
 
   const load = useCallback(async () => {
     if (!id) return
     setLoading(true)
     try {
-      const [u, hist] = await Promise.all([
+      const [u, hist, userRegs] = await Promise.all([
         userService.getUserById(id),
         historicoMetricasService.getByMembro(id),
+        registrationService.getRegistrationsByUser(id).catch(() => [] as Registration[]),
       ])
       if (!u) {
         toast({ title: 'Membro não encontrado', variant: 'destructive' })
@@ -97,6 +101,7 @@ const AdminMemberDetail: React.FC = () => {
       }
       setUser(u)
       setMetricas(hist)
+      setRidesHistory(userRegs)
     } catch (e) {
       console.error('Erro ao carregar membro:', e)
       toast({ title: 'Erro ao carregar membro', variant: 'destructive' })
@@ -156,7 +161,7 @@ const AdminMemberDetail: React.FC = () => {
         <div className="flex flex-wrap items-center gap-2">
           <Button
             onClick={() => {
-              exportMemberProfileExcel(user, metricas)
+              exportMemberProfileExcel(user, metricas, ridesHistory)
               toast({
                 title: 'Excel Gerado',
                 description: `Ficha de ${user.name || 'Membro'} exportada em XLSX.`,
@@ -170,7 +175,7 @@ const AdminMemberDetail: React.FC = () => {
           </Button>
           <Button
             onClick={() => {
-              exportMemberProfilePdf(user, metricas)
+              exportMemberProfilePdf(user, metricas, ridesHistory)
               toast({
                 title: 'PDF Gerado',
                 description: `Ficha 360º de ${user.name || 'Membro'} exportada em PDF.`,
@@ -372,6 +377,95 @@ const AdminMemberDetail: React.FC = () => {
           </div>
         </section>
       </div>
+
+      {/* ===== HISTÓRICO DE PASSEIOS DO MEMBRO ===== */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 space-y-4">
+        <div className="flex items-center justify-between border-b border-[#1c2538] pb-2">
+          <div className="flex items-center gap-2">
+            <Bike className="w-4 h-4 text-blue-400" />
+            <h2 className="text-xs font-bold text-slate-300 font-montserrat tracking-widest uppercase">
+              Histórico de Inscrições em Passeios
+            </h2>
+          </div>
+          <span className="text-[10px] text-slate-500">
+            {ridesHistory.length} passeio(s) registrado(s)
+          </span>
+        </div>
+
+        {ridesHistory.length === 0 ? (
+          <div className="bg-[#0a0d14] border border-dashed border-[#1c2538] rounded-md p-6 text-center">
+            <p className="text-xs text-slate-500">
+              Este membro ainda não possui inscrições em passeios.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead>
+                <tr className="text-[10px] text-slate-400 uppercase tracking-wider border-b border-[#1c2538]">
+                  <th className="p-2 font-semibold">Passeio</th>
+                  <th className="p-2 font-semibold">Data</th>
+                  <th className="p-2 font-semibold">KM Informado</th>
+                  <th className="p-2 font-semibold">Garupa</th>
+                  <th className="p-2 font-semibold text-center">Check-in</th>
+                  <th className="p-2 font-semibold text-center">Pagamento</th>
+                  <th className="p-2 font-semibold text-center">Status</th>
+                  <th className="p-2 font-semibold">Data Inscrição</th>
+                </tr>
+              </thead>
+              <tbody>
+                {ridesHistory.map((reg) => {
+                  const ride = reg.expand?.ride
+                  return (
+                    <tr key={reg.id} className="border-b border-[#161e2c] hover:bg-[#11172250]">
+                      <td className="p-2 font-bold text-white uppercase">
+                        {ride?.name || 'Passeio do Clube'}
+                      </td>
+                      <td className="p-2 text-slate-300">{ride ? formatDate(ride.date) : '—'}</td>
+                      <td className="p-2 font-mono text-blue-300 font-semibold">
+                        {reg.km_atual != null
+                          ? `${Number(reg.km_atual).toLocaleString('pt-BR')} km`
+                          : '—'}
+                      </td>
+                      <td className="p-2 text-slate-400">
+                        {reg.has_pillion ? `Sim (${reg.pillion_name || '—'})` : 'Não'}
+                      </td>
+                      <td className="p-2 text-center">
+                        {reg.checked_in ? (
+                          <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 uppercase">
+                            ✅ Presente
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700 uppercase">
+                            ⏳ Aguardando
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-2 text-center">
+                        {reg.payment_status === 'pago' ? (
+                          <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950/80 text-emerald-300 border border-emerald-700/60 uppercase">
+                            🟢 Pago
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center text-[10px] font-bold px-2 py-0.5 rounded bg-amber-950/80 text-amber-300 border border-amber-700/60 uppercase">
+                            🟡 Pendente
+                          </span>
+                        )}
+                      </td>
+                      <td className="p-2 text-center">
+                        <span className="text-[10px] font-semibold text-slate-300 uppercase">
+                          {reg.status}
+                        </span>
+                      </td>
+                      <td className="p-2 text-[10px] text-slate-500">{formatDate(reg.created)}</td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
 
       {/* ===== HISTÓRICO DE MÉTRICAS ===== */}
       <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 space-y-4">

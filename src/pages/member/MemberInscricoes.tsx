@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardList, Calendar, MapPin, CheckCircle2, XCircle, Clock } from 'lucide-react'
+import { ClipboardList, Calendar, MapPin, CheckCircle2, XCircle, Clock, Gauge } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
 import { Registration, registrationService } from '@/services/api'
 import { formatDate, isRidePast } from '@/lib/member'
@@ -150,6 +150,12 @@ const RegCard: React.FC<{ reg: Registration; past?: boolean }> = ({ reg, past })
           {ride.meeting_time && (
             <span className="flex items-center gap-1.5">
               <Clock className="w-3 h-3 text-slate-500" /> {ride.meeting_time}
+            </span>
+          )}
+          {reg.km_atual != null && (
+            <span className="flex items-center gap-1.5 font-mono text-blue-300">
+              <Gauge className="w-3 h-3 text-blue-400" />{' '}
+              {Number(reg.km_atual).toLocaleString('pt-BR')} km
             </span>
           )}
           {reg.has_pillion && <span className="text-blue-400 font-semibold">com garupa</span>}

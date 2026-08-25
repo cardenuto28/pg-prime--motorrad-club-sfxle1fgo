@@ -274,7 +274,7 @@ export function exportImportLogsExcel(logs: any[]) {
 /**
  * Export individual 360 member profile to Excel
  */
-export function exportMemberProfileExcel(user: any, metricas: any[] = []) {
+export function exportMemberProfileExcel(user: any, metricas: any[] = [], rides: any[] = []) {
   const dateStr = new Date().toISOString().slice(0, 10)
   const wb = XLSX.utils.book_new()
 
@@ -328,7 +328,40 @@ export function exportMemberProfileExcel(user: any, metricas: any[] = []) {
   wsProfile['!cols'] = calculateColumnWidths(profileHeaders, profileRows)
   XLSX.utils.book_append_sheet(wb, wsProfile, 'Dados 360 do Membro')
 
-  // Sheet 2: Histórico de Métricas (Snapshots)
+  // Sheet 2: Histórico de Passeios e Inscrições (com KM Atual)
+  if (rides && rides.length > 0) {
+    const ridesHeaders = [
+      '#',
+      'Passeio',
+      'Data Passeio',
+      'KM Atual da Moto',
+      'Garupa',
+      'Nome Garupa',
+      'Presença (Check-in)',
+      'Pagamento',
+      'Status Inscrição',
+      'Data Inscrição',
+    ]
+
+    const ridesRows = rides.map((reg, idx) => [
+      idx + 1,
+      reg.expand?.ride?.name || 'Passeio do Clube',
+      reg.expand?.ride?.date ? String(reg.expand.ride.date).slice(0, 10) : '—',
+      reg.km_atual != null ? Number(reg.km_atual) : '—',
+      reg.has_pillion ? 'SIM' : 'NÃO',
+      reg.pillion_name || '—',
+      reg.checked_in ? 'PRESENTE' : 'AGUARDANDO',
+      (reg.payment_status || 'pendente').toUpperCase(),
+      (reg.status || 'confirmada').toUpperCase(),
+      reg.created ? new Date(reg.created).toLocaleString('pt-BR') : '—',
+    ])
+
+    const wsRides = XLSX.utils.aoa_to_sheet([ridesHeaders, ...ridesRows])
+    wsRides['!cols'] = calculateColumnWidths(ridesHeaders, ridesRows)
+    XLSX.utils.book_append_sheet(wb, wsRides, 'Histórico de Passeios')
+  }
+
+  // Sheet 3: Histórico de Métricas (Snapshots)
   if (metricas && metricas.length > 0) {
     const metricasHeaders = [
       '#',
@@ -382,6 +415,7 @@ export function exportRideRegistrationsExcel(ride: any, regs: any[]) {
     'Telefone',
     'Cidade',
     'Moto',
+    'KM Atual da Moto',
     'Garupa',
     'Nome Garupa',
     'Presença (Check-in)',
@@ -411,6 +445,7 @@ export function exportRideRegistrationsExcel(ride: any, regs: any[]) {
       phone,
       city,
       bike,
+      reg.km_atual != null ? Number(reg.km_atual) : '—',
       reg.has_pillion ? 'SIM' : 'NÃO',
       reg.pillion_name || '—',
       reg.checked_in ? 'PRESENTE' : 'AGUARDANDO',

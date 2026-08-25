@@ -162,6 +162,7 @@ const AdminRegistrations: React.FC = () => {
         'CPF',
         'Cidade',
         'Moto',
+        'KM Atual',
         'Passeio',
         'Data do passeio',
         'Garupa',
@@ -194,6 +195,7 @@ const AdminRegistrations: React.FC = () => {
           cpf,
           city,
           bike || '—',
+          reg.km_atual != null ? `${Number(reg.km_atual).toLocaleString('pt-BR')} km` : '—',
           reg.expand?.ride?.name || '—',
           formatDate(reg.expand?.ride?.date),
           reg.has_pillion ? 'Sim' : 'Não',
@@ -348,6 +350,7 @@ const AdminRegistrations: React.FC = () => {
                 <Th>Participante</Th>
                 <Th>Passeio</Th>
                 <Th>Data do passeio</Th>
+                <Th>KM Atual</Th>
                 <Th>Garupa</Th>
                 <Th>Pessoas</Th>
                 <Th>Check-in</Th>
@@ -360,7 +363,7 @@ const AdminRegistrations: React.FC = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center">
+                  <td colSpan={11} className="py-12 text-center">
                     <div className="flex items-center justify-center">
                       <div className="w-7 h-7 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
                     </div>
@@ -368,7 +371,7 @@ const AdminRegistrations: React.FC = () => {
                 </tr>
               ) : pageItems.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-12 text-center text-xs text-slate-500">
+                  <td colSpan={11} className="py-12 text-center text-xs text-slate-500">
                     Nenhuma inscrição encontrada.
                   </td>
                 </tr>
@@ -424,6 +427,11 @@ const AdminRegistrations: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">
                         {formatDate(reg.expand?.ride?.date)}
+                      </td>
+                      <td className="px-4 py-3 text-xs font-mono text-blue-300 font-semibold">
+                        {reg.km_atual != null
+                          ? `${Number(reg.km_atual).toLocaleString('pt-BR')} km`
+                          : '—'}
                       </td>
                       <td className="px-4 py-3 text-xs text-slate-400">
                         {reg.has_pillion ? (

@@ -1091,6 +1091,11 @@ const AdminMembers: React.FC = () => {
                           <Calendar className="w-3 h-3 text-slate-500" />
                           {ride ? formatDate(ride.date) : '—'}
                         </span>
+                        {reg.km_atual != null && (
+                          <span className="font-mono text-blue-300">
+                            KM: {Number(reg.km_atual).toLocaleString('pt-BR')} km
+                          </span>
+                        )}
                         {reg.has_pillion && <span className="text-blue-300">com garupa</span>}
                       </div>
                     </div>

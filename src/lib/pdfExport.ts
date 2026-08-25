@@ -632,7 +632,7 @@ export function exportImportLogsPdf(logs: any[]) {
 /**
  * 4. Export Individual 360 Member Profile to PDF
  */
-export function exportMemberProfilePdf(user: any, metricas: any[] = []) {
+export function exportMemberProfilePdf(user: any, metricas: any[] = [], rides: any[] = []) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   drawClubHeader(
@@ -706,11 +706,61 @@ export function exportMemberProfilePdf(user: any, metricas: any[] = []) {
     margin: { left: 14, right: 14, bottom: 18 },
   })
 
+  // Table with rides history & KM Atual
+  if (rides && rides.length > 0) {
+    const finalY1 = (doc as any).lastAutoTable?.finalY || 180
+    if (finalY1 > 210) {
+      doc.addPage()
+      drawClubHeader(
+        doc,
+        `Histórico de Passeios: ${(user.name || 'Membro').toUpperCase()}`,
+        'Participações e KM Atual registrado nas inscrições',
+      )
+    }
+
+    const startRidesY = finalY1 > 210 ? 47 : finalY1 + 8
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(15, 23, 42)
+    doc.text('HISTÓRICO DE PASSEIOS E QUILOMETRAGEM (KM ATUAL)', 14, startRidesY)
+
+    const ridesHead = [['#', 'Passeio', 'Data', 'KM Atual', 'Garupa', 'Check-in', 'Status']]
+
+    const ridesBody = rides.map((r, idx) => [
+      idx + 1,
+      (r.expand?.ride?.name || 'Passeio').toUpperCase(),
+      r.expand?.ride?.date ? String(r.expand.ride.date).slice(0, 10) : '—',
+      r.km_atual != null ? `${Number(r.km_atual).toLocaleString('pt-BR')} km` : '—',
+      r.has_pillion ? `Sim (${r.pillion_name || '—'})` : 'Não',
+      r.checked_in ? 'PRESENTE' : 'AGUARDANDO',
+      (r.status || 'confirmada').toUpperCase(),
+    ])
+
+    autoTable(doc, {
+      startY: startRidesY + 4,
+      head: ridesHead,
+      body: ridesBody,
+      theme: 'striped',
+      headStyles: {
+        fillColor: [10, 17, 32],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 7.5,
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [30, 41, 59],
+      },
+      margin: { left: 14, right: 14, bottom: 18 },
+    })
+  }
+
   // Table with metric history snapshots
   if (metricas && metricas.length > 0) {
     const finalY = (doc as any).lastAutoTable?.finalY || 180
 
-    if (finalY > 220) {
+    if (finalY > 210) {
       doc.addPage()
       drawClubHeader(
         doc,
@@ -719,7 +769,7 @@ export function exportMemberProfilePdf(user: any, metricas: any[] = []) {
       )
     }
 
-    const startHistY = finalY > 220 ? 47 : finalY + 8
+    const startHistY = finalY > 210 ? 47 : finalY + 8
 
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
@@ -797,6 +847,7 @@ export function exportRideRegistrationsPdf(ride: any, regs: any[]) {
       'Tipo',
       'Telefone',
       'Moto',
+      'KM Atual',
       'Garupa',
       'Presença (Check-in)',
       'Pagamento',
@@ -818,6 +869,8 @@ export function exportRideRegistrationsPdf(ride: any, regs: any[]) {
       : 'AGUARDANDO'
 
     const payment = reg.payment_status === 'pago' ? 'PAGO' : 'PENDENTE'
+    const kmFormatted =
+      reg.km_atual != null ? `${Number(reg.km_atual).toLocaleString('pt-BR')} km` : '—'
 
     return [
       idx + 1,
@@ -825,6 +878,7 @@ export function exportRideRegistrationsPdf(ride: any, regs: any[]) {
       isGuest ? 'NÃO-MEMBRO' : 'MEMBRO',
       phone,
       bike,
+      kmFormatted,
       reg.has_pillion ? `Sim (${reg.pillion_name || '—'})` : 'Não',
       checkInStatus,
       payment,

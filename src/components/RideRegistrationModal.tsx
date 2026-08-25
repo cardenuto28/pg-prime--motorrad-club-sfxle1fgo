@@ -26,6 +26,7 @@ import {
   MapPin,
   Calendar,
   Lock,
+  Gauge,
 } from 'lucide-react'
 
 interface RideRegistrationModalProps {
@@ -64,6 +65,9 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
   const [guestBikeModel, setGuestBikeModel] = useState<string>('')
   const [guestBikeYear, setGuestBikeYear] = useState<string>('')
 
+  // KM Atual da moto (obrigatório para membros e não-membros)
+  const [kmAtual, setKmAtual] = useState<string>('')
+
   // Aceite de termos para MEMBRO LOGADO
   const [memberAcceptedTerms, setMemberAcceptedTerms] = useState<boolean>(false)
 
@@ -73,9 +77,30 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
 
   const [submitting, setSubmitting] = useState<boolean>(false)
 
+  // Helper para formatar km com pontuação de milhar (Ex: 15.000)
+  const handleKmChange = (val: string) => {
+    // Permite apenas dígitos
+    const digits = val.replace(/\D/g, '')
+    if (!digits) {
+      setKmAtual('')
+      return
+    }
+    const num = parseInt(digits, 10)
+    if (isNaN(num)) {
+      setKmAtual('')
+    } else {
+      setKmAtual(num.toLocaleString('pt-BR'))
+    }
+  }
+
+  // Parse numérico do KM
+  const parsedKm = parseInt(kmAtual.replace(/\D/g, ''), 10)
+  const isKmValid = !isNaN(parsedKm) && parsedKm > 0
+
   // Reset / prefill when modal opens or user changes
   useEffect(() => {
     if (isOpen) {
+      setKmAtual('')
       if (user) {
         // Membro logado: preenche garupa se houver cadastrado no perfil
         setHasPillion(!!user.pillion_name)
@@ -123,7 +148,17 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
       return
     }
 
-    // 2. Validação de contato de emergência
+    // 2. Validação do KM Atual da Moto (Obrigatório)
+    if (!isKmValid) {
+      toast({
+        title: 'KM Atual da Moto',
+        description: 'Informe a quilometragem atual da sua motocicleta.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    // 3. Validação de contato de emergência
     if (!emergencyName.trim() || !emergencyPhone.trim()) {
       toast({
         title: 'Contato de Emergência',
@@ -133,7 +168,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
       return
     }
 
-    // 3. Validação de termos para MEMBRO LOGADO
+    // 4. Validação de termos para MEMBRO LOGADO
     if (isMember && !memberAcceptedTerms) {
       toast({
         title: 'Termo de Adesão',
@@ -144,7 +179,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
       return
     }
 
-    // 4. Validações adicionais para NÃO-MEMBRO
+    // 5. Validações adicionais para NÃO-MEMBRO
     if (!isMember) {
       if (
         !guestName.trim() ||
@@ -195,6 +230,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
         await registrationService.registerForRide({
           ride: ride.id,
           user: user.id,
+          km_atual: parsedKm,
           has_pillion: hasPillion,
           pillion_name: hasPillion ? pillionName.trim() : '',
           pillion_phone: hasPillion ? pillionPhone.trim() : '',
@@ -216,6 +252,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
         // FLUXO NÃO-MEMBRO:
         await registrationService.registerForRide({
           ride: ride.id,
+          km_atual: parsedKm,
           has_pillion: hasPillion,
           pillion_name: hasPillion ? pillionName.trim() : '',
           pillion_phone: hasPillion ? pillionPhone.trim() : '',
@@ -556,6 +593,37 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
             )}
           </div>
 
+          {/* KM ATUAL DA MOTO (Ambos os fluxos - após dados do garupa e antes dos aceites) */}
+          <div className="space-y-3 bg-[#0d121c] p-4 rounded-md border border-[#1a2334]">
+            <div className="border-b border-[#1a2334] pb-2">
+              <h4 className="text-xs font-bold text-white uppercase tracking-wider font-montserrat flex items-center gap-1.5">
+                <Gauge className="w-3.5 h-3.5 text-blue-400" />
+                Odômetro da Motocicleta
+              </h4>
+              <p className="text-[11px] text-slate-400 mt-0.5">
+                Informe a quilometragem atual da moto com a qual você participará do passeio.
+              </p>
+            </div>
+            <div className="space-y-1.5 pt-1">
+              <Label htmlFor="km-atual" className="text-[11px] text-slate-300">
+                KM Atual da Moto <span className="text-red-400">*</span>
+              </Label>
+              <div className="relative">
+                <Input
+                  id="km-atual"
+                  type="text"
+                  inputMode="numeric"
+                  required
+                  placeholder="Ex: 15.000"
+                  value={kmAtual}
+                  onChange={(e) => handleKmChange(e.target.value)}
+                  className="bg-[#131924] border-[#1f293d] text-white text-xs h-9 pr-8 font-mono"
+                />
+                <Gauge className="w-3.5 h-3.5 text-slate-500 absolute right-2.5 top-2.5 pointer-events-none" />
+              </div>
+            </div>
+          </div>
+
           {/* CONTATO DE EMERGÊNCIA (Ambos os fluxos) */}
           <div className="space-y-3 bg-[#0d121c] p-4 rounded-md border border-[#1a2334]">
             <h4 className="text-xs font-bold text-white uppercase tracking-wider font-montserrat flex items-center gap-1.5">
@@ -700,6 +768,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
               type="submit"
               disabled={
                 submitting ||
+                !isKmValid ||
                 (isMember && !memberAcceptedTerms) ||
                 (!isMember && (!guestAcceptedImage || !guestAcceptedPrivacy))
               }

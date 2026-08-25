@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-25T00:38:50.835Z",
+  "generatedAt": "2026-08-25T00:53:27.876Z",
   "collections": [
     {
       "name": "users",
@@ -638,6 +638,12 @@
         {
           "name": "payment_notes",
           "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "km_atual",
+          "type": "number",
           "required": false,
           "system": false
         }
