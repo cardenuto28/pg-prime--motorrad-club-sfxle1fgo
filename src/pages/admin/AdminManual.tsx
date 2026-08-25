@@ -36,6 +36,17 @@ import {
   Clock,
   Database,
   ArrowRight,
+  Filter,
+  FileText,
+  Mail,
+  Smartphone,
+  Check,
+  X,
+  Eye,
+  MousePointerClick,
+  Palette,
+  Shield,
+  RefreshCw,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -53,19 +64,19 @@ const SECTIONS: SectionItem[] = [
   { id: 'sec-2', title: '2. Gestão de Membros & 14 Etapas de Importação', icon: Users },
   { id: 'sec-3', title: '3. Score de Oficina & Inteligência de Relacionamento', icon: Gauge },
   { id: 'sec-4', title: '4. Tags Inteligentes & Próxima Melhor Ação', icon: Tag },
-  { id: 'sec-5', title: '5. Gestão de Passeios', icon: Calendar },
-  { id: 'sec-6', title: '6. Inscrições', icon: ClipboardList },
+  { id: 'sec-5', title: '5. Gestão de Passeios & KM Atual da Moto', icon: Calendar },
+  { id: 'sec-6', title: '6. Inscrições & Formulário Completo', icon: ClipboardList },
   { id: 'sec-7', title: '7. Programa de Pontos e Categorias', icon: Trophy },
-  { id: 'sec-8', title: '8. QR Code da Loja (Check-in)', icon: QrCode },
-  { id: 'sec-9', title: '9. Dashboard Executivo', icon: LayoutDashboard },
+  { id: 'sec-8', title: '8. QR Code da Loja (Check-in Diário)', icon: QrCode },
+  { id: 'sec-9', title: '9. Dashboard Executivo & Cards Clicáveis', icon: LayoutDashboard },
   { id: 'sec-10', title: '10. Benefícios', icon: Gift },
-  { id: 'sec-11', title: '11. Parceiros', icon: Handshake },
-  { id: 'sec-12', title: '12. Banners e Galeria', icon: Image },
-  { id: 'sec-13', title: '13. Comunicados', icon: Megaphone },
-  { id: 'sec-14', title: '14. Relatórios e Exportações', icon: BarChart3 },
-  { id: 'sec-15', title: '15. Configurações do Sistema', icon: Settings },
+  { id: 'sec-11', title: '11. Parceiros Conveniados', icon: Handshake },
+  { id: 'sec-12', title: '12. Banners e Galeria de Fotos', icon: Image },
+  { id: 'sec-13', title: '13. Comunicados & Pop-up Automático no Acesso', icon: Megaphone },
+  { id: 'sec-14', title: '14. Relatórios e Exportações (Excel & PDF)', icon: BarChart3 },
+  { id: 'sec-15', title: '15. Configurações do Sistema & Faixas de Score', icon: Settings },
   { id: 'sec-16', title: '16. Fluxos Principais de Operação', icon: Repeat },
-  { id: 'sec-17', title: '17. Carteirinha Digital e Validação QR Code', icon: CreditCard },
+  { id: 'sec-17', title: '17. Carteirinha Digital Dinâmica & Validação QR Code', icon: CreditCard },
   { id: 'sec-18', title: '18. Segurança e Auditoria', icon: ShieldCheck },
   { id: 'sec-19', title: '19. Dúvidas Frequentes (FAQ)', icon: HelpCircle },
 ]
@@ -123,10 +134,11 @@ export const AdminManual: React.FC = () => {
               Manual do Administrador
             </h1>
             <p className="text-sm text-slate-400 max-w-3xl leading-relaxed">
-              Guia completo de regras de negócio, motor de cálculo do{' '}
+              Guia operacional completo com todas as regras de negócio, motor de cálculo do{' '}
               <strong className="text-blue-400 font-semibold">Score de Oficina</strong>,
-              inteligência de relacionamento pós-vendas, 14 etapas da importação em massa e operação
-              geral do{' '}
+              inteligência pós-vendas, 14 etapas da importação em massa (com fallback por CPF e
+              anti-rate-limit), pop-ups automáticos de comunicados, carteirinha digital dinâmica e
+              exportações em tempo real do{' '}
               <strong className="text-slate-200 font-semibold">Euro Motors Motorrad Club</strong>.
             </p>
           </div>
@@ -280,25 +292,56 @@ export const AdminManual: React.FC = () => {
               <strong className="text-blue-400">Caminho:</strong> Admin → Membros
             </p>
 
+            {/* 2.1 Buscar e Filtrar */}
             <div className="space-y-2 bg-[#121824] p-4 rounded-lg border border-[#1c2538]">
               <h3 className="text-sm font-bold text-white font-montserrat flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-blue-400" /> 2.1 Buscar e Filtrar
               </h3>
-              <ul className="list-disc list-inside space-y-1 text-slate-300 text-xs pl-2">
+              <ul className="list-disc list-inside space-y-1.5 text-slate-300 text-xs pl-2">
                 <li>
-                  Use a barra de pesquisa para localizar por{' '}
-                  <strong className="text-white">nome, CPF ou e-mail</strong>.
+                  <strong className="text-white">
+                    Busca em tempo real com debounce (300ms de delay):
+                  </strong>{' '}
+                  filtra instantaneamente enquanto você digita por{' '}
+                  <strong className="text-blue-400">
+                    Nome, CPF/CNPJ, E-mail, Telefone, Cidade, Modelo da moto e Chassi
+                  </strong>
+                  .
                 </li>
                 <li>
-                  Filtros disponíveis: <strong className="text-white">categoria</strong>{' '}
-                  (Bronze/Prata/Gold/Platinum), <strong className="text-white">status</strong>{' '}
-                  (Ativo/Pendente/Inativo/Bloqueado/Pré-cadastrado),{' '}
-                  <strong className="text-white">nível de relacionamento</strong> e{' '}
-                  <strong className="text-white">tags inteligentes</strong>.
+                  <strong className="text-white">Botões de Exportação Dedicados:</strong> a tela de
+                  membros disponibiliza os botões{' '}
+                  <strong className="text-emerald-400">"Exportar Excel"</strong> e{' '}
+                  <strong className="text-rose-400">"Exportar PDF"</strong>, que exportam
+                  dinamicamente a lista completa ou exatamente os registros filtrados pela pesquisa
+                  e filtros ativos.
+                </li>
+                <li>
+                  <strong className="text-white">Filtros combinados disponíveis:</strong>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-1.5 pt-1">
+                    <div className="p-2 rounded bg-[#0b0e17] border border-[#1d2638] text-[11px]">
+                      <strong className="text-blue-400">Categoria:</strong> Bronze, Prata, Gold e
+                      Platinum
+                    </div>
+                    <div className="p-2 rounded bg-[#0b0e17] border border-[#1d2638] text-[11px]">
+                      <strong className="text-blue-400">Status:</strong> Ativo, Pendente, Inativo,
+                      Bloqueado e Pré-cadastrado
+                    </div>
+                    <div className="p-2 rounded bg-[#0b0e17] border border-[#1d2638] text-[11px]">
+                      <strong className="text-blue-400">Nível de Relacionamento:</strong> Baixo,
+                      Moderado, Ativo, Forte e Excepcional
+                    </div>
+                    <div className="p-2 rounded bg-[#0b0e17] border border-[#1d2638] text-[11px]">
+                      <strong className="text-blue-400">Tags Inteligentes:</strong> VIP Ativo, VIP
+                      Afastado, Alto Valor Pós-Vendas, Próximo do Gold, Próximo do Platinum,
+                      Primeira Passagem Pendente
+                    </div>
+                  </div>
                 </li>
               </ul>
             </div>
 
+            {/* 2.2 Editar Membro & Recálculo */}
             <div className="space-y-2 bg-[#121824] p-4 rounded-lg border border-[#1c2538]">
               <h3 className="text-sm font-bold text-white font-montserrat flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-blue-400" /> 2.2 Editar Membro &amp; Recálculo
@@ -326,6 +369,7 @@ export const AdminManual: React.FC = () => {
               </ul>
             </div>
 
+            {/* 2.3 Status do Membro */}
             <div className="space-y-2">
               <h3 className="text-sm font-bold text-white font-montserrat flex items-center gap-2">
                 <ChevronRight className="w-4 h-4 text-blue-400" /> 2.3 Status do Membro
@@ -342,7 +386,8 @@ export const AdminManual: React.FC = () => {
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-semibold text-amber-400">Pré-cadastrado</td>
                       <td className="p-3">
-                        Importado via planilha, aguardando o cliente validar e criar senha no site.
+                        Importado via planilha, aguardando o cliente validar e criar senha no site
+                        em <code className="text-blue-300">/validar-cadastro</code>.
                       </td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
@@ -385,8 +430,8 @@ export const AdminManual: React.FC = () => {
               </div>
               <p className="text-xs text-slate-400 leading-relaxed">
                 Ao importar uma planilha Excel (.xlsx) ou CSV, o sistema executa rigorosamente um
-                pipeline composto por 14 etapas automatizadas, garantindo integridade de dados e
-                proteção de cadastros:
+                pipeline composto por 14 etapas automatizadas, garantindo integridade de dados,
+                fallback inteligente de e-mail e proteção contra rate limits:
               </p>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
@@ -394,22 +439,22 @@ export const AdminManual: React.FC = () => {
                   {
                     num: '1',
                     title: 'Leitura Raw do Arquivo',
-                    desc: 'Parsing binário da planilha com suporte a XLSX e CSV, extraindo cabeçalhos e linhas.',
+                    desc: 'Parsing binário da planilha com suporte nativo a XLSX e CSV com barra de progresso em tempo real durante o processamento de registros.',
                   },
                   {
                     num: '2',
                     title: 'Normalização de CPF / CNPJ',
-                    desc: 'Limpeza de pontuações e autopreenchimento com zeros à esquerda (11 dígitos para CPF, 14 para CNPJ).',
+                    desc: 'Limpeza de pontuações e autopreenchimento com zeros à esquerda: CPFs com menos de 11 dígitos recebem zeros automaticamente (ex: 155260278 → 00155260278); CNPJ completa até 14 dígitos.',
                   },
                   {
                     num: '3',
                     title: 'Validação de Documento',
-                    desc: 'Verificação do algoritmo de dígitos verificadores; documentos inválidos são ignorados com aviso.',
+                    desc: 'Verificação do algoritmo oficial de dígitos verificadores; documentos com tamanho incorreto ou inválidos são sinalizados com erro descritivo.',
                   },
                   {
                     num: '4',
-                    title: 'UPSERT (Criar vs Atualizar)',
-                    desc: 'Cruza o documento normalizado com o banco: se já existe marca UPDATE; se não, marca CREATE.',
+                    title: 'UPSERT por Documento Normalizado',
+                    desc: 'O cruzamento é feito pelo documento (CPF/CNPJ) normalizado: se já existe marca UPDATE; se não, marca CREATE.',
                   },
                   {
                     num: '5',
@@ -434,32 +479,32 @@ export const AdminManual: React.FC = () => {
                   {
                     num: '9',
                     title: 'Proteção de Campos Cadastrais',
-                    desc: 'No UPDATE, se Nome, Telefone, Email ou Cidade vierem em branco, preserva o valor atual do banco.',
+                    desc: 'No UPDATE, se Nome, Telefone, Email ou Cidade vierem em branco, preserva o valor cadastrado atual no banco.',
                   },
                   {
                     num: '10',
                     title: 'Consolidação de Métricas',
-                    desc: 'Valores financeiros e de passagens substituem o snapshot anterior mantendo integridade.',
+                    desc: 'Valores financeiros e de passagens substituem o snapshot anterior mantendo consistência.',
                   },
                   {
                     num: '11',
                     title: 'Gravação no Banco (Users)',
-                    desc: 'Persistência atômica dos registros na collection users com delay controlado anti-rate-limit.',
+                    desc: 'Persistência na collection users aplicando proteção anti-rate-limit com fallback de e-mail no CREATE.',
                   },
                   {
                     num: '12',
-                    title: 'Históricos e Auditoria',
-                    desc: 'Grava histórico_categoria, historico_compras_motos, historico_oficina e snapshot de métricas.',
+                    title: 'Históricos e Snapshots',
+                    desc: 'Grava historico_metricas_membro e historico_compras_motos. O historico_categoria NÃO é gerado na importação em massa (apenas em edições manuais e CRON diário) para máxima performance.',
                   },
                   {
                     num: '13',
                     title: 'Geração de Log da Importação',
-                    desc: 'Cria registro em import_logs com data, hora, linhas processadas, sucessos e detalhes de erros.',
+                    desc: 'Cria registro em import_logs com data, hora, linhas processadas, total de criados, atualizados e erros detalhados.',
                   },
                   {
                     num: '14',
                     title: 'Resumo e Relatório Final',
-                    desc: 'Exibe modal com balanço completo: criados, atualizados, ignorados, scores e categorias alteradas.',
+                    desc: 'Exibe modal com balanço completo: criados, atualizados, ignorados, detalhamento dos erros reais e botão para fechar ou novo upload.',
                   },
                 ].map((step) => (
                   <div
@@ -475,6 +520,99 @@ export const AdminManual: React.FC = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* Subseções Novas da Importação */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-3">
+                {/* 2.4.1 Fallback de Email */}
+                <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-blue-400 font-bold text-xs font-montserrat uppercase">
+                    <Mail className="w-4 h-4" /> 2.4.1 Fallback Inteligente de E-mail
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    No momento do <strong className="text-white">CREATE</strong>, o sistema{' '}
+                    <strong className="text-blue-300">
+                      ignora intencionalmente o e-mail da planilha
+                    </strong>{' '}
+                    e gera automaticamente um e-mail único baseado no documento normalizado (ex:{' '}
+                    <code className="bg-slate-900 text-cyan-300 px-1.5 py-0.5 rounded font-mono text-[11px]">
+                      02336018802@euromotors.club
+                    </code>
+                    ).
+                  </p>
+                  <p className="text-[11px] text-slate-400 leading-relaxed">
+                    Isso garante{' '}
+                    <strong className="text-white">zero colisões de e-mail duplicado</strong> na
+                    importação em massa. Quando o cliente acessa{' '}
+                    <code className="text-blue-400">/validar-cadastro</code>, ele mesmo define seu
+                    e-mail pessoal e cria sua senha definitiva.
+                  </p>
+                </div>
+
+                {/* 2.4.2 Barra de Progresso */}
+                <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs font-montserrat uppercase">
+                    <BarChart3 className="w-4 h-4" /> 2.4.2 Barra de Progresso em Tempo Real
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Durante o processamento da planilha, uma barra de progresso visual informa
+                    percentual e contagem em tempo real (ex:{' '}
+                    <span className="text-cyan-300 font-mono font-semibold">
+                      "Processando 45% — 562 de 1.248 registros"
+                    </span>
+                    ).
+                  </p>
+                  <div className="space-y-1 text-[11px] text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                      <span>
+                        <strong>Barra Azul:</strong> Processamento em andamento
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                      <span>
+                        <strong>Barra Verde:</strong> Concluído com 100% de sucesso (sem erros)
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-amber-500" />
+                      <span>
+                        <strong>Barra Âmbar:</strong> Concluído com registros em falha para revisão
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2.4.3 Proteção Anti-Rate-Limit */}
+                <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-400 font-bold text-xs font-montserrat uppercase">
+                    <ShieldCheck className="w-4 h-4" /> 2.4.3 Proteção Anti-Rate-Limit
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Para evitar sobrecarga no servidor e bloqueio de requisições durante planilhas
+                    volumosas (milhares de linhas), o motor de importação aplica um{' '}
+                    <strong className="text-white">delay cadenciado de 250ms entre linhas</strong>{' '}
+                    somado a uma pausa estratégica de{' '}
+                    <strong className="text-amber-300">500ms a cada 50 registros</strong>{' '}
+                    processados.
+                  </p>
+                </div>
+
+                {/* 2.4.4 Tratamento de Erros Real */}
+                <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-rose-400 font-bold text-xs font-montserrat uppercase">
+                    <AlertTriangle className="w-4 h-4" /> 2.4.4 Tratamento de Erros com Motivo Real
+                  </div>
+                  <p className="text-xs text-slate-300 leading-relaxed">
+                    Em caso de falha em qualquer linha da planilha, o sistema não apresenta
+                    mensagens genéricas: ele extrai e exibe o{' '}
+                    <strong className="text-rose-300">MOTIVO REAL retornado pelo backend</strong>{' '}
+                    (ex: <em>"Email já está em uso"</em>, <em>"CPF já cadastrado"</em>,{' '}
+                    <em>"Too Many Requests"</em>, <em>"Documento com formato inválido"</em>),
+                    permitindo correção cirúrgica pelo administrador.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1120,7 +1258,7 @@ export const AdminManual: React.FC = () => {
                 Seção 5
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                5. Gestão de Passeios
+                5. Gestão de Passeios &amp; KM Atual da Moto
               </h2>
             </div>
           </div>
@@ -1230,6 +1368,66 @@ export const AdminManual: React.FC = () => {
                 </p>
               </div>
             </div>
+
+            {/* NOVAS SUBSEÇÕES 5.4 e 5.5 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+              <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-blue-400 font-bold text-xs font-montserrat uppercase">
+                  <Gauge className="w-4 h-4" /> 5.4 KM Atual da Moto na Inscrição (Obrigatório)
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  Ao se inscrever em qualquer passeio do Clube, o membro é{' '}
+                  <strong className="text-white">
+                    OBRIGADO a informar a quilometragem atual do hodômetro da sua moto
+                  </strong>
+                  .
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-xs text-slate-300 pl-1">
+                  <li>
+                    O campo possui formatação inteligente no padrão brasileiro com separador de
+                    milhar (ex: <code className="text-cyan-300 font-mono">15.000</code> ou{' '}
+                    <code className="text-cyan-300 font-mono">42.580</code>).
+                  </li>
+                  <li>
+                    O botão <strong className="text-blue-400">"CONFIRMAR PARTICIPAÇÃO"</strong>{' '}
+                    permanece bloqueado e só libera quando o campo de KM for preenchido com valor
+                    maior que zero (<strong className="text-white">KM &gt; 0</strong>).
+                  </li>
+                </ul>
+              </div>
+
+              <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 space-y-2">
+                <div className="flex items-center gap-2 text-cyan-400 font-bold text-xs font-montserrat uppercase">
+                  <Eye className="w-4 h-4" /> 5.5 Visualização do KM nos Relatórios e Telas
+                </div>
+                <p className="text-xs text-slate-300 leading-relaxed">
+                  A quilometragem informada pelo membro é sincronizada e fica imediatamente visível
+                  em:
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-xs text-slate-300 pl-1">
+                  <li>
+                    <strong className="text-white">Lista de inscritos do passeio:</strong> coluna
+                    dedicada <em>"KM Atual"</em>.
+                  </li>
+                  <li>
+                    <strong className="text-white">Tabela geral de inscrições:</strong> coluna{' '}
+                    <em>"KM Atual da Moto"</em>.
+                  </li>
+                  <li>
+                    <strong className="text-white">Página 360º do membro:</strong> histórico de
+                    passeios com odômetro de cada evento.
+                  </li>
+                  <li>
+                    <strong className="text-white">Exportação PDF:</strong> coluna oficial{' '}
+                    <em>"KM Atual"</em> formatada.
+                  </li>
+                  <li>
+                    <strong className="text-white">Exportação Excel:</strong> coluna{' '}
+                    <em>"KM Atual da Moto"</em> pronta para filtros de pós-vendas.
+                  </li>
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1247,7 +1445,7 @@ export const AdminManual: React.FC = () => {
                 Seção 6
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                6. Inscrições
+                6. Inscrições &amp; Formulário Completo
               </h2>
             </div>
           </div>
@@ -1256,15 +1454,61 @@ export const AdminManual: React.FC = () => {
             <p className="text-xs text-slate-400">
               <strong className="text-blue-400">Caminho:</strong> Admin → Inscrições
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-xs pl-1">
-              <li>Centraliza todas as inscrições realizadas em todos os passeios do Clube.</li>
+            <ul className="list-disc list-inside space-y-2 text-xs pl-1 leading-relaxed">
               <li>
-                <strong className="text-white">Filtros rápidos:</strong> localize inscrições por
-                passeio específico, por membro ou por status da vaga.
+                Centraliza todas as inscrições realizadas em todos os passeios oficiais do Clube.
               </li>
               <li>
-                Cada registro detalha: nome do piloto, moto utilizada, presença e identificação de
-                garupa, telefone de emergência e aceite legal dos regulamentos.
+                <strong className="text-white">Filtros rápidos:</strong> localize inscrições por
+                passeio específico, por membro participante ou por status da vaga.
+              </li>
+              <li>
+                <strong className="text-white">
+                  Formulário Pré-Preenchido com Validações Obrigatórias:
+                </strong>{' '}
+                no momento em que o membro clica em participar, o formulário já traz automaticamente
+                pré-preenchidos os dados de cadastro (
+                <strong className="text-blue-300">
+                  Nome, Telefone, E-mail, Marca, Modelo e Ano da Moto
+                </strong>
+                ), solicitando obrigatoriamente as confirmações operacionais:
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 mt-2">
+                  <div className="p-2.5 rounded bg-[#121824] border border-[#1c2538]">
+                    <span className="text-blue-400 font-bold block text-[11px]">1. GARUPA</span>
+                    <span className="text-slate-400 text-[10px]">
+                      Opção Sim/Não + Nome e WhatsApp do acompanhante
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded bg-[#121824] border border-[#1c2538]">
+                    <span className="text-emerald-400 font-bold block text-[11px]">
+                      2. KM ATUAL DA MOTO
+                    </span>
+                    <span className="text-slate-400 text-[10px]">
+                      Hodômetro obrigatório formatado (ex: 18.500 km)
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded bg-[#121824] border border-[#1c2538]">
+                    <span className="text-amber-400 font-bold block text-[11px]">
+                      3. CONTATO EMERGÊNCIA
+                    </span>
+                    <span className="text-slate-400 text-[10px]">
+                      Nome e telefone de terceiro para segurança
+                    </span>
+                  </div>
+                  <div className="p-2.5 rounded bg-[#121824] border border-[#1c2538]">
+                    <span className="text-purple-400 font-bold block text-[11px]">
+                      4. TERMOS &amp; REGRAS
+                    </span>
+                    <span className="text-slate-400 text-[10px]">
+                      Aceite legal do regulamento e termo de responsabilidade
+                    </span>
+                  </div>
+                </div>
+              </li>
+              <li>
+                Cada registro na tabela e nas exportações inclui o campo{' '}
+                <strong className="text-white">"KM Atual da Moto"</strong>, permitindo rastrear o
+                uso real das motocicletas da frota de clientes Euro Motors.
               </li>
             </ul>
           </div>
@@ -1317,24 +1561,24 @@ export const AdminManual: React.FC = () => {
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-bold text-blue-400">PLATINUM</td>
                       <td className="p-3 font-semibold">5+ motos compradas / 500+ pts</td>
-                      <td className="p-3 text-slate-300">💎 Azul premium especial</td>
+                      <td className="p-3 text-slate-300">💎 Azul premium especial (#60a5fa)</td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-bold text-amber-400">GOLD</td>
                       <td className="p-3 font-semibold">3 ou 4 motos compradas / 300–499 pts</td>
-                      <td className="p-3 text-slate-300">👑 Dourado</td>
+                      <td className="p-3 text-slate-300">👑 Dourado (#f59e0b)</td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-bold text-slate-300">PRATA</td>
                       <td className="p-3 font-semibold">1 ou 2 motos compradas / 100–299 pts</td>
-                      <td className="p-3 text-slate-300">⭐ Prata</td>
+                      <td className="p-3 text-slate-300">⭐ Prata (#94a3b8)</td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
-                      <td className="p-3 font-bold text-amber-600">BRONZE</td>
+                      <td className="p-3 font-bold text-orange-400">BRONZE</td>
                       <td className="p-3 font-semibold">
                         Oficina recente (&lt; 6 meses) / 0–99 pts
                       </td>
-                      <td className="p-3 text-slate-300">🛡️ Bronze</td>
+                      <td className="p-3 text-slate-300">🛡️ Bronze (#ea580c)</td>
                     </tr>
                   </tbody>
                 </table>
@@ -1403,7 +1647,7 @@ export const AdminManual: React.FC = () => {
                 Seção 8
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                8. QR Code da Loja (Check-in de Visita)
+                8. QR Code da Loja (Check-in Diário de Visita)
               </h2>
             </div>
           </div>
@@ -1458,7 +1702,7 @@ export const AdminManual: React.FC = () => {
         {/* SEÇÃO 9 */}
         <section
           id="sec-9"
-          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-4 scroll-mt-24 shadow-sm"
+          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-5 scroll-mt-24 shadow-sm"
         >
           <div className="flex items-center gap-3 pb-3 border-b border-[#1c2538]">
             <div className="w-8 h-8 rounded-lg bg-[#0066FF]/20 border border-[#0066FF]/40 flex items-center justify-center text-blue-400">
@@ -1479,18 +1723,19 @@ export const AdminManual: React.FC = () => {
               <strong className="text-blue-400">Caminho:</strong> Admin → Dashboard
             </p>
 
+            {/* 9.1 Visão Geral */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-2">
                 <h4 className="text-xs font-bold text-blue-400 uppercase tracking-wider font-montserrat">
                   Indicadores Gerais
                 </h4>
                 <ul className="list-disc list-inside space-y-1 text-slate-300 text-xs">
-                  <li>Total de membros</li>
+                  <li>Total de membros cadastrados</li>
                   <li>Novos membros no mês</li>
-                  <li>Membros ativos</li>
-                  <li>Próximo passeio e data</li>
-                  <li>Motos e participantes</li>
-                  <li>Vagas disponíveis</li>
+                  <li>Membros com status ativo</li>
+                  <li>Próximo passeio agendado e data</li>
+                  <li>Motos e participantes confirmados</li>
+                  <li>Vagas disponíveis em tempo real</li>
                 </ul>
               </div>
 
@@ -1499,9 +1744,9 @@ export const AdminManual: React.FC = () => {
                   Score &amp; Relacionamento
                 </h4>
                 <ul className="list-disc list-inside space-y-1 text-slate-300 text-xs">
-                  <li>Distr. Níveis de Relacionamento</li>
+                  <li>Distribuição dos Níveis de Relacionamento</li>
                   <li>VIPs Ativos vs VIPs Afastados</li>
-                  <li>Alto Valor Pós-Vendas</li>
+                  <li>Clientes de Alto Valor Pós-Vendas (85+)</li>
                   <li>Primeira Passagem Pendente</li>
                   <li>Próximos do Gold e Platinum</li>
                 </ul>
@@ -1512,8 +1757,104 @@ export const AdminManual: React.FC = () => {
                   Categorias &amp; Ranking
                 </h4>
                 <p className="text-xs text-slate-300 leading-relaxed">
-                  Cards com contagem por Platinum, Gold, Prata e Bronze + Ranking TOP MEMBROS com
-                  medalhas (🥇🥈🥉).
+                  Cards com contagem por Platinum, Gold, Prata e Bronze + Ranking TOP MEMBROS em
+                  abas separadas por <strong>Maior Score</strong> e{' '}
+                  <strong>Maior Valor em Compras</strong> com medalhas oficiais (🥇🥈🥉).
+                </p>
+              </div>
+            </div>
+
+            {/* NOVA SUBSEÇÃO 9.2 */}
+            <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-2 text-blue-400 font-bold text-xs font-montserrat uppercase">
+                <MousePointerClick className="w-4 h-4 text-blue-400" />
+                9.2 Cards Clicáveis com Filtro Automático para Lista de Membros
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                <strong className="text-white">
+                  TODOS os cards de métricas do Dashboard são interativos e clicáveis.
+                </strong>{' '}
+                Ao clicar em qualquer indicador, o sistema redireciona imediatamente para{' '}
+                <strong className="text-blue-400">Admin → Membros</strong> com o filtro exato
+                pré-aplicado:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1">
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-blue-400">Card PLATINUM</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra categoria <strong className="text-white">Platinum</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-amber-400">Card GOLD</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra categoria <strong className="text-white">Gold</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-emerald-400">Card Score 85+</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra Score <strong className="text-white">85 a 100</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-emerald-300">Card VIP Ativos</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra tag <strong className="text-white">VIP ATIVO</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-red-400">Card VIP Afastados</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra tag <strong className="text-white">VIP AFASTADO</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-blue-300">Próximos do Gold</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra tag <strong className="text-white">PRÓXIMO DO GOLD</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-purple-400">Próximos do Platinum</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra tag <strong className="text-white">PRÓXIMO DO PLATINUM</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-orange-400">1ª Passagem Pendente</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra tag <strong className="text-white">PRIMEIRA PASSAGEM PENDENTE</strong>
+                  </span>
+                </div>
+                <div className="p-2.5 rounded-lg bg-[#0c101b] border border-[#1b263b] flex items-center justify-between text-xs">
+                  <span className="font-semibold text-amber-500">Bronze Vencimento</span>
+                  <ArrowRight className="w-3.5 h-3.5 text-slate-500" />
+                  <span className="text-slate-300">
+                    Filtra <strong className="text-white">Bronze + Status Atenção</strong>
+                  </span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-[#1d2d4a] text-xs text-slate-300 space-y-1">
+                <p>
+                  • <strong>Rankings TOP Membros (Score e Valor):</strong> os nomes dos membros nos
+                  rankings também são clicáveis e abrem diretamente a{' '}
+                  <strong className="text-white">Página 360º de Detalhes do Membro</strong>.
+                </p>
+                <p>
+                  • <strong>Design e Feedback Visual:</strong> os cards possuem cursor pointer, leve
+                  ampliação de escala ao passar o mouse (hover) e brilho com borda glow em azul{' '}
+                  <code className="text-blue-300 font-mono">#0066FF</code>.
                 </p>
               </div>
             </div>
@@ -1570,7 +1911,7 @@ export const AdminManual: React.FC = () => {
                 Seção 11
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                11. Parceiros
+                11. Parceiros Conveniados
               </h2>
             </div>
           </div>
@@ -1584,8 +1925,8 @@ export const AdminManual: React.FC = () => {
                 Cadastro de estabelecimentos conveniados (hotéis, restaurantes, oficinas, lojas).
               </li>
               <li>
-                Campos: nome da empresa, logotipo, descrição do desconto/vantagem, link e
-                categorias.
+                Campos: nome da empresa, logotipo, descrição do desconto/vantagem, link e categorias
+                atendidas.
               </li>
             </ul>
           </div>
@@ -1605,7 +1946,7 @@ export const AdminManual: React.FC = () => {
                 Seção 12
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                12. Banners e Galeria
+                12. Banners e Galeria de Fotos
               </h2>
             </div>
           </div>
@@ -1635,10 +1976,10 @@ export const AdminManual: React.FC = () => {
           </div>
         </section>
 
-        {/* SEÇÃO 13 */}
+        {/* SEÇÃO 13: COMUNICADOS (EXPANDIDO) */}
         <section
           id="sec-13"
-          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-4 scroll-mt-24 shadow-sm"
+          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-5 scroll-mt-24 shadow-sm"
         >
           <div className="flex items-center gap-3 pb-3 border-b border-[#1c2538]">
             <div className="w-8 h-8 rounded-lg bg-[#0066FF]/20 border border-[#0066FF]/40 flex items-center justify-center text-blue-400">
@@ -1649,28 +1990,209 @@ export const AdminManual: React.FC = () => {
                 Seção 13
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                13. Comunicados
+                13. Central de Comunicados &amp; Pop-up Automático
               </h2>
             </div>
           </div>
 
-          <div className="space-y-3 text-sm text-slate-300">
+          <div className="space-y-4 text-sm text-slate-300">
             <p className="text-xs text-slate-400">
-              <strong className="text-blue-400">Caminho:</strong> Admin → Comunicados
+              <strong className="text-blue-400">Caminho do Admin:</strong> Admin → Comunicados
+              &nbsp;|&nbsp; <strong className="text-blue-400">Caminho do Membro:</strong>{' '}
+              /member/comunicados
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-xs pl-1">
-              <li>
-                Publicação de notícias oficiais, avisos urgentes e novidades com destaque
-                prioritário.
-              </li>
-            </ul>
+
+            {/* 13.1 Criação de Comunicados */}
+            <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-2">
+              <h3 className="text-sm font-bold text-white font-montserrat flex items-center gap-2">
+                <ChevronRight className="w-4 h-4 text-blue-400" /> 13.1 Gestão de Comunicados
+                (Painel Admin)
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Permite à concessionária publicar informativos, avisos de passeios, campanhas de
+                recall e promoções de pós-vendas com controle de ciclo de vida:
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1 text-xs">
+                <div className="p-3 bg-[#0b0e17] rounded-lg border border-[#1f2a3f] space-y-1">
+                  <span className="font-bold text-white block">
+                    Campos do Modal de Criação / Edição:
+                  </span>
+                  <ul className="list-disc list-inside text-slate-400 space-y-0.5 text-[11px]">
+                    <li>
+                      <strong className="text-slate-200">Título:</strong> obrigatório e com destaque
+                      tipográfico
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Conteúdo:</strong> texto explicativo
+                      completo
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Prioridade:</strong> Normal, Importante ou
+                      Urgente
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Data de publicação:</strong> data de
+                      entrada em vigor
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Data de expiração:</strong> opcional (sai
+                      do ar após o prazo)
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Status Ativo / Inativo:</strong> toggle de
+                      liberação imediata
+                    </li>
+                  </ul>
+                </div>
+                <div className="p-3 bg-[#0b0e17] rounded-lg border border-[#1f2a3f] space-y-1">
+                  <span className="font-bold text-white block">Ações do Administrador:</span>
+                  <ul className="list-disc list-inside text-slate-400 space-y-0.5 text-[11px]">
+                    <li>
+                      <strong className="text-slate-200">Criar novo:</strong> botão "+ Novo
+                      Comunicado"
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Editar:</strong> alteração em tempo real
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Ativar / Desativar:</strong> chave toggle
+                      no card
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Excluir:</strong> com confirmação de
+                      segurança
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Busca rápida:</strong> filtra por título ou
+                      conteúdo
+                    </li>
+                    <li>
+                      <strong className="text-slate-200">Paginação:</strong> organizada de 10 em 10
+                      itens
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            {/* 13.2 Visualização pelo Membro */}
+            <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-2">
+              <h3 className="text-sm font-bold text-white font-montserrat flex items-center gap-2">
+                <ChevronRight className="w-4 h-4 text-blue-400" /> 13.2 Visualização na Área do
+                Membro (/member/comunicados)
+              </h3>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Na página de comunicados, os avisos são agrupados dinamicamente em 3 seções
+                temáticas de alto impacto visual:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5 pt-1 text-xs">
+                <div className="p-3 bg-red-950/20 border border-red-500/30 rounded-lg space-y-1">
+                  <span className="font-bold text-red-400 flex items-center gap-1.5 uppercase font-montserrat">
+                    <AlertTriangle className="w-3.5 h-3.5" /> URGENTES
+                  </span>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Fundo vermelho com destaque total. Avisos de segurança, alterações de trajeto de
+                    passeios e recalls.
+                  </p>
+                </div>
+                <div className="p-3 bg-amber-950/20 border border-amber-500/30 rounded-lg space-y-1">
+                  <span className="font-bold text-amber-400 flex items-center gap-1.5 uppercase font-montserrat">
+                    <Clock className="w-3.5 h-3.5" /> IMPORTANTES
+                  </span>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Fundo âmbar. Lançamentos de passeios, novidades do Clube e campanhas sazonais de
+                    oficina.
+                  </p>
+                </div>
+                <div className="p-3 bg-blue-950/20 border border-blue-500/30 rounded-lg space-y-1">
+                  <span className="font-bold text-blue-400 flex items-center gap-1.5 uppercase font-montserrat">
+                    <Megaphone className="w-3.5 h-3.5" /> COMUNICADOS
+                  </span>
+                  <p className="text-[11px] text-slate-300 leading-snug">
+                    Fundo azul escuro. Dicas de pilotagem, novos parceiros e informações
+                    institucionais.
+                  </p>
+                </div>
+              </div>
+              <p className="text-[11px] text-slate-400 pt-1">
+                Todos os cards são interativos: com um clique eles expandem ou recolhem para
+                visualização confortável de textos longos.
+              </p>
+            </div>
+
+            {/* 13.3 Pop-up Automático */}
+            <div className="bg-gradient-to-br from-[#0c1322] to-[#090d16] border-2 border-[#0066FF]/40 rounded-xl p-5 space-y-3 relative overflow-hidden">
+              <div className="absolute top-0 right-0 w-48 h-48 bg-[#0066FF]/10 rounded-full blur-2xl pointer-events-none" />
+              <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase font-montserrat relative z-10">
+                <Sparkles className="w-4 h-4 text-blue-400" />
+                13.3 Pop-up Automático Inteligente ao Acessar a Área do Membro
+              </div>
+              <p className="text-xs text-slate-200 leading-relaxed relative z-10">
+                Sempre que o membro faz login ou navega por qualquer rota protegida (
+                <code className="text-blue-300 font-mono">/member/*</code>), o sistema verifica se
+                há comunicados ativos publicados que ainda{' '}
+                <strong className="text-white">NÃO FORAM LIDOS</strong> pelo usuário:
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs relative z-10">
+                <div className="bg-[#101726]/80 p-3.5 rounded-lg border border-[#1e2c47] space-y-1.5">
+                  <h4 className="font-bold text-white font-montserrat flex items-center gap-1.5 text-xs">
+                    <Eye className="w-3.5 h-3.5 text-blue-400" /> Comportamento do Modal Premium
+                  </h4>
+                  <ul className="list-disc list-inside text-slate-300 text-[11px] space-y-1 pl-1">
+                    <li>
+                      Abre automaticamente em design Dark Premium (fundo{' '}
+                      <code className="text-slate-300 font-mono">#090d16</code> com borda glow{' '}
+                      <code className="text-blue-300 font-mono">#0066FF</code>).
+                    </li>
+                    <li>
+                      <strong className="text-red-400">Urgente:</strong> borda vermelha pulsante +
+                      ícone de alerta + aviso destacado.
+                    </li>
+                    <li>
+                      <strong className="text-amber-400">Importante:</strong> badge âmbar com ícone
+                      de atenção.
+                    </li>
+                    <li>
+                      <strong className="text-blue-400">Normal:</strong> badge azul royal com ícone
+                      de megafone.
+                    </li>
+                    <li>
+                      Navegação <strong>"Anterior" / "Próximo"</strong> quando há mais de 1
+                      comunicado pendente.
+                    </li>
+                  </ul>
+                </div>
+                <div className="bg-[#101726]/80 p-3.5 rounded-lg border border-[#1e2c47] space-y-1.5">
+                  <h4 className="font-bold text-white font-montserrat flex items-center gap-1.5 text-xs">
+                    <Check className="w-3.5 h-3.5 text-emerald-400" /> Controle de Leitura
+                    Persistente
+                  </h4>
+                  <ul className="list-disc list-inside text-slate-300 text-[11px] space-y-1 pl-1">
+                    <li>
+                      Ao clicar em{' '}
+                      <strong className="text-emerald-400 font-semibold">"OK, ENTENDI"</strong>, o
+                      ID do comunicado é gravado como lido e{' '}
+                      <strong className="text-white">NUNCA MAIS reaparece</strong> para aquele
+                      membro.
+                    </li>
+                    <li>
+                      O membro também pode fechar no botão "X" ou clicando fora para ler mais tarde.
+                    </li>
+                    <li>
+                      Novos comunicados lançados pelo admin entram automaticamente na fila de
+                      leitura da próxima visita.
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
           </div>
         </section>
 
         {/* SEÇÃO 14 */}
         <section
           id="sec-14"
-          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-4 scroll-mt-24 shadow-sm"
+          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-5 scroll-mt-24 shadow-sm"
         >
           <div className="flex items-center gap-3 pb-3 border-b border-[#1c2538]">
             <div className="w-8 h-8 rounded-lg bg-[#0066FF]/20 border border-[#0066FF]/40 flex items-center justify-center text-blue-400">
@@ -1681,50 +2203,110 @@ export const AdminManual: React.FC = () => {
                 Seção 14
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                14. Relatórios e Exportações
+                14. Relatórios e Exportações (Excel &amp; PDF)
               </h2>
             </div>
           </div>
 
-          <div className="space-y-3 text-sm text-slate-300">
+          <div className="space-y-4 text-sm text-slate-300">
             <p className="text-xs text-slate-400">
-              <strong className="text-blue-400">Caminho:</strong> Admin → Relatórios
+              <strong className="text-blue-400">Caminho:</strong> Admin → Relatórios (e botões de
+              exportação em todas as telas administrativas)
             </p>
 
             <div className="overflow-x-auto border border-[#1c2538] rounded-lg">
               <table className="w-full text-left text-xs">
                 <thead className="bg-[#121824] text-slate-400 uppercase font-montserrat font-bold">
                   <tr>
-                    <th className="p-3">Relatório</th>
-                    <th className="p-3">Conteúdo Gerado</th>
-                    <th className="p-3">Formatos de Exportação</th>
+                    <th className="p-3 w-44">Relatório</th>
+                    <th className="p-3">Conteúdo Gerado e Campos Incluídos</th>
+                    <th className="p-3 w-36">Formatos</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-[#1c2538]">
                   <tr className="hover:bg-[#141b27]/60">
-                    <td className="p-3 font-semibold text-white">Membros</td>
-                    <td className="p-3">
-                      Lista completa com CPF, categoria, Score de Oficina e motos
+                    <td className="p-3 font-semibold text-white">Membros Cadastrados</td>
+                    <td className="p-3 text-slate-300">
+                      Nome, CPF/CNPJ, E-mail, Telefone, Cidade, Categoria, Score de Oficina, Nível
+                      de Relacionamento, Tags Inteligentes, Modelo de Moto e Status.
                     </td>
-                    <td className="p-3 font-mono text-blue-400 font-bold">CSV, PDF</td>
+                    <td className="p-3 font-mono text-emerald-400 font-bold">CSV (Excel), PDF</td>
                   </tr>
                   <tr className="hover:bg-[#141b27]/60">
-                    <td className="p-3 font-semibold text-white">Passeios</td>
-                    <td className="p-3">Passeios realizados, agendados, ocupação e datas</td>
-                    <td className="p-3 font-mono text-blue-400 font-bold">CSV, PDF</td>
+                    <td className="p-3 font-semibold text-white">Passeios Oficiais</td>
+                    <td className="p-3 text-slate-300">
+                      Passeios realizados e agendados, ocupação de vagas, quilometragem prevista,
+                      data, ponto de encontro e KM Atual médio dos inscritos.
+                    </td>
+                    <td className="p-3 font-mono text-emerald-400 font-bold">CSV (Excel), PDF</td>
                   </tr>
                   <tr className="hover:bg-[#141b27]/60">
-                    <td className="p-3 font-semibold text-white">Inscrições</td>
-                    <td className="p-3">Inscritos, acompanhantes e check-in por passeio</td>
-                    <td className="p-3 font-mono text-blue-400 font-bold">CSV, PDF</td>
+                    <td className="p-3 font-semibold text-white">Inscrições em Passeios</td>
+                    <td className="p-3 text-slate-300">
+                      Piloto, garupa, telefone, moto,{' '}
+                      <strong className="text-white">KM Atual da Moto</strong>, status de check-in e
+                      confirmação de termos.
+                    </td>
+                    <td className="p-3 font-mono text-emerald-400 font-bold">CSV (Excel), PDF</td>
                   </tr>
                   <tr className="hover:bg-[#141b27]/60">
-                    <td className="p-3 font-semibold text-white">Ranking</td>
-                    <td className="p-3">Top membros por pontuação acumulada geral</td>
-                    <td className="p-3 font-mono text-blue-400 font-bold">CSV, PDF</td>
+                    <td className="p-3 font-semibold text-white">Rankings de Membros</td>
+                    <td className="p-3 text-slate-300">
+                      Top membros por pontuação acumulada, Maior Score de Oficina e Maior Valor em
+                      Compras acumulado.
+                    </td>
+                    <td className="p-3 font-mono text-emerald-400 font-bold">CSV (Excel), PDF</td>
+                  </tr>
+                  <tr className="hover:bg-[#141b27]/60">
+                    <td className="p-3 font-semibold text-white">Dashboard Executivo</td>
+                    <td className="p-3 text-slate-300">
+                      Resumo executivo com indicadores gerais, contagem por categorias, distribuição
+                      de score e ranking integrado.
+                    </td>
+                    <td className="p-3 font-mono text-blue-400 font-bold">PDF Oficial</td>
+                  </tr>
+                  <tr className="hover:bg-[#141b27]/60">
+                    <td className="p-3 font-semibold text-white">Histórico de Importações</td>
+                    <td className="p-3 text-slate-300">
+                      Auditoria de planilhas processadas com arquivo, data/hora, linhas totais,
+                      criados, atualizados, erros e status.
+                    </td>
+                    <td className="p-3 font-mono text-blue-400 font-bold">PDF Oficial</td>
+                  </tr>
+                  <tr className="hover:bg-[#141b27]/60">
+                    <td className="p-3 font-semibold text-white">Página 360º do Membro</td>
+                    <td className="p-3 text-slate-300">
+                      Ficha cadastral completa individual, snapshot de métricas de oficina,
+                      histórico de compras de motos e histórico de passeios com KM.
+                    </td>
+                    <td className="p-3 font-mono text-blue-400 font-bold">PDF Individual</td>
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+              <div className="bg-[#121824] p-3.5 rounded-lg border border-[#1c2538] space-y-1">
+                <span className="text-xs font-bold text-rose-400 font-montserrat flex items-center gap-1.5 uppercase">
+                  <FileText className="w-3.5 h-3.5" /> Padrão Visual dos Arquivos PDF
+                </span>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Cabeçalho oficial Euro Motors Motorrad Club em azul #0066FF com fundo dark
+                  #0A1120, carimbo de data/hora de geração, numeração automática de páginas, tabelas
+                  zebradas autoTable com colunas destacadas e rodapé institucional.
+                </p>
+              </div>
+
+              <div className="bg-[#121824] p-3.5 rounded-lg border border-[#1c2538] space-y-1">
+                <span className="text-xs font-bold text-emerald-400 font-montserrat flex items-center gap-1.5 uppercase">
+                  <FileSpreadsheet className="w-3.5 h-3.5" /> Padrão dos Arquivos Excel (CSV / XLSX)
+                </span>
+                <p className="text-[11px] text-slate-300 leading-relaxed">
+                  Colunas auto-ajustáveis, codificação UTF-8 compatível com Microsoft Excel,
+                  cabeçalhos padronizados e abas nomeadas pelo tipo de relatório para rápida
+                  consolidação em BI e CRM.
+                </p>
+              </div>
             </div>
           </div>
         </section>
@@ -1814,26 +2396,30 @@ export const AdminManual: React.FC = () => {
           <div className="space-y-3 text-xs text-slate-300">
             <div className="bg-[#121824] p-3.5 rounded-lg border border-[#1c2538]">
               <h4 className="font-bold text-white font-montserrat text-sm mb-1 text-blue-400">
-                Fluxo 1: Importação de Membros (UPSERT)
+                Fluxo 1: Importação de Membros em Massa (UPSERT)
               </h4>
               <p className="leading-relaxed">
-                Admin faz upload da planilha → Sistema executa as 14 etapas → Preview com resumo de
-                atualizações, novos cadastros e ignorados → Admin confirma → membros entram como{' '}
-                <strong className="text-amber-400">"Pré-cadastrado"</strong> ou são atualizados
-                mantendo campos protegidos.
+                Admin faz upload da planilha (XLSX/CSV) → Sistema processa as 14 etapas com barra de
+                progresso em tempo real e proteção anti-rate-limit → Novos cadastros recebem
+                fallback de e-mail por CPF (
+                <code className="text-cyan-300 font-mono">CPF@euromotors.club</code>) e entram como{' '}
+                <strong className="text-amber-400">"Pré-cadastrado"</strong> → Registros existentes
+                são atualizados preservando campos protegidos e gerando snapshots em{' '}
+                <code className="text-slate-300 font-mono">historico_metricas_membro</code> (sem
+                gerar historico_categoria em massa).
               </p>
             </div>
 
             <div className="bg-[#121824] p-3.5 rounded-lg border border-[#1c2538]">
               <h4 className="font-bold text-white font-montserrat text-sm mb-1 text-blue-400">
-                Fluxo 2: Cliente Ativa o Cadastro
+                Fluxo 2: Cliente Ativa o Cadastro (/validar-cadastro)
               </h4>
               <p className="leading-relaxed">
                 Cliente acessa o site → clica em{' '}
                 <strong className="text-white">"JÁ SOU CLIENTE"</strong> → Digita CPF ou 7 últimos
-                dígitos do chassi → Sistema recupera dados pré-cadastrados → Cliente confere, cria
-                senha, aceita termos LGPD →{' '}
-                <strong className="text-emerald-400">ATIVO automaticamente</strong>.
+                dígitos do chassi → Sistema recupera dados pré-cadastrados → Cliente define seu
+                e-mail real, cria senha, aceita termos LGPD →{' '}
+                <strong className="text-emerald-400">Status ATIVO automaticamente</strong>.
               </p>
             </div>
 
@@ -1850,12 +2436,19 @@ export const AdminManual: React.FC = () => {
 
             <div className="bg-[#121824] p-3.5 rounded-lg border border-[#1c2538]">
               <h4 className="font-bold text-white font-montserrat text-sm mb-1 text-blue-400">
-                Fluxo 4: Inscrição em Passeio
+                Fluxo 4: Inscrição em Passeio (com KM Obrigatório)
               </h4>
               <p className="leading-relaxed">
-                Cliente escolhe o passeio →{' '}
-                <strong className="text-white">"QUERO PARTICIPAR"</strong> → Confirma garupa,
-                contato de emergência e regulamento → Inscrição confirmada na hora.
+                Cliente escolhe o passeio → clica em{' '}
+                <strong className="text-white">"QUERO PARTICIPAR"</strong> → Formulário abre com
+                dados do membro pré-preenchidos → Escolhe garupa (sim/não) →{' '}
+                <strong className="text-blue-300 font-semibold">
+                  Informa KM ATUAL DA MOTO (obrigatório &gt; 0)
+                </strong>{' '}
+                → Informa contato de emergência → Aceita regulamento do passeio → Aceita termo de
+                responsabilidade → Clica em{' '}
+                <strong className="text-emerald-400">"CONFIRMAR PARTICIPAÇÃO"</strong> → Inscrição
+                confirmada na hora.
               </p>
             </div>
           </div>
@@ -1864,7 +2457,7 @@ export const AdminManual: React.FC = () => {
         {/* SEÇÃO 17 */}
         <section
           id="sec-17"
-          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-4 scroll-mt-24 shadow-sm"
+          className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-5 scroll-mt-24 shadow-sm"
         >
           <div className="flex items-center gap-3 pb-3 border-b border-[#1c2538]">
             <div className="w-8 h-8 rounded-lg bg-[#0066FF]/20 border border-[#0066FF]/40 flex items-center justify-center text-blue-400">
@@ -1875,27 +2468,110 @@ export const AdminManual: React.FC = () => {
                 Seção 17
               </p>
               <h2 className="text-lg sm:text-xl font-bold text-white font-montserrat">
-                17. Carteirinha Digital e Validação QR Code
+                17. Carteirinha Digital Dinâmica &amp; Validação QR Code
               </h2>
             </div>
           </div>
 
-          <div className="space-y-3 text-sm text-slate-300">
+          <div className="space-y-4 text-sm text-slate-300">
             <p className="text-xs text-slate-400">
               <strong className="text-blue-400">Caminho do membro:</strong> Área do Membro →
-              Carteirinha
+              Carteirinha (/member/carteirinha)
             </p>
-            <ul className="list-disc list-inside space-y-1.5 text-xs pl-1">
-              <li>
-                Exibe: nome, categoria com badge oficial, ID exclusivo e QR Code de autenticação.
-              </li>
-              <li>
-                Ao ser escaneado, abre a página de validação pública com status seguro{' '}
-                <span className="text-emerald-400 font-semibold">(MEMBRO ATIVO)</span> ou alerta{' '}
-                <span className="text-red-400 font-semibold">(MEMBRO INATIVO)</span>.
-              </li>
-              <li>Dados sensíveis como CPF, e-mail e telefone nunca são expostos publicamente.</li>
-            </ul>
+
+            <div className="space-y-2 bg-[#121824] p-4 rounded-lg border border-[#1c2538]">
+              <h3 className="text-sm font-bold text-white font-montserrat flex items-center gap-2">
+                <ChevronRight className="w-4 h-4 text-blue-400" /> 17.1 Funcionalidades da
+                Carteirinha
+              </h3>
+              <ul className="list-disc list-inside space-y-1.5 text-xs text-slate-300 pl-2">
+                <li>
+                  Exibe: Nome completo do membro, categoria com badge oficial, ID exclusivo Euro
+                  Motors Club, modelo da moto cadastrada e QR Code dinâmico de autenticação.
+                </li>
+                <li>
+                  Ao ser escaneado por parceiros ou staff, abre a página de validação pública com
+                  status verificado{' '}
+                  <span className="text-emerald-400 font-semibold">(MEMBRO ATIVO)</span> ou alerta{' '}
+                  <span className="text-red-400 font-semibold">(MEMBRO INATIVO)</span>.
+                </li>
+                <li>
+                  Dados sensíveis (como CPF, e-mail e telefone) nunca são expostos na validação
+                  pública para conformidade com a LGPD.
+                </li>
+              </ul>
+            </div>
+
+            {/* NOVA SUBSEÇÃO 17.2 */}
+            <div className="bg-[#101726] border border-[#1d2d4a] rounded-xl p-4 sm:p-5 space-y-3">
+              <div className="flex items-center gap-2 text-blue-400 font-bold text-xs uppercase font-montserrat">
+                <Palette className="w-4 h-4 text-blue-400" />
+                17.2 Cores Dinâmicas por Categoria
+              </div>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                A carteirinha digital{' '}
+                <strong className="text-white">
+                  REFLETE EM TEMPO REAL a cor temática da categoria
+                </strong>{' '}
+                do cliente, proporcionando uma experiência ultra premium e visualmente
+                personalizada:
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-2 pt-1">
+                <div className="p-3 rounded-lg bg-blue-950/30 border border-blue-500/40 text-center space-y-1">
+                  <span className="font-bold text-blue-400 text-xs block font-montserrat">
+                    PLATINUM
+                  </span>
+                  <span className="text-[11px] font-mono text-blue-300">#60a5fa</span>
+                  <span className="text-[10px] text-slate-400 block">Azul Royal Premium</span>
+                </div>
+                <div className="p-3 rounded-lg bg-amber-950/30 border border-amber-500/40 text-center space-y-1">
+                  <span className="font-bold text-amber-400 text-xs block font-montserrat">
+                    GOLD
+                  </span>
+                  <span className="text-[11px] font-mono text-amber-300">#f59e0b</span>
+                  <span className="text-[10px] text-slate-400 block">Dourado Euro</span>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-900 border border-slate-600/40 text-center space-y-1">
+                  <span className="font-bold text-slate-300 text-xs block font-montserrat">
+                    PRATA
+                  </span>
+                  <span className="text-[11px] font-mono text-slate-300">#94a3b8</span>
+                  <span className="text-[10px] text-slate-400 block">Prata Metálico</span>
+                </div>
+                <div className="p-3 rounded-lg bg-orange-950/30 border border-orange-500/40 text-center space-y-1">
+                  <span className="font-bold text-orange-400 text-xs block font-montserrat">
+                    BRONZE
+                  </span>
+                  <span className="text-[11px] font-mono text-orange-300">#ea580c</span>
+                  <span className="text-[10px] text-slate-400 block">Bronze Oficial</span>
+                </div>
+                <div className="p-3 rounded-lg bg-slate-950 border border-slate-700 text-center space-y-1">
+                  <span className="font-bold text-slate-400 text-xs block font-montserrat">
+                    INATIVO
+                  </span>
+                  <span className="text-[11px] font-mono text-slate-400">#64748b</span>
+                  <span className="text-[10px] text-slate-500 block">Cinza Neutro</span>
+                </div>
+              </div>
+
+              <div className="pt-2 text-xs text-slate-300">
+                <span className="font-bold text-white block mb-1">
+                  Elementos que se adaptam dinamicamente à cor da categoria:
+                </span>
+                <ul className="list-disc list-inside space-y-0.5 text-[11px] text-slate-400 pl-1">
+                  <li>Brilho radial de fundo (ambient background glow)</li>
+                  <li>Borda externa com efeito de profundidade neon</li>
+                  <li>Linha divisória decorativa superior e inferior</li>
+                  <li>Moldura com efeito glow do QR Code de validação</li>
+                  <li>Barras estilizadas M-Performance no rodapé da carteirinha</li>
+                  <li>
+                    Ícone de autenticidade <em>"ACESSO EXCLUSIVO"</em>
+                  </li>
+                  <li>Grafismo com estrada pontilhada em curva SVG integrado</li>
+                </ul>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -1929,14 +2605,18 @@ export const AdminManual: React.FC = () => {
                 da loja é protegido por criptografia e renovado automaticamente todo dia às 00:00.
               </li>
               <li>
-                <strong className="text-white">Unicidade de CPF:</strong> previne duplicidade de
-                registros tanto na importação quanto no cadastro via site.
+                <strong className="text-white">Unicidade de CPF / CNPJ:</strong> previne duplicidade
+                de registros tanto na importação em massa quanto no formulário do site.
+              </li>
+              <li>
+                <strong className="text-white">Fallback por CPF na Importação:</strong> assegura que
+                nenhum registro importe com e-mail duplicado de terceiros.
               </li>
             </ul>
           </div>
         </section>
 
-        {/* SEÇÃO 19 */}
+        {/* SEÇÃO 19: FAQ EXPANDIDO */}
         <section
           id="sec-19"
           className="bg-[#0e131d] border border-[#1c2538] rounded-xl p-5 sm:p-7 space-y-4 scroll-mt-24 shadow-sm"
@@ -1965,6 +2645,61 @@ export const AdminManual: React.FC = () => {
                 <strong className="text-white">NÃO</strong>. O Score de Oficina mede a intensidade
                 do relacionamento pós-vendas e é totalmente independente da Categoria. Um Platinum
                 com Score baixo continua Platinum (recebe tag VIP AFASTADO para ação de pós-vendas).
+              </p>
+            </div>
+
+            <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-1.5">
+              <h4 className="font-bold text-white text-sm">
+                P: Como funciona o pop-up de comunicados ao entrar na área do membro?
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                <strong className="text-blue-400">R:</strong> Ao acessar qualquer rota{' '}
+                <code className="text-blue-300 font-mono">/member/*</code>, o sistema busca
+                comunicados ativos que o membro ainda não marcou como lidos. Se houver, abre um
+                modal elegante dark exibindo o aviso com badge de prioridade (Urgente com borda
+                pulsante vermelha, Importante em âmbar, Normal em azul). Quando o membro clica em{' '}
+                <strong className="text-emerald-400">"OK, ENTENDI"</strong>, o comunicado é marcado
+                como lido e nunca mais aparece para ele.
+              </p>
+            </div>
+
+            <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-1.5">
+              <h4 className="font-bold text-white text-sm">
+                P: Por que o sistema pede o KM atual da moto na inscrição do passeio?
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                <strong className="text-blue-400">R:</strong> Para fins de segurança, planejamento
+                de revisões e acompanhamento de pós-vendas da concessionária Euro Motors. O campo é
+                obrigatório (valor &gt; 0) com máscara numérica e alimenta a ficha 360º do membro,
+                relatórios em PDF e planilhas em Excel.
+              </p>
+            </div>
+
+            <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-1.5">
+              <h4 className="font-bold text-white text-sm">
+                P: Posso clicar nos cards do dashboard para ver os membros filtrados?
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                <strong className="text-blue-400">R:</strong>{' '}
+                <strong className="text-white">
+                  Sim, todos os cards do Dashboard são clicáveis!
+                </strong>{' '}
+                Ao clicar em Platinum, Gold, Score 85+, VIP Ativos, VIP Afastados, Próximos do
+                Gold/Platinum ou 1ª Passagem Pendente, você é levado imediatamente à tela de membros
+                com a lista filtrada correspondente.
+              </p>
+            </div>
+
+            <div className="bg-[#121824] p-4 rounded-lg border border-[#1c2538] space-y-1.5">
+              <h4 className="font-bold text-white text-sm">
+                P: A carteirinha digital muda de cor conforme a categoria do cliente?
+              </h4>
+              <p className="text-slate-300 leading-relaxed">
+                <strong className="text-blue-400">R:</strong> Sim! A carteirinha digital adapta seus
+                elementos visuais (brilho, bordas, linhas, QR Code glow e barras M-style) para a cor
+                temática da categoria do membro: Azul (#60a5fa) para Platinum, Dourado (#f59e0b)
+                para Gold, Prata (#94a3b8) para Prata, Laranja Bronze (#ea580c) para Bronze e Cinza
+                (#64748b) para Inativo.
               </p>
             </div>
 
@@ -2010,7 +2745,8 @@ export const AdminManual: React.FC = () => {
           <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
           <span className="text-xs text-slate-300">
             Você está visualizando a versão completa e atualizada do Manual do Administrador (com
-            Score de Oficina e 14 Etapas).
+            todas as funcionalidades de Score de Oficina, 14 Etapas, KM Atual, Pop-up de Comunicados
+            e Carteirinha Dinâmica).
           </span>
         </div>
         <Button
