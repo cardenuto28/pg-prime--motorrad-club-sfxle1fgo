@@ -779,7 +779,7 @@ export const announcementService = {
   /** Apenas comunicados ativos (active = true). */
   async getActive(): Promise<Announcement[]> {
     const records = await pb.collection('announcements').getFullList({
-      filter: "active='true'",
+      filter: 'active=true',
       sort: '-publish_at',
     })
     return records as unknown as Announcement[]
@@ -788,7 +788,7 @@ export const announcementService = {
   /** Apenas comunicados urgentes ativos. */
   async getUrgent(): Promise<Announcement[]> {
     const records = await pb.collection('announcements').getFullList({
-      filter: "active='true' && priority='urgent'",
+      filter: "active=true && priority='urgent'",
       sort: '-publish_at',
     })
     return records as unknown as Announcement[]
@@ -799,7 +799,7 @@ export const announcementService = {
     if (!memberId) return []
     try {
       const records = await pb.collection('announcements').getFullList({
-        filter: "active='true'",
+        filter: 'active=true',
         sort: '-publish_at,-created',
       })
       const list = records as unknown as Announcement[]
