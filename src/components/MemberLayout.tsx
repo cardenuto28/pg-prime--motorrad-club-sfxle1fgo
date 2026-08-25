@@ -17,6 +17,8 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { StatusBadge, statusLabel } from '@/lib/member'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
+import { useAnnouncementPopup } from '@/hooks/useAnnouncementPopup'
+import { AnnouncementPopupModal } from '@/components/AnnouncementPopupModal'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 
 interface NavItem {
@@ -40,6 +42,8 @@ export const MemberLayout: React.FC = () => {
   const { user, logout } = useAuth()
   const navigate = useNavigate()
   const [mobileOpen, setMobileOpen] = useState(false)
+
+  const popup = useAnnouncementPopup()
 
   const handleLogout = () => {
     logout()
@@ -111,6 +115,19 @@ export const MemberLayout: React.FC = () => {
           </main>
         </div>
       </div>
+
+      {/* Pop-up Modal de Comunicados Não Visualizados */}
+      <AnnouncementPopupModal
+        isOpen={popup.isOpen}
+        announcement={popup.currentAnnouncement}
+        currentIndex={popup.currentIndex}
+        totalCount={popup.totalCount}
+        isMarking={popup.isMarking}
+        onNext={popup.next}
+        onPrev={popup.prev}
+        onUnderstood={popup.markCurrentAsUnderstood}
+        onClose={popup.closeModal}
+      />
 
       {/* Mobile Drawer */}
       {mobileOpen && (

@@ -257,6 +257,7 @@ export interface Announcement {
   active?: boolean
   publish_at?: string
   expires_at?: string
+  visualizado_por?: string[]
   created: string
   updated: string
 }
@@ -791,6 +792,52 @@ export const announcementService = {
       sort: '-publish_at',
     })
     return records as unknown as Announcement[]
+  },
+
+  /** Busca comunicados ativos que ainda não foram visualizados pelo membro informado. */
+  async getUnreadForMember(memberId: string): Promise<Announcement[]> {
+    if (!memberId) return []
+    try {
+      const records = await pb.collection('announcements').getFullList({
+        filter: "active='true'",
+        sort: '-publish_at,-created',
+      })
+      const list = records as unknown as Announcement[]
+      return list.filter((a) => {
+        const viewed = a.visualizado_por || []
+        return !viewed.includes(memberId)
+      })
+    } catch (err) {
+      console.error('Erro ao buscar comunicados não visualizados:', err)
+      return []
+    }
+  },
+
+  /** Marca o comunicado como visualizado adicionando o ID do membro a visualizado_por. */
+  async markAsViewed(announcementId: string, memberId: string): Promise<Announcement | null> {
+    if (!announcementId || !memberId) return null
+    try {
+      const current = await pb.collection('announcements').getOne(announcementId)
+      const existing: string[] = Array.isArray(current.visualizado_por)
+        ? current.visualizado_por
+        : []
+      if (existing.includes(memberId)) {
+        return current as unknown as Announcement
+      }
+      const updated = await pb.collection('announcements').update(announcementId, {
+        visualizado_por: [...existing, memberId],
+      })
+      return updated as unknown as Announcement
+    } catch (err) {
+      console.error(`Erro ao marcar comunicado ${announcementId} como lido:`, err)
+      return null
+    }
+  },
+
+  /** Marca múltiplos comunicados como visualizados pelo membro. */
+  async markManyAsViewed(announcementIds: string[], memberId: string): Promise<void> {
+    if (!memberId || !announcementIds.length) return
+    await Promise.allSettled(announcementIds.map((id) => this.markAsViewed(id, memberId)))
   },
 
   async createAnnouncement(data: Partial<Announcement>): Promise<Announcement> {
