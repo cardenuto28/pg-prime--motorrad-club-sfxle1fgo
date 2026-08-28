@@ -30,8 +30,13 @@ import { exportActiveRankingPdf } from '@/lib/pdfExport'
 import { exportToExcel } from '@/lib/excelExport'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { FileSpreadsheet } from 'lucide-react'
-import { calcularCategoriaMembro, normalizeCategory } from '@/lib/membership'
-import { Sparkles, Crown, Star, ArrowUpRight } from 'lucide-react'
+import {
+  calcularCategoriaMembro,
+  normalizeCategory,
+  calcularEstatisticasMotosPorCategoria,
+  CategoryBikeStats,
+} from '@/lib/membership'
+import { Sparkles, Crown, Star, ArrowUpRight, Diamond, Shield } from 'lucide-react'
 import { Link } from 'react-router-dom'
 
 const AdminReports: React.FC = () => {
@@ -143,6 +148,11 @@ const AdminReports: React.FC = () => {
   const goldProximoPlatinum = useMemo(() => {
     return users.filter((u) => Number(u.quantidade_motos_compradas) === 4)
   }, [users])
+
+  // Distribuição e Ranking de Motos por Categoria
+  const bikeCategoryStats = useMemo(() => {
+    return calcularEstatisticasMotosPorCategoria(filteredUsers)
+  }, [filteredUsers])
 
   // Members by city
   const byCity = useMemo(() => {
@@ -422,6 +432,176 @@ const AdminReports: React.FC = () => {
               label="Inscrições"
               value={totalRegistrations}
             />
+          </section>
+
+          {/* 🏍️ RELATÓRIO DE DISTRIBUIÇÃO E MAIORES COMPRADORES POR CATEGORIA */}
+          <section className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bike className="w-5 h-5 text-blue-400" />
+                <h2 className="text-sm font-extrabold text-white uppercase tracking-widest font-montserrat">
+                  🏍️ Distribuição e Ranking de Motos por Categoria
+                </h2>
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    exportToExcel({
+                      sheetName: 'Distribuicao e Ranking',
+                      fileName: `distribuicao_motos_categorias_${new Date().toISOString().slice(0, 10)}.xlsx`,
+                      headers: [
+                        'Categoria',
+                        'Total Clientes',
+                        'Total Motos',
+                        'Distribuição (Motos por Cliente)',
+                        'Top Comprador',
+                        'Motos do Top Comprador',
+                      ],
+                      data: (['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).map((k) => {
+                        const s = bikeCategoryStats[k]
+                        const dist = s.bikeDistribution
+                          .map((d) => `${d.count} clientes c/ ${d.bikes} motos`)
+                          .join(' | ')
+                        const top1 = s.topBuyers[0]
+                        return [
+                          s.label,
+                          s.totalMembers,
+                          s.totalBikes,
+                          dist || '—',
+                          top1 ? top1.name : '—',
+                          top1 ? top1.motos : 0,
+                        ]
+                      }),
+                    })
+                    toast({
+                      title: 'Excel Gerado',
+                      description: 'Distribuição e ranking de motos exportados em XLSX.',
+                    })
+                  }}
+                  className="border-emerald-800/60 bg-emerald-950/30 text-emerald-300 hover:text-white hover:bg-emerald-950/60 text-[11px] h-8 gap-1.5"
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> EXCEL
+                </Button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).map((catKey) => {
+                const s = bikeCategoryStats[catKey]
+                const isPlat = catKey === 'PLATINUM'
+                const isGold = catKey === 'GOLD'
+                const isPrata = catKey === 'PRATA'
+                const colorClass = isPlat
+                  ? 'text-blue-400 border-blue-900/40'
+                  : isGold
+                    ? 'text-amber-400 border-amber-900/40'
+                    : isPrata
+                      ? 'text-slate-300 border-slate-700/50'
+                      : 'text-orange-400 border-orange-900/40'
+
+                const IconComponent = isPlat ? Diamond : isGold ? Crown : isPrata ? Star : Shield
+
+                return (
+                  <div
+                    key={catKey}
+                    className={`bg-[#0e131d] border ${colorClass} rounded-lg p-4 space-y-3 flex flex-col justify-between`}
+                  >
+                    <div>
+                      <div className="flex items-center justify-between border-b border-[#1c2538] pb-2">
+                        <div className="flex items-center gap-1.5">
+                          <IconComponent className="w-4 h-4" />
+                          <h3 className="text-xs font-bold uppercase font-montserrat tracking-wider">
+                            {s.label}
+                          </h3>
+                        </div>
+                        <span className="text-xs font-mono font-bold text-white">
+                          {s.totalBikes} motos
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2 my-2.5">
+                        <div className="bg-[#0a0d14] p-2 rounded border border-[#1c2538]">
+                          <span className="text-[9px] text-slate-500 uppercase tracking-wider block font-montserrat">
+                            Membros
+                          </span>
+                          <span className="text-base font-black text-white font-mono">
+                            {s.totalMembers}
+                          </span>
+                        </div>
+                        <div className="bg-[#0a0d14] p-2 rounded border border-[#1c2538]">
+                          <span className="text-[9px] text-slate-500 uppercase tracking-wider block font-montserrat">
+                            Média
+                          </span>
+                          <span className="text-base font-black text-blue-400 font-mono">
+                            {s.totalMembers > 0 ? (s.totalBikes / s.totalMembers).toFixed(1) : 0}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Distribuição */}
+                      <div className="space-y-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Distribuição de Clientes:
+                        </span>
+                        {s.bikeDistribution.length === 0 ? (
+                          <p className="text-[10px] text-slate-500 italic py-1">Nenhum membro</p>
+                        ) : (
+                          <div className="space-y-1 max-h-24 overflow-y-auto pr-1">
+                            {s.bikeDistribution.map((d) => (
+                              <div
+                                key={d.bikes}
+                                className="flex items-center justify-between text-[10px] bg-[#0a0d14] px-2 py-1 rounded border border-[#1c2538]/60"
+                              >
+                                <span className="text-slate-300">
+                                  <strong className="text-white font-mono">{d.count}</strong>{' '}
+                                  cliente(s)
+                                </span>
+                                <span className="font-bold font-mono text-blue-400">
+                                  {d.bikes} {d.bikes === 1 ? 'moto' : 'motos'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Top Compradores */}
+                      <div className="mt-3 space-y-1.5">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
+                          Top Maiores Compradores:
+                        </span>
+                        {s.topBuyers.length === 0 ? (
+                          <p className="text-[10px] text-slate-500 italic py-1">Nenhum comprador</p>
+                        ) : (
+                          <div className="space-y-1 max-h-32 overflow-y-auto pr-1">
+                            {s.topBuyers.slice(0, 4).map((b, idx) => (
+                              <div
+                                key={b.user.id}
+                                className="flex items-center justify-between text-[10px] bg-[#0a0d14] px-2 py-1 rounded border border-[#1c2538]/60 hover:border-blue-500/40 transition-colors"
+                              >
+                                <div className="min-w-0 pr-2">
+                                  <span className="font-bold text-white truncate block">
+                                    {idx + 1}º {b.name}
+                                  </span>
+                                  <span className="text-[9px] text-slate-500 truncate block">
+                                    {b.city || '—'}
+                                  </span>
+                                </div>
+                                <span className="font-bold font-mono text-blue-400 whitespace-nowrap">
+                                  {b.motos} motos
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </section>
 
           {/* 🎯 RELATÓRIO DE OPORTUNIDADES COMERCIAIS */}

@@ -33,6 +33,8 @@ import { FileText, FileSpreadsheet } from 'lucide-react'
 import {
   calcularCategoriaMembro,
   calcularScoreCompleto,
+  calcularEstatisticasMotosPorCategoria,
+  CategoryBikeStats,
   normalizeCategory,
   parseDateFlexible,
   mesesEntre,
@@ -270,6 +272,9 @@ const AdminDashboard: React.FC = () => {
 
     const ridesDone = rides.filter((r) => r.status === 'realizado' || isRidePast(r.date)).length
 
+    // Estatísticas e Distribuição de Motos e Ranking de Compradores por Categoria
+    const bikeCategoryStats = calcularEstatisticasMotosPorCategoria(users)
+
     // Top 5 active members ranking (by total points: (rides × 100) + (store_visits × 10))
     const membersMap = new Map<
       string,
@@ -365,6 +370,7 @@ const AdminDashboard: React.FC = () => {
       bronzeActiveCount,
       bronzeExpiringCount,
       bronzeInactiveCount,
+      bikeCategoryStats,
       // PARTE 2/3.1 — Score e Tags
       scoreMedio,
       scoreMembersCount,
@@ -412,10 +418,11 @@ const AdminDashboard: React.FC = () => {
           <div className="flex flex-wrap items-center gap-2.5">
             <Button
               onClick={() => {
-                exportDashboardExcel(stats, stats.topActiveMembers)
+                exportDashboardExcel(stats, stats.topActiveMembers, stats.bikeCategoryStats)
                 toast({
                   title: 'Excel Gerado',
-                  description: 'Relatório do Dashboard exportado em XLSX.',
+                  description:
+                    'Relatório do Dashboard exportado em XLSX com distribuição e ranking de motos.',
                 })
               }}
               variant="outline"
@@ -425,10 +432,11 @@ const AdminDashboard: React.FC = () => {
             </Button>
             <Button
               onClick={() => {
-                exportDashboardPdf(stats, stats.topActiveMembers)
+                exportDashboardPdf(stats, stats.topActiveMembers, stats.bikeCategoryStats)
                 toast({
                   title: 'PDF Gerado',
-                  description: 'Relatório do Dashboard exportado em PDF.',
+                  description:
+                    'Relatório do Dashboard exportado em PDF com distribuição e ranking de motos.',
                 })
               }}
               variant="outline"
@@ -627,6 +635,69 @@ const AdminDashboard: React.FC = () => {
               &gt;6 meses sem oficina
             </span>
           </Link>
+        </div>
+      </section>
+
+      {/* 🏍️ DISTRIBUIÇÃO E RANKING DE MOTOS POR CATEGORIA (PLATINUM, GOLD, PRATA, BRONZE) */}
+      <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-[#1c2538] pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-md bg-blue-600/20 border border-blue-500/40 flex items-center justify-center text-blue-400">
+              <Bike className="w-4 h-4" />
+            </div>
+            <div>
+              <h2 className="text-sm font-extrabold text-white font-montserrat tracking-tight uppercase">
+                Distribuição e Maiores Compradores por Categoria
+              </h2>
+              <p className="text-xs text-slate-400">
+                Somatória de clientes por quantidade de motos e ranking dos maiores compradores
+              </p>
+            </div>
+          </div>
+          <Link
+            to="/admin/reports"
+            className="text-[11px] font-bold text-blue-400 hover:text-blue-300 uppercase tracking-wider flex items-center gap-1 font-montserrat"
+          >
+            RELATÓRIOS DETALHADOS <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* PLATINUM */}
+          <CategoryBikeCard
+            category="PLATINUM"
+            title="Platinum (5+ motos)"
+            accentColor="blue"
+            icon={Diamond}
+            stats={stats.bikeCategoryStats.PLATINUM}
+          />
+
+          {/* GOLD */}
+          <CategoryBikeCard
+            category="GOLD"
+            title="Gold (3-4 motos)"
+            accentColor="amber"
+            icon={Crown}
+            stats={stats.bikeCategoryStats.GOLD}
+          />
+
+          {/* PRATA */}
+          <CategoryBikeCard
+            category="PRATA"
+            title="Prata (1-2 motos)"
+            accentColor="slate"
+            icon={Star}
+            stats={stats.bikeCategoryStats.PRATA}
+          />
+
+          {/* BRONZE */}
+          <CategoryBikeCard
+            category="BRONZE"
+            title="Bronze (Oficina)"
+            accentColor="orange"
+            icon={Shield}
+            stats={stats.bikeCategoryStats.BRONZE}
+          />
         </div>
       </section>
 
@@ -1138,6 +1209,215 @@ const MiniStat: React.FC<{
     )
   }
   return content
+}
+
+interface CategoryBikeCardProps {
+  category: 'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE'
+  title: string
+  accentColor: 'blue' | 'amber' | 'slate' | 'orange'
+  icon: React.ComponentType<{ className?: string }>
+  stats: CategoryBikeStats
+}
+
+const CategoryBikeCard: React.FC<CategoryBikeCardProps> = ({
+  category,
+  title,
+  accentColor,
+  icon: Icon,
+  stats,
+}) => {
+  const [showAllBuyers, setShowAllBuyers] = useState(false)
+
+  const borderClass =
+    accentColor === 'blue'
+      ? 'border-blue-500/40 hover:border-blue-500'
+      : accentColor === 'amber'
+        ? 'border-amber-500/40 hover:border-amber-500'
+        : accentColor === 'orange'
+          ? 'border-orange-500/40 hover:border-orange-500'
+          : 'border-slate-700 hover:border-slate-400'
+
+  const titleColor =
+    accentColor === 'blue'
+      ? 'text-blue-400'
+      : accentColor === 'amber'
+        ? 'text-amber-400'
+        : accentColor === 'orange'
+          ? 'text-orange-400'
+          : 'text-slate-300'
+
+  const badgeBg =
+    accentColor === 'blue'
+      ? 'bg-blue-950/60 text-blue-300 border-blue-600/40'
+      : accentColor === 'amber'
+        ? 'bg-amber-950/60 text-amber-300 border-amber-600/40'
+        : accentColor === 'orange'
+          ? 'bg-orange-950/60 text-orange-300 border-orange-600/40'
+          : 'bg-slate-800/80 text-slate-300 border-slate-600/50'
+
+  const displayedBuyers = showAllBuyers ? stats.topBuyers : stats.topBuyers.slice(0, 5)
+
+  return (
+    <div
+      className={`bg-[#0a0d14] border ${borderClass} rounded-lg p-4 flex flex-col justify-between space-y-4 transition-all duration-200 shadow-sm`}
+    >
+      <div>
+        {/* Header do Card */}
+        <div className="flex items-center justify-between border-b border-[#1c2538] pb-3">
+          <div className="flex items-center gap-1.5">
+            <Icon className={`w-4 h-4 ${titleColor}`} />
+            <h3
+              className={`text-xs font-black uppercase font-montserrat tracking-wider ${titleColor}`}
+            >
+              {title}
+            </h3>
+          </div>
+          <Link
+            to={`/admin/membros?filtro=${category === 'PRATA' ? 'PRATA' : category}`}
+            className="text-[10px] text-slate-400 hover:text-white flex items-center gap-0.5"
+            title="Ver no painel de membros"
+          >
+            Ver <ChevronRight className="w-3 h-3" />
+          </Link>
+        </div>
+
+        {/* Resumo da Categoria: Clientes & Total de Motos */}
+        <div className="grid grid-cols-2 gap-2 mt-3 pt-1">
+          <div className="bg-[#0f1420] border border-[#1d2638] rounded p-2.5">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-montserrat">
+              Total Clientes
+            </span>
+            <p className="text-lg font-black text-white font-montserrat mt-0.5">
+              {stats.totalMembers}
+            </p>
+          </div>
+          <div className="bg-[#0f1420] border border-[#1d2638] rounded p-2.5">
+            <span className="text-[10px] text-slate-400 uppercase tracking-wider block font-montserrat">
+              Total de Motos
+            </span>
+            <p className="text-lg font-black text-white font-montserrat mt-0.5">
+              {stats.totalBikes}
+            </p>
+          </div>
+        </div>
+
+        {/* Distribuição: Clientes por Quantidade de Motos */}
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
+            <span className="uppercase tracking-wider font-montserrat flex items-center gap-1">
+              📊 Distribuição de Motos
+            </span>
+            <span className="text-[10px] text-slate-500 font-normal">
+              {stats.bikeDistribution.length} faixa(s)
+            </span>
+          </div>
+
+          {stats.bikeDistribution.length === 0 ? (
+            <p className="text-[11px] text-slate-500 py-2 text-center bg-[#0d121c] rounded border border-[#1c2538]/60">
+              Nenhum membro nesta categoria.
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
+              {stats.bikeDistribution.map((item) => {
+                const percent = stats.totalMembers > 0 ? (item.count / stats.totalMembers) * 100 : 0
+                return (
+                  <div
+                    key={item.bikes}
+                    className="p-1.5 rounded bg-[#0d121c] border border-[#1c2538]/80 text-[11px] flex flex-col gap-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-semibold text-white">
+                        <strong className="text-blue-400 font-mono">{item.count}</strong> cliente(s)
+                      </span>
+                      <span
+                        className={`text-[10px] font-black uppercase px-2 py-0.5 rounded border ${badgeBg} font-mono`}
+                      >
+                        {item.bikes} {item.bikes === 1 ? 'moto' : 'motos'}
+                      </span>
+                    </div>
+                    {/* Barra de progresso proporcional */}
+                    <div className="w-full bg-[#161f30] h-1 rounded-full overflow-hidden">
+                      <div
+                        className="bg-blue-500 h-full rounded-full transition-all duration-300"
+                        style={{ width: `${percent}%` }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Ranking dos Maiores Compradores */}
+        <div className="mt-4 space-y-2">
+          <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
+            <span className="uppercase tracking-wider font-montserrat flex items-center gap-1">
+              🏆 Maiores Compradores
+            </span>
+            <span className="text-[10px] text-slate-500 font-normal">
+              Top {displayedBuyers.length} de {stats.topBuyers.length}
+            </span>
+          </div>
+
+          {stats.topBuyers.length === 0 ? (
+            <p className="text-[11px] text-slate-500 py-2 text-center bg-[#0d121c] rounded border border-[#1c2538]/60">
+              Nenhum comprador cadastrado.
+            </p>
+          ) : (
+            <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+              {displayedBuyers.map((buyer, idx) => (
+                <Link
+                  key={buyer.user.id}
+                  to={`/admin/membros/${buyer.user.id}`}
+                  className="p-2 rounded bg-[#0d121c] hover:bg-[#131b2c] border border-[#1c2538]/80 hover:border-blue-500/40 transition-colors flex items-center justify-between gap-2 block group"
+                >
+                  <div className="min-w-0 flex items-center gap-2">
+                    <span className="text-[11px] font-bold text-slate-400 font-mono w-4 text-center">
+                      {idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}º`}
+                    </span>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-white truncate group-hover:text-blue-400 transition-colors">
+                        {buyer.name}
+                      </p>
+                      <p className="text-[10px] text-slate-500 truncate">
+                        {buyer.city ? `${buyer.city} · ` : ''}
+                        {buyer.bikeModel || 'Moto Euro Motors'}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="text-right flex-shrink-0">
+                    <span className="text-xs font-black text-blue-400 font-mono block">
+                      {buyer.motos} {buyer.motos === 1 ? 'moto' : 'motos'}
+                    </span>
+                    {buyer.totalValor > 0 && (
+                      <span className="text-[9px] text-slate-500 block">
+                        {buyer.totalValor.toLocaleString('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                          maximumFractionDigits: 0,
+                        })}
+                      </span>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {stats.topBuyers.length > 5 && (
+        <button
+          type="button"
+          onClick={() => setShowAllBuyers(!showAllBuyers)}
+          className="text-[10px] text-center w-full py-1 text-slate-400 hover:text-white uppercase font-bold tracking-wider transition-colors pt-2 border-t border-[#1c2538]"
+        >
+          {showAllBuyers ? 'Mostrar Menos' : `Ver todos os ${stats.topBuyers.length} compradores`}
+        </button>
+      )}
+    </div>
+  )
 }
 
 export default AdminDashboard

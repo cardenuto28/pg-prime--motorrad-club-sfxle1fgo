@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
+import { calcularEstatisticasMotosPorCategoria, CategoryBikeStats } from '@/lib/membership'
 
 interface PdfHeaderOptions {
   title: string
@@ -387,10 +388,148 @@ export function exportMembersPdf(members: any[]) {
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' })
   const pageWidth = doc.internal.pageSize.getWidth()
 
+  // 1. Título e cabeçalho do relatório
   drawClubHeader(
     doc,
-    `Relatório Geral de Membros Cadastrados (${members.length} registros)`,
-    'Listagem oficial com contatos, categoria, status e dados de relacionamento',
+    `Relatório Geral de Membros e Distribuição de Motos (${members.length} registros)`,
+    'Métricas por categoria, distribuição e ranking de motos compradas por cliente',
+  )
+
+  // 2. Seção de Distribuição de Motos e Ranking de Compradores por Categoria
+  const catStats = calcularEstatisticasMotosPorCategoria(members)
+  const categoriesToReport: ('PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE')[] = [
+    'PLATINUM',
+    'GOLD',
+    'PRATA',
+    'BRONZE',
+  ]
+
+  let currentY = 47
+
+  // Tabela Resumo da Distribuição de Motos por Categoria
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(15, 23, 42)
+  doc.text('1. RESUMO DA DISTRIBUIÇÃO E SOMATÓRIA DE MOTOS POR CATEGORIA', 14, currentY)
+
+  const distSummaryHead = [
+    [
+      'Categoria',
+      'Total Membros',
+      'Total Motos Compradas',
+      'Distribuição de Clientes por Qtd. de Motos',
+    ],
+  ]
+
+  const distSummaryBody = categoriesToReport.map((catKey) => {
+    const s = catStats[catKey]
+    const distText =
+      s.bikeDistribution.length > 0
+        ? s.bikeDistribution.map((d) => `${d.count} cliente(s) com ${d.bikes} moto(s)`).join(' | ')
+        : 'Nenhum membro'
+
+    return [s.label, s.totalMembers, s.totalBikes, distText]
+  })
+
+  autoTable(doc, {
+    startY: currentY + 3,
+    head: distSummaryHead,
+    body: distSummaryBody,
+    theme: 'grid',
+    headStyles: {
+      fillColor: [10, 17, 32],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 8,
+    },
+    bodyStyles: {
+      fontSize: 7.5,
+      textColor: [30, 41, 59],
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    columnStyles: {
+      0: { fontStyle: 'bold' },
+      2: { fontStyle: 'bold', textColor: [0, 102, 255] },
+    },
+    margin: { left: 14, right: 14, bottom: 18 },
+  })
+
+  currentY = (doc as any).lastAutoTable?.finalY || 80
+
+  // 3. Ranking dos Maiores Compradores por Categoria (Top Compradores)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(15, 23, 42)
+  doc.text('2. RANKING DOS MAIORES COMPRADORES POR CATEGORIA (TOP MOTOS)', 14, currentY + 8)
+
+  const buyerRankingHead = [
+    [
+      '#',
+      'Categoria',
+      'Cliente / Razão Social',
+      'CPF/CNPJ',
+      'Cidade',
+      'Motos Compradas',
+      'Total Vendido (R$)',
+      'Modelo Principal',
+    ],
+  ]
+
+  const buyerRankingRows: (string | number)[][] = []
+  categoriesToReport.forEach((catKey) => {
+    const s = catStats[catKey]
+    s.topBuyers.forEach((b, idx) => {
+      buyerRankingRows.push([
+        idx + 1,
+        catKey,
+        b.name,
+        b.cpf || '—',
+        b.city || '—',
+        b.motos,
+        b.totalValor > 0
+          ? b.totalValor.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
+          : '—',
+        b.bikeModel || '—',
+      ])
+    })
+  })
+
+  autoTable(doc, {
+    startY: currentY + 11,
+    head: buyerRankingHead,
+    body:
+      buyerRankingRows.length > 0
+        ? buyerRankingRows
+        : [['—', '—', 'Nenhum comprador registrado', '—', '—', '—', '—', '—']],
+    theme: 'striped',
+    headStyles: {
+      fillColor: [10, 17, 32],
+      textColor: [255, 255, 255],
+      fontStyle: 'bold',
+      fontSize: 7.5,
+    },
+    bodyStyles: {
+      fontSize: 7,
+      textColor: [30, 41, 59],
+    },
+    alternateRowStyles: {
+      fillColor: [248, 250, 252],
+    },
+    columnStyles: {
+      1: { fontStyle: 'bold' },
+      5: { fontStyle: 'bold', textColor: [0, 102, 255] },
+    },
+    margin: { left: 14, right: 14, bottom: 18 },
+  })
+
+  // 4. Nova Página: Listagem Completa de Membros
+  doc.addPage()
+  drawClubHeader(
+    doc,
+    `3. Listagem Geral Completa de Membros (${members.length} registros)`,
+    'Contatos, categoria, score de oficina, motos e status do cadastro',
   )
 
   const tableHead = [
@@ -402,8 +541,9 @@ export function exportMembersPdf(members: any[]) {
       'Telefone',
       'Cidade',
       'Categoria',
+      'Qtd. Motos',
       'Score',
-      'Moto',
+      'Moto Cadastrada',
       'Status',
     ],
   ]
@@ -416,6 +556,7 @@ export function exportMembersPdf(members: any[]) {
     m.phone || '—',
     m.city || '—',
     (m.categoria || m.category || 'BRONZE').toUpperCase(),
+    Number(m.quantidade_motos_compradas || 0),
     m.score_oficina !== undefined && m.score_oficina !== null ? `${m.score_oficina}/100` : '—',
     [m.bike_brand, m.bike_model].filter(Boolean).join(' ') || '—',
     (m.status || 'ativo').toUpperCase(),
@@ -442,25 +583,30 @@ export function exportMembersPdf(members: any[]) {
     columnStyles: {
       6: { fontStyle: 'bold' },
       7: { fontStyle: 'bold', textColor: [0, 102, 255] },
+      8: { fontStyle: 'bold', textColor: [16, 185, 129] },
     },
     margin: { left: 14, right: 14, bottom: 18 },
   })
 
   drawClubFooter(doc)
   const now = new Date()
-  doc.save(`euro-motors-membros-${now.toISOString().slice(0, 10)}.pdf`)
+  doc.save(`euro-motors-membros-distribuicao-${now.toISOString().slice(0, 10)}.pdf`)
 }
 
 /**
  * 2. Export Admin Dashboard Metrics to PDF
  */
-export function exportDashboardPdf(stats: any, activeRanking: any[] = []) {
+export function exportDashboardPdf(
+  stats: any,
+  activeRanking: any[] = [],
+  bikeCategoryStats?: Record<'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE', CategoryBikeStats>,
+) {
   const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' })
 
   drawClubHeader(
     doc,
     'Relatório Executivo do Painel (Dashboard)',
-    'Indicadores gerais, distribuição de categorias, score de oficina e top membros',
+    'Indicadores gerais, distribuição de motos por categoria e top compradores',
   )
 
   const summaryHead = [['Indicador Principal', 'Valor Registrado']]
@@ -496,10 +642,10 @@ export function exportDashboardPdf(stats: any, activeRanking: any[] = []) {
       fillColor: [10, 17, 32],
       textColor: [255, 255, 255],
       fontStyle: 'bold',
-      fontSize: 8.5,
+      fontSize: 8,
     },
     bodyStyles: {
-      fontSize: 8,
+      fontSize: 7.5,
       textColor: [30, 41, 59],
     },
     alternateRowStyles: {
@@ -508,13 +654,145 @@ export function exportDashboardPdf(stats: any, activeRanking: any[] = []) {
     margin: { left: 14, right: 14, bottom: 18 },
   })
 
-  if (activeRanking && activeRanking.length > 0) {
-    const finalY = (doc as any).lastAutoTable?.finalY || 180
+  // Seção de Distribuição de Motos por Categoria
+  const bStats = bikeCategoryStats || stats.bikeCategoryStats
+  if (bStats) {
+    const finalY1 = (doc as any).lastAutoTable?.finalY || 160
+    let startCatY = finalY1 + 8
+
+    if (startCatY > 220) {
+      doc.addPage()
+      drawClubHeader(
+        doc,
+        'Distribuição de Motos por Categoria',
+        'Detalhamento de clientes por quantidade de motos',
+      )
+      startCatY = 47
+    }
 
     doc.setFont('helvetica', 'bold')
-    doc.setFontSize(11)
+    doc.setFontSize(10)
     doc.setTextColor(15, 23, 42)
-    doc.text('TOP MEMBROS (RANKING DE PRESENÇA E PONTOS)', 14, finalY + 10)
+    doc.text('DISTRIBUIÇÃO DE MOTOS POR CATEGORIA (SOMATÓRIA)', 14, startCatY)
+
+    const catDistHead = [
+      ['Categoria', 'Clientes', 'Motos Totais', 'Distribuição de Clientes por Qtd. de Motos'],
+    ]
+    const catDistBody = (['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).map((key) => {
+      const s = bStats[key]
+      const distFormatted =
+        s.bikeDistribution.length > 0
+          ? s.bikeDistribution.map((d) => `${d.count} cliente(s) c/ ${d.bikes} moto(s)`).join(' | ')
+          : '—'
+      return [s.label, s.totalMembers, s.totalBikes, distFormatted]
+    })
+
+    autoTable(doc, {
+      startY: startCatY + 3,
+      head: catDistHead,
+      body: catDistBody,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [10, 17, 32],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 7.5,
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [30, 41, 59],
+      },
+      columnStyles: {
+        0: { fontStyle: 'bold' },
+        2: { fontStyle: 'bold', textColor: [0, 102, 255] },
+      },
+      margin: { left: 14, right: 14, bottom: 18 },
+    })
+
+    // Ranking dos Maiores Compradores por Categoria
+    const finalY2 = (doc as any).lastAutoTable?.finalY || 200
+    let startRankingY = finalY2 + 8
+
+    if (startRankingY > 220) {
+      doc.addPage()
+      drawClubHeader(
+        doc,
+        'Ranking dos Maiores Compradores por Categoria',
+        'Clientes que mais compraram motos em cada categoria',
+      )
+      startRankingY = 47
+    }
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(15, 23, 42)
+    doc.text('RANKING DOS MAIORES COMPRADORES POR CATEGORIA', 14, startRankingY)
+
+    const catRankHead = [
+      ['#', 'Categoria', 'Cliente', 'Cidade', 'Motos Compradas', 'Total Vendido'],
+    ]
+    const catRankBody: (string | number)[][] = []
+
+    ;(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).forEach((k) => {
+      const s = bStats[k]
+      s.topBuyers.slice(0, 5).forEach((buyer, idx) => {
+        catRankBody.push([
+          idx + 1,
+          k,
+          buyer.name,
+          buyer.city || '—',
+          buyer.motos,
+          buyer.totalValor > 0
+            ? buyer.totalValor.toLocaleString('pt-BR', {
+                style: 'currency',
+                currency: 'BRL',
+                maximumFractionDigits: 0,
+              })
+            : '—',
+        ])
+      })
+    })
+
+    autoTable(doc, {
+      startY: startRankingY + 3,
+      head: catRankHead,
+      body: catRankBody.length > 0 ? catRankBody : [['—', '—', 'Nenhum comprador', '—', '—', '—']],
+      theme: 'striped',
+      headStyles: {
+        fillColor: [10, 17, 32],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold',
+        fontSize: 7.5,
+      },
+      bodyStyles: {
+        fontSize: 7,
+        textColor: [30, 41, 59],
+      },
+      columnStyles: {
+        1: { fontStyle: 'bold' },
+        4: { fontStyle: 'bold', textColor: [0, 102, 255] },
+      },
+      margin: { left: 14, right: 14, bottom: 18 },
+    })
+  }
+
+  if (activeRanking && activeRanking.length > 0) {
+    const finalY = (doc as any).lastAutoTable?.finalY || 180
+    let startActiveY = finalY + 8
+    if (startActiveY > 220) {
+      doc.addPage()
+      drawClubHeader(
+        doc,
+        'Ranking de Presença e Pontos',
+        'Membros mais ativos em passeios e visitas',
+      )
+      startActiveY = 47
+    }
+
+    doc.setFont('helvetica', 'bold')
+    doc.setFontSize(10)
+    doc.setTextColor(15, 23, 42)
+    doc.text('TOP MEMBROS (RANKING DE PRESENÇA E PONTOS)', 14, startActiveY)
 
     const rankHead = [['Pos', 'Nome', 'Categoria', 'Passeios', 'Visitas', 'Pontos Totais']]
     const rankBody = activeRanking.map((item, idx) => [
@@ -527,7 +805,7 @@ export function exportDashboardPdf(stats: any, activeRanking: any[] = []) {
     ])
 
     autoTable(doc, {
-      startY: finalY + 14,
+      startY: startActiveY + 3,
       head: rankHead,
       body: rankBody,
       theme: 'striped',
@@ -535,10 +813,10 @@ export function exportDashboardPdf(stats: any, activeRanking: any[] = []) {
         fillColor: [10, 17, 32],
         textColor: [255, 255, 255],
         fontStyle: 'bold',
-        fontSize: 8,
+        fontSize: 7.5,
       },
       bodyStyles: {
-        fontSize: 8,
+        fontSize: 7,
         textColor: [30, 41, 59],
       },
       columnStyles: {

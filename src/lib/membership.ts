@@ -748,6 +748,154 @@ export function parseTags(tags: unknown): string[] {
   return []
 }
 
+export interface CategoryBikeStats {
+  category: 'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE'
+  label: string
+  totalMembers: number
+  totalBikes: number
+  // Contagem de clientes agrupada por quantidade exata de motos: [{ bikes: 4, count: 80 }, { bikes: 20, count: 20 }]
+  bikeDistribution: { bikes: number; count: number }[]
+  // Ranking de clientes ordenados do maior comprador para o menor
+  topBuyers: {
+    user: UserProfile
+    name: string
+    cpf: string
+    city: string
+    motos: number
+    totalValor: number
+    bikeModel?: string
+  }[]
+}
+
+/**
+ * Agrupa os membros por categoria e calcula a distribuição de motos (clientes por quantidade)
+ * e o ranking de maiores compradores de motos dentro de cada categoria.
+ */
+export function calcularEstatisticasMotosPorCategoria(
+  users: UserProfile[],
+): Record<'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE', CategoryBikeStats> {
+  const result: Record<'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE', CategoryBikeStats> = {
+    PLATINUM: {
+      category: 'PLATINUM',
+      label: 'Platinum (5+ motos)',
+      totalMembers: 0,
+      totalBikes: 0,
+      bikeDistribution: [],
+      topBuyers: [],
+    },
+    GOLD: {
+      category: 'GOLD',
+      label: 'Gold (3-4 motos)',
+      totalMembers: 0,
+      totalBikes: 0,
+      bikeDistribution: [],
+      topBuyers: [],
+    },
+    PRATA: {
+      category: 'PRATA',
+      label: 'Prata (1-2 motos)',
+      totalMembers: 0,
+      totalBikes: 0,
+      bikeDistribution: [],
+      topBuyers: [],
+    },
+    BRONZE: {
+      category: 'BRONZE',
+      label: 'Bronze (Oficina)',
+      totalMembers: 0,
+      totalBikes: 0,
+      bikeDistribution: [],
+      topBuyers: [],
+    },
+  }
+
+  // Agrupadores temporários
+  const catDistributionMap: Record<
+    'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE',
+    Map<number, number>
+  > = {
+    PLATINUM: new Map(),
+    GOLD: new Map(),
+    PRATA: new Map(),
+    BRONZE: new Map(),
+  }
+
+  const catBuyersMap: Record<
+    'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE',
+    CategoryBikeStats['topBuyers']
+  > = {
+    PLATINUM: [],
+    GOLD: [],
+    PRATA: [],
+    BRONZE: [],
+  }
+
+  users.forEach((u) => {
+    const calc = calcularCategoriaMembro({
+      quantidade_motos_compradas: u.quantidade_motos_compradas,
+      data_ultima_passagem_oficina: u.data_ultima_passagem_oficina,
+      status_membro_atual: u.status_membro || u.status,
+      total_valor_vendido: u.total_valor_vendido,
+      numero_passagens_oficina: u.numero_passagens_oficina,
+      total_liquido_oficina: u.total_liquido_oficina,
+      bike_brand: u.bike_brand,
+      bike_model: u.bike_model,
+      data_primeira_compra: u.data_primeira_compra,
+    })
+
+    const rawCat = normalizeCategory(u.categoria || u.category || calc.categoria)
+    let catKey: 'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE' | null = null
+
+    if (rawCat === 'PLATINUM') catKey = 'PLATINUM'
+    else if (rawCat === 'GOLD') catKey = 'GOLD'
+    else if (rawCat === 'SILVER') catKey = 'PRATA'
+    else if (rawCat === 'BRONZE') catKey = 'BRONZE'
+
+    if (!catKey) return
+
+    const bikes = Number(u.quantidade_motos_compradas || 0)
+    const valor = Number(u.total_valor_vendido || 0)
+
+    result[catKey].totalMembers += 1
+    result[catKey].totalBikes += bikes
+
+    // Distribuição por quantidade de motos
+    const currentCount = catDistributionMap[catKey].get(bikes) || 0
+    catDistributionMap[catKey].set(bikes, currentCount + 1)
+
+    // Comprador
+    catBuyersMap[catKey].push({
+      user: u,
+      name: u.name || 'Sem nome',
+      cpf: u.cpf || '',
+      city: u.city || '',
+      motos: bikes,
+      totalValor: valor,
+      bikeModel: [u.bike_brand, u.bike_model].filter(Boolean).join(' ') || undefined,
+    })
+  })
+
+  // Formata e ordena distribuições e rankings
+  ;(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).forEach((cat) => {
+    // Distribuição ordenada da maior quantidade de motos para a menor
+    const distArray = Array.from(catDistributionMap[cat].entries())
+      .map(([bikes, count]) => ({ bikes, count }))
+      .sort((a, b) => b.bikes - a.bikes)
+
+    result[cat].bikeDistribution = distArray
+
+    // Ranking de compradores ordenado da maior quantidade de motos para a menor (e maior valor como desempate)
+    catBuyersMap[cat].sort((a, b) => {
+      if (b.motos !== a.motos) return b.motos - a.motos
+      return b.totalValor - a.totalValor
+    })
+
+    result[cat].topBuyers = catBuyersMap[cat]
+  })
+
+  return result
+}
+
 export interface ScoreCalcCompleto extends ScoreOficinaResult {
   tags: string[]
   proxima_melhor_acao: string

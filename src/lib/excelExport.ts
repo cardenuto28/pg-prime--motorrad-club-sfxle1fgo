@@ -1,4 +1,5 @@
 import * as XLSX from 'xlsx'
+import { calcularEstatisticasMotosPorCategoria, CategoryBikeStats } from '@/lib/membership'
 
 export interface ExcelExportColumn {
   header: string
@@ -61,6 +62,10 @@ export function exportToExcel(options: {
  * Export members list to Excel (.xlsx)
  */
 export function exportMembersExcel(members: any[], fileNamePrefix = 'euro-motors-membros') {
+  const dateStr = new Date().toISOString().slice(0, 10)
+  const wb = XLSX.utils.book_new()
+
+  // 1. Aba: Lista Geral de Membros
   const headers = [
     '#',
     'Nome',
@@ -128,19 +133,82 @@ export function exportMembersExcel(members: any[], fileNamePrefix = 'euro-motors
     ]
   })
 
-  const dateStr = new Date().toISOString().slice(0, 10)
-  exportToExcel({
-    sheetName: 'Membros',
-    fileName: `${fileNamePrefix}-${dateStr}.xlsx`,
-    headers,
-    data: rows,
+  const wsMembers = XLSX.utils.aoa_to_sheet([headers, ...rows])
+  wsMembers['!cols'] = calculateColumnWidths(headers, rows)
+  XLSX.utils.book_append_sheet(wb, wsMembers, 'Membros')
+
+  // 2. Aba: Distribuição de Motos por Categoria
+  const catStats = calcularEstatisticasMotosPorCategoria(members)
+  const distHeaders = [
+    'Categoria',
+    'Total Membros',
+    'Total Motos Compradas',
+    'Qtd. Motos na Faixa',
+    'Contagem de Clientes',
+    '% da Categoria',
+  ]
+  const distRows: (string | number)[][] = []
+
+  ;(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).forEach((catKey) => {
+    const s = catStats[catKey]
+    if (s.bikeDistribution.length === 0) {
+      distRows.push([s.label, s.totalMembers, s.totalBikes, '0 motos', 0, '0%'])
+    } else {
+      s.bikeDistribution.forEach((d) => {
+        const pct = s.totalMembers > 0 ? ((d.count / s.totalMembers) * 100).toFixed(1) + '%' : '0%'
+        distRows.push([s.label, s.totalMembers, s.totalBikes, `${d.bikes} moto(s)`, d.count, pct])
+      })
+    }
   })
+
+  const wsDist = XLSX.utils.aoa_to_sheet([distHeaders, ...distRows])
+  wsDist['!cols'] = calculateColumnWidths(distHeaders, distRows)
+  XLSX.utils.book_append_sheet(wb, wsDist, 'Distribuição Motos')
+
+  // 3. Aba: Ranking Maiores Compradores por Categoria
+  const rankHeaders = [
+    'Posição na Categoria',
+    'Categoria',
+    'Cliente / Razão Social',
+    'CPF/CNPJ',
+    'Cidade',
+    'Motos Compradas',
+    'Total Vendido (R$)',
+    'Modelo Principal',
+  ]
+  const rankRows: (string | number)[][] = []
+
+  ;(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).forEach((catKey) => {
+    const s = catStats[catKey]
+    s.topBuyers.forEach((b, idx) => {
+      rankRows.push([
+        `${idx + 1}º`,
+        catKey,
+        b.name,
+        b.cpf || '',
+        b.city || '',
+        b.motos,
+        b.totalValor,
+        b.bikeModel || '',
+      ])
+    })
+  })
+
+  const wsRank = XLSX.utils.aoa_to_sheet([rankHeaders, ...rankRows])
+  wsRank['!cols'] = calculateColumnWidths(rankHeaders, rankRows)
+  XLSX.utils.book_append_sheet(wb, wsRank, 'Ranking Compradores')
+
+  XLSX.writeFile(wb, `${fileNamePrefix}-${dateStr}.xlsx`)
 }
 
 /**
  * Export admin dashboard metrics and active ranking to Excel
  */
-export function exportDashboardExcel(stats: any, activeRanking: any[] = []) {
+export function exportDashboardExcel(
+  stats: any,
+  activeRanking: any[] = [],
+  bikeCategoryStats?: Record<'PLATINUM' | 'GOLD' | 'PRATA' | 'BRONZE', CategoryBikeStats>,
+) {
   const dateStr = new Date().toISOString().slice(0, 10)
   const wb = XLSX.utils.book_new()
 
@@ -190,7 +258,69 @@ export function exportDashboardExcel(stats: any, activeRanking: any[] = []) {
   wsSummary['!cols'] = calculateColumnWidths(summaryHeaders, summaryRows)
   XLSX.utils.book_append_sheet(wb, wsSummary, 'Resumo Dashboard')
 
-  // Sheet 2: Ranking de Presença e Pontos
+  // Sheet 2: Distribuição de Motos por Categoria
+  const bStats = bikeCategoryStats || stats.bikeCategoryStats
+  if (bStats) {
+    const distHeaders = [
+      'Categoria',
+      'Total Clientes',
+      'Total Motos',
+      'Qtd. de Motos',
+      'Clientes na Faixa',
+      'Proporção (%)',
+    ]
+    const distRows: (string | number)[][] = []
+
+    ;(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).forEach((key) => {
+      const s = bStats[key]
+      if (s.bikeDistribution.length === 0) {
+        distRows.push([s.label, s.totalMembers, s.totalBikes, '0 motos', 0, '0%'])
+      } else {
+        s.bikeDistribution.forEach((d) => {
+          const pct =
+            s.totalMembers > 0 ? ((d.count / s.totalMembers) * 100).toFixed(1) + '%' : '0%'
+          distRows.push([s.label, s.totalMembers, s.totalBikes, `${d.bikes} moto(s)`, d.count, pct])
+        })
+      }
+    })
+
+    const wsDist = XLSX.utils.aoa_to_sheet([distHeaders, ...distRows])
+    wsDist['!cols'] = calculateColumnWidths(distHeaders, distRows)
+    XLSX.utils.book_append_sheet(wb, wsDist, 'Distribuição Motos')
+
+    // Sheet 3: Top Compradores por Categoria
+    const rankHeaders = [
+      'Posição',
+      'Categoria',
+      'Cliente',
+      'Cidade',
+      'Motos Compradas',
+      'Total Vendido (R$)',
+      'Modelo Moto',
+    ]
+    const rankRows: (string | number)[][] = []
+
+    ;(['PLATINUM', 'GOLD', 'PRATA', 'BRONZE'] as const).forEach((key) => {
+      const s = bStats[key]
+      s.topBuyers.forEach((b, idx) => {
+        rankRows.push([
+          `${idx + 1}º`,
+          key,
+          b.name,
+          b.city || '',
+          b.motos,
+          b.totalValor,
+          b.bikeModel || '',
+        ])
+      })
+    })
+
+    const wsRank = XLSX.utils.aoa_to_sheet([rankHeaders, ...rankRows])
+    wsRank['!cols'] = calculateColumnWidths(rankHeaders, rankRows)
+    XLSX.utils.book_append_sheet(wb, wsRank, 'Maiores Compradores')
+  }
+
+  // Sheet 4: Ranking de Presença e Pontos
   if (activeRanking && activeRanking.length > 0) {
     const rankingHeaders = [
       'Posição',
