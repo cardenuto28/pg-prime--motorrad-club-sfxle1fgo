@@ -54,7 +54,7 @@ const PublicBeneficios: React.FC = () => {
             </h1>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
               Condições exclusivas e descontos especiais com nossos parceiros credenciados,
-              disponíveis apenas para membros do Euro Motors Motorrad Club.
+              disponíveis apenas para membros do PG PRIME CLUB.
             </p>
             {user ? (
               <Button
@@ -189,11 +189,11 @@ const PublicBeneficios: React.FC = () => {
         {!user && benefits.length > 0 && (
           <div className="mt-12 bg-gradient-to-r from-[#0f131c] to-[#0a0d14] border border-[#1d2638] rounded-md p-6 sm:p-8 text-center">
             <h2 className="text-lg font-extrabold text-white font-montserrat tracking-tight uppercase">
-              Faça parte do Euro Motors Motorrad Club
+              Faça parte do PG PRIME CLUB
             </h2>
             <p className="text-xs text-slate-400 mt-2 max-w-xl mx-auto">
               Acesse todos os benefícios exclusivos, participe de passeios e conecte-se com a
-              comunidade BMW Motorrad Euro Motors Jundiaí.
+              comunidade PG PRIME.
             </p>
             <Button
               onClick={() => navigate('/#cadastro-form')}

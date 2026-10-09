@@ -75,7 +75,7 @@ export default function Contato() {
           <div className="absolute inset-0 z-0">
             <img
               src="https://img.usecurling.com/p/1600/400?q=motorcycle,road,sunset,blue"
-              alt="Contato Euro Motors Motorrad Club"
+              alt="Contato PG PRIME CLUB"
               className="w-full h-full object-cover object-center saturate-[1.1] contrast-[1.05]"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-[#05070d]/90 via-[#05070d]/55 to-[#05070d]/70" />
@@ -84,7 +84,7 @@ export default function Contato() {
           <div className="relative z-10 px-6 sm:px-10 lg:px-12 py-12 lg:py-16">
             <div className="space-y-3">
               <span className="text-[11px] font-bold text-[#0066FF] uppercase tracking-widest block font-montserrat">
-                EUROMOTORS MOTORRAD CLUB
+                PG PRIME CLUB
               </span>
               <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.05] uppercase font-montserrat drop-shadow-2xl">
                 CONTATO
@@ -147,7 +147,7 @@ export default function Contato() {
               </h3>
               <div className="rounded-lg overflow-hidden border border-[#1c2538] h-64">
                 <iframe
-                  title="Mapa Euro Motors Jundiaí"
+                  title="Mapa PG PRIME"
                   src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
                   width="100%"
                   height="100%"

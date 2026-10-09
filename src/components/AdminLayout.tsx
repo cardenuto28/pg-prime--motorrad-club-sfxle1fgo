@@ -97,7 +97,7 @@ export const AdminLayout: React.FC = () => {
             <Link to="/" className="flex items-center gap-3 group shrink-0">
               <img
                 src={logoImage}
-                alt="EUROMOTORS MOTORRAD CLUB"
+                alt="PG PRIME CLUB"
                 className="h-[2.52rem] w-auto object-contain transition-opacity group-hover:opacity-90"
               />
               <span className="text-[10px] tracking-[0.2em] text-blue-400 font-bold uppercase font-montserrat border-l border-slate-700 pl-3">

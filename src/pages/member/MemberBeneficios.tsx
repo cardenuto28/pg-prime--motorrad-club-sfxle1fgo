@@ -69,7 +69,7 @@ const MemberBeneficios: React.FC = () => {
             Seu benefício como membro
           </p>
           <p className="text-[11px] text-slate-400 mt-0.5">
-            Apresente sua identificação de membro do Euro Motors Club para aproveitar todas as
+            Apresente sua identificação de membro do PG PRIME CLUB para aproveitar todas as
             condições abaixo.
           </p>
         </div>

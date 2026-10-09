@@ -195,7 +195,7 @@ export const AnnouncementPopupModal: React.FC<AnnouncementPopupModalProps> = ({
           ) : (
             <div className="hidden sm:flex items-center gap-2 text-xs text-slate-500">
               <Sparkles className="w-4 h-4 text-[#0066FF]" />
-              <span>Euro Motors Club Oficial</span>
+              <span>PG PRIME CLUB Oficial</span>
             </div>
           )}
 

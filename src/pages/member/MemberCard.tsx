@@ -356,7 +356,7 @@ export const MemberCard: React.FC = () => {
                     {/* Shield Logo Image */}
                     <img
                       src={memberCardLogo}
-                      alt="Motorrad Club Euromotors"
+                      alt="PG PRIME CLUB"
                       className="relative w-36 sm:w-44 h-auto max-h-52 object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)]"
                     />
                   </div>
@@ -512,12 +512,12 @@ export const MemberCard: React.FC = () => {
               </div>
             </div>
 
-            {/* BOTTOM FOOTER: EUROMOTORS + BMW MOTORRAD JUNDIAÍ (Left) | SLOGAN (Right) */}
+            {/* BOTTOM FOOTER: PG PRIME + BMW MOTORRAD (Left) | SLOGAN (Right) */}
             <div className="pt-3 border-t border-[#182335] flex flex-col sm:flex-row items-center justify-between gap-3">
               {/* Brand Logos */}
               <div className="flex items-center gap-3">
                 <span className="text-xs sm:text-sm font-black tracking-[0.18em] text-white uppercase font-montserrat">
-                  EUROMOTORS
+                  PG PRIME
                 </span>
 
                 <div className="h-4 w-[1px] bg-slate-700" />

@@ -61,14 +61,14 @@ export const PWAInstallBanner: React.FC = () => {
           {/* App Icon */}
           <img
             src={appIcon}
-            alt="Euro Motors Club"
+            alt="PG PRIME CLUB"
             className="w-12 h-12 rounded-xl object-contain bg-black border border-[#1e2638] shadow-md shrink-0 p-1"
           />
 
           {/* Text Info */}
           <div className="flex-1 min-w-0 pr-6">
             <h4 className="text-white text-xs font-extrabold font-montserrat tracking-wider uppercase truncate">
-              Euro Motors Club App
+              PG PRIME CLUB App
             </h4>
             <p className="text-[11px] text-slate-300 line-clamp-1 mt-0.5">
               Instale na tela de início para acesso rápido e offline

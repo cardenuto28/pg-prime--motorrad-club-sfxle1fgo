@@ -1,7 +1,7 @@
 // Hook endpoint para realizar o check-in presencial na loja usando o token diário
 routerAdd(
   'POST',
-  '/api/club/store-checkin',
+  '/backend/v1/club/store-checkin',
   (e) => {
     const authRecord = e.auth
     if (!authRecord) {
@@ -17,7 +17,7 @@ routerAdd(
 
     if (!rawToken) {
       return e.json(400, {
-        error: 'QR Code inválido ou ausente. Escaneie o QR Code na loja Euro Motors.',
+        error: 'QR Code inválido ou ausente. Escaneie o QR Code na loja PG PRIME.',
         code: 'TOKEN_MISSING',
       })
     }
@@ -51,7 +51,7 @@ routerAdd(
 
     if (rawToken !== validTokenLocal && rawToken !== validTokenUtc) {
       return e.json(400, {
-        error: 'QR Code inválido ou expirado. Escaneie o QR Code atualizado na loja Euro Motors.',
+        error: 'QR Code inválido ou expirado. Escaneie o QR Code atualizado na loja PG PRIME.',
         code: 'TOKEN_INVALID',
       })
     }

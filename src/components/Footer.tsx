@@ -71,7 +71,7 @@ export const Footer: React.FC = () => {
           <div className="flex items-center justify-center order-1 md:order-2">
             <img
               src={logoImage}
-              alt="EUROMOTORS MOTORRAD CLUB"
+              alt="PG PRIME CLUB"
               className="h-14 sm:h-16 w-auto object-contain"
             />
           </div>
@@ -121,7 +121,7 @@ export const Footer: React.FC = () => {
       {/* Copyright e Links Legais */}
       <div className="border-t border-[#121c2e] py-5">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left text-[10px] text-slate-500 font-medium tracking-wider font-montserrat uppercase">
-          <div>© 2025 EUROMOTORS MOTORRAD CLUB. TODOS OS DIREITOS RESERVADOS.</div>
+          <div>© 2025 PG PRIME CLUB. TODOS OS DIREITOS RESERVADOS.</div>
           <div className="flex items-center gap-4 text-slate-400">
             <Link to="/termos" className="hover:text-[#0066FF] transition-colors">
               Termos

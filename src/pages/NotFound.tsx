@@ -27,7 +27,7 @@ const NotFound = () => {
         </p>
         <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-8">
           A página que você procura não existe ou foi movida. Verifique o endereço ou volte para a
-          página inicial do Euro Motors Motorrad Club.
+          página inicial do PG PRIME CLUB.
         </p>
 
         <Link

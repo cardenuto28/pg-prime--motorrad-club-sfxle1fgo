@@ -208,7 +208,7 @@ export default function Index() {
           <div className="absolute inset-0 z-0">
             <img
               src={heroBg}
-              alt="Euro Motors Motorrad Club GS"
+              alt="PG PRIME CLUB GS"
               className="w-full h-full object-cover object-[center_25%] saturate-[1.15] contrast-[1.05]"
             />
             {/* Minimal gradient overlays to preserve vivid background colors while ensuring text readability */}
@@ -251,9 +251,9 @@ export default function Index() {
                   </h2>
                 </div>
                 <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal">
-                  O Euromotors Motorrad Club foi criado para quem vive a estrada com propósito. Mais
-                  do que motos, conectamos pessoas por meio de experiências, amizade, eventos e
-                  passeios que ficam para sempre.
+                  O PG PRIME CLUB foi criado para quem vive a estrada com propósito. Mais do que
+                  motos, conectamos pessoas por meio de experiências, amizade, eventos e passeios
+                  que ficam para sempre.
                 </p>
                 {/* 4 Ícones de linha azul circulares exatos da referência */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-3 border-t border-slate-800/80">
@@ -645,13 +645,13 @@ export default function Index() {
             </div>
           </div>
 
-          {/* BENEFÍCIOS EXCLUSIVOS EURO MOTORS com linha azul indicadora idênticos à imagem de referência */}
+          {/* BENEFÍCIOS EXCLUSIVOS PG PRIME com linha azul indicadora idênticos à imagem de referência */}
           <div className="pt-2 space-y-3">
             {/* Header: Title with vibrant blue accent bar floating directly ABOVE the word "BENEFÍCIOS" */}
             <div className="relative pt-3 flex flex-col items-start gap-1.5 border-t border-[#121c2e]/80">
               <div className="w-8 h-[3px] bg-[#0066FF] rounded-full shadow-[0_0_10px_rgba(0,102,255,0.8)]" />
               <h2 className="text-[11px] sm:text-[12px] font-black text-slate-200 tracking-[0.12em] uppercase font-montserrat leading-tight">
-                BENEFÍCIOS EXCLUSIVOS EURO MOTORS
+                BENEFÍCIOS EXCLUSIVOS PG PRIME
               </h2>
             </div>
 
@@ -667,13 +667,13 @@ export default function Index() {
                 </p>
               </div>
 
-              {/* Card 2: Viagens Motorrad Euro Motors Jundiaí */}
+              {/* Card 2: Viagens Motorrad PG PRIME */}
               <div className="bg-[#060b14]/90 border border-[#132035] rounded-md p-3 flex items-start gap-3 hover:border-[#0066FF]/80 hover:bg-[#081224] transition-all group shadow-md min-h-[105px]">
                 <div className="text-[#0066FF] flex-shrink-0 group-hover:scale-105 transition-transform pt-0.5">
                   <WindingRoadIcon className="w-8 h-8" />
                 </div>
                 <p className="text-[9.5px] sm:text-[10px] text-slate-300 leading-snug font-normal font-sans">
-                  Condições e descontos exclusivos em viagens Motorrad Euro Motors Jundiaí.
+                  Condições e descontos exclusivos em viagens PG PRIME.
                 </p>
               </div>
 
@@ -822,11 +822,11 @@ export default function Index() {
               </div>
             </div>
 
-            {/* Centro: Logo Euro Motors */}
+            {/* Centro: Logo PG PRIME */}
             <div className="flex items-center justify-center">
               <img
                 src={logoImage}
-                alt="Euromotors Motorrad Club"
+                alt="PG PRIME CLUB"
                 className="h-12 sm:h-[3.6rem] w-auto object-contain opacity-95 hover:opacity-100 transition-opacity"
               />
             </div>
@@ -864,7 +864,7 @@ export default function Index() {
               SOLICITAR CADASTRO NO CLUBE
             </DialogTitle>
             <DialogDescription className="text-xs text-slate-400">
-              O Euro Motors Motorrad Club é exclusivo para clientes Euro Motors.
+              O PG PRIME CLUB é exclusivo para clientes PG PRIME.
             </DialogDescription>
           </DialogHeader>
           <div className="pt-2">

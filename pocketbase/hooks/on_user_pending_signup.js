@@ -36,13 +36,13 @@ onRecordAfterCreateSuccess((e) => {
       $app.newMailClient().send({
         from: {
           address: $os.getenv('SMTP_FROM') || adminEmail,
-          name: 'Euro Motors Motorrad Club',
+          name: 'PG PRIME CLUB',
         },
         to: [{ address: adminEmail }],
         subject: 'Novo cadastro pendente: ' + name,
         html:
           '<p>Olá,</p>' +
-          '<p>Um novo membro solicitou cadastro no Euro Motors Motorrad Club e está pendente de aprovação.</p>' +
+          '<p>Um novo membro solicitou cadastro no PG PRIME CLUB e está pendente de aprovação.</p>' +
           '<p><strong>Nome:</strong> ' +
           name +
           '<br/>' +

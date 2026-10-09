@@ -77,7 +77,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           <Link to="/" className="flex items-center group shrink-0">
             <img
               src={logoImage}
-              alt="EUROMOTORS MOTORRAD CLUB"
+              alt="PG PRIME CLUB"
               className="h-[3.08rem] sm:h-[3.64rem] w-auto object-contain transition-opacity group-hover:opacity-90"
             />
           </Link>

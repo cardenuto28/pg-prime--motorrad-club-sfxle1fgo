@@ -36,7 +36,7 @@ export default function PoliticaPrivacidade() {
           </h1>
 
           <div className="text-sm sm:text-base font-bold text-slate-300 font-montserrat tracking-wide uppercase">
-            EUROMOTORS MOTORRAD CLUB
+            PG PRIME CLUB
           </div>
 
           <p className="text-xs sm:text-sm text-slate-400 font-medium">
@@ -51,14 +51,14 @@ export default function PoliticaPrivacidade() {
           {/* Introdução */}
           <div className="space-y-4 border-b border-[#162033] pb-8">
             <p>
-              O <strong className="text-white font-bold">Euromotors Motorrad Club</strong> valoriza
-              a privacidade, a segurança e a transparência no relacionamento com seus membros,
+              O <strong className="text-white font-bold">PG PRIME CLUB</strong> valoriza a
+              privacidade, a segurança e a transparência no relacionamento com seus membros,
               clientes, acompanhantes e participantes de seus eventos e experiências.
             </p>
             <p>
               Esta Política de Privacidade explica como os dados pessoais são coletados, utilizados,
-              armazenados, compartilhados e protegidos no âmbito do Euromotors Motorrad Club, em
-              conformidade com a{' '}
+              armazenados, compartilhados e protegidos no âmbito do PG PRIME CLUB, em conformidade
+              com a{' '}
               <strong className="text-white font-bold">
                 Lei nº 13.709/2018 — Lei Geral de Proteção de Dados Pessoais (LGPD)
               </strong>
@@ -73,10 +73,9 @@ export default function PoliticaPrivacidade() {
               1. QUEM SOMOS
             </h2>
             <p>
-              O Euromotors Motorrad Club é uma iniciativa de relacionamento da BMW Euro Motors
-              Jundiaí destinada aos seus clientes, com o objetivo de promover experiências,
-              passeios, viagens, eventos, benefícios, relacionamento e ações exclusivas ligadas ao
-              universo Motorrad.
+              O PG PRIME CLUB é uma iniciativa de relacionamento da PG PRIME destinada aos seus
+              clientes, com o objetivo de promover experiências, passeios, viagens, eventos,
+              benefícios, relacionamento e ações exclusivas ligadas ao universo Motorrad.
             </p>
           </div>
 
@@ -114,8 +113,7 @@ export default function PoliticaPrivacidade() {
               ))}
             </ul>
             <p>
-              Somente serão solicitadas informações compatíveis com as finalidades do Euromotors
-              Motorrad Club.
+              Somente serão solicitadas informações compatíveis com as finalidades do PG PRIME CLUB.
             </p>
           </div>
 
@@ -128,7 +126,7 @@ export default function PoliticaPrivacidade() {
             <p>Os dados pessoais poderão ser utilizados para:</p>
             <ul className="space-y-2.5 pl-2 sm:pl-4 my-4">
               {[
-                'Realizar e administrar o cadastro no Euromotors Motorrad Club;',
+                'Realizar e administrar o cadastro no PG PRIME CLUB;',
                 'Confirmar a condição de cliente e elegibilidade para participação no Club;',
                 'Emitir e validar a carteirinha digital do membro;',
                 'Administrar inscrições em passeios, viagens, cursos, encontros e eventos;',
@@ -242,10 +240,7 @@ export default function PoliticaPrivacidade() {
               <Bell className="w-5 h-5 text-[#0066FF] flex-shrink-0" />
               7. COMUNICAÇÕES
             </h2>
-            <p>
-              Os membros poderão receber comunicações relacionadas ao Euromotors Motorrad Club,
-              incluindo:
-            </p>
+            <p>Os membros poderão receber comunicações relacionadas ao PG PRIME CLUB, incluindo:</p>
             <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pl-2 sm:pl-4 my-4">
               {[
                 'Confirmações de inscrição;',
@@ -373,10 +368,7 @@ export default function PoliticaPrivacidade() {
               Esta Política poderá ser atualizada para refletir alterações legais, regulatórias,
               tecnológicas ou operacionais.
             </p>
-            <p>
-              A versão mais atual estará permanentemente disponível no site do Euromotors Motorrad
-              Club.
-            </p>
+            <p>A versão mais atual estará permanentemente disponível no site do PG PRIME CLUB.</p>
           </div>
 
           {/* 12. CONTATO */}
@@ -387,9 +379,7 @@ export default function PoliticaPrivacidade() {
             </h2>
             <p>Em caso de dúvidas sobre esta Política ou sobre o tratamento de dados pessoais:</p>
             <div className="bg-[#0f1523] border border-[#1d2b45] rounded-lg p-5 sm:p-6 text-slate-200 space-y-2">
-              <p className="font-bold text-white">
-                Euromotors Motorrad Club / BMW Euro Motors Jundiaí
-              </p>
+              <p className="font-bold text-white">PG PRIME CLUB / PG PRIME</p>
               <div className="flex items-center gap-2 text-slate-200">
                 <Mail className="w-4 h-4 text-[#0066FF] flex-shrink-0" />
                 <span>

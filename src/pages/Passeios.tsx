@@ -92,8 +92,8 @@ const Passeios: React.FC = () => {
             PASSEIOS
           </h1>
           <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
-            Acompanhe a agenda oficial do Euro Motors Motorrad Club. Inscreva-se nos passeios
-            abertos e relembre os destinos que já percorremos juntos.
+            Acompanhe a agenda oficial do PG PRIME CLUB. Inscreva-se nos passeios abertos e relembre
+            os destinos que já percorremos juntos.
           </p>
         </section>
 

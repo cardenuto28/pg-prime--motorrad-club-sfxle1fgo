@@ -269,8 +269,8 @@ const MemberDashboard: React.FC = () => {
                       />
                     </div>
                     <p className="text-[10px] text-slate-400 mt-1.5">
-                      Seu nível de relacionamento com o Euro Motors Motorrad Club é calculado
-                      automaticamente com base no seu histórico de oficinas.
+                      Seu nível de relacionamento com o PG PRIME CLUB é calculado automaticamente
+                      com base no seu histórico de oficinas.
                     </p>
                   </div>
                 </div>
@@ -301,7 +301,7 @@ const MemberDashboard: React.FC = () => {
         )
       })()}
 
-      {/* 🏆 DESTAQUE DOS PONTOS DO MEMBRO (SISTEMA DE PONTOS EURO MOTORS CLUB) */}
+      {/* 🏆 DESTAQUE DOS PONTOS DO MEMBRO (SISTEMA DE PONTOS PG PRIME CLUB) */}
       <section className="bg-gradient-to-br from-[#0c1322] via-[#090e18] to-[#0c1424] border border-blue-600/40 rounded-xl p-5 sm:p-6 shadow-xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-full bg-blue-600/10 blur-3xl pointer-events-none" />
 
@@ -316,11 +316,11 @@ const MemberDashboard: React.FC = () => {
 
             <div>
               <h2 className="text-xl sm:text-2xl font-black text-white font-montserrat uppercase tracking-tight">
-                Pontuação Euro Motors Club
+                Pontuação PG PRIME CLUB
               </h2>
               <p className="text-xs text-slate-400 leading-relaxed max-w-xl">
-                Acumule pontos participando dos passeios oficiais e visitando a concessionária Euro
-                Motors. Seus pontos determinam sua posição no Top Membros!
+                Acumule pontos participando dos passeios oficiais e visitando a concessionária PG
+                PRIME. Seus pontos determinam sua posição no Top Membros!
               </p>
             </div>
           </div>
@@ -371,7 +371,7 @@ const MemberDashboard: React.FC = () => {
           <div className="flex items-center gap-2">
             <Sparkles className="w-4 h-4 text-amber-400 shrink-0" />
             <span>
-              Está na concessionária Euro Motors? Aponte a câmera do celular para a{' '}
+              Está na concessionária PG PRIME? Aponte a câmera do celular para a{' '}
               <strong>placa com QR Code</strong> no balcão da recepção para registrar sua presença e
               ganhar +10 pontos.
             </span>
@@ -394,7 +394,7 @@ const MemberDashboard: React.FC = () => {
                 APLICATIVO PROGRESSIVO (PWA)
               </span>
               <h3 className="text-sm sm:text-base font-black text-white font-montserrat uppercase truncate">
-                Instale o App do Euro Motors Club no celular
+                Instale o App do PG PRIME CLUB no celular
               </h3>
               <p className="text-xs text-slate-300 truncate">
                 Acesso direto na sua tela inicial, funcionamento instantâneo e offline

@@ -137,7 +137,7 @@ export const ValidarCadastro: React.FC = () => {
 
       toast({
         title: 'Cadastro ativado com sucesso!',
-        description: 'Bem-vindo ao Euromotors Motorrad Club!',
+        description: 'Bem-vindo ao PG PRIME CLUB!',
       })
 
       navigate('/membro')
@@ -166,8 +166,8 @@ export const ValidarCadastro: React.FC = () => {
           Ativar Meu Cadastro
         </h1>
         <p className="mt-2 text-sm text-slate-400 max-w-md mx-auto">
-          Localize seu pré-cadastro do <strong>Euromotors Motorrad Club</strong> informando seu CPF
-          ou os últimos dígitos do chassi da sua BMW.
+          Localize seu pré-cadastro do <strong>PG PRIME CLUB</strong> informando seu CPF ou os
+          últimos dígitos do chassi da sua BMW.
         </p>
       </div>
 
@@ -336,9 +336,9 @@ export const ValidarCadastro: React.FC = () => {
                     Aviso Importante sobre Imagem e Eventos
                   </div>
                   <p>
-                    Os eventos do <strong>Euromotors Motorrad Club</strong> são experiências
-                    coletivas e poderão ser fotografados e filmados. Por esse motivo, a autorização
-                    de uso de imagem e voz é requisito para participação no Clube.
+                    Os eventos do <strong>PG PRIME CLUB</strong> são experiências coletivas e
+                    poderão ser fotografados e filmados. Por esse motivo, a autorização de uso de
+                    imagem e voz é requisito para participação no Clube.
                   </p>
                 </div>
 
@@ -356,7 +356,7 @@ export const ValidarCadastro: React.FC = () => {
                       className="text-xs text-slate-300 leading-snug cursor-pointer select-none"
                     >
                       Autorizo o <strong>uso de imagem e voz</strong> nos eventos e mídias oficiais
-                      do Euromotors Motorrad Club.
+                      do PG PRIME CLUB.
                     </label>
                   </div>
 

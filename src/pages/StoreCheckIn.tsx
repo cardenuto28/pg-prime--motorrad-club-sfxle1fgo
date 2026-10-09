@@ -61,7 +61,7 @@ export const StoreCheckIn: React.FC = () => {
       // 1. Validação prévia de Token
       if (!token) {
         setResultStatus('invalid_token')
-        setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.')
+        setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja PG PRIME.')
         const pts = await storeVisitService.getMemberPoints(currentUser.id)
         setPointsData(pts)
         return
@@ -89,7 +89,7 @@ export const StoreCheckIn: React.FC = () => {
         ) {
           setResultStatus('pending')
           setResultMessage(
-            'Seu cadastro ainda está em aprovação pela equipe Euro Motors. O check-in presencial é exclusivo para membros com cadastro aprovado.',
+            'Seu cadastro ainda está em aprovação pela equipe PG PRIME. O check-in presencial é exclusivo para membros com cadastro aprovado.',
           )
           const pts = await storeVisitService.getMemberPoints(currentUser.id)
           setPointsData(pts)
@@ -100,7 +100,7 @@ export const StoreCheckIn: React.FC = () => {
         if (!isSuper && (isInactive || !isStatusAtivo)) {
           setResultStatus('inactive')
           setResultMessage(
-            'Seu status de membro não está ativo no momento. Regularize sua situação ou entre em contato com a equipe Euro Motors para pontuar nas visitas à loja.',
+            'Seu status de membro não está ativo no momento. Regularize sua situação ou entre em contato com a equipe PG PRIME para pontuar nas visitas à loja.',
           )
           const pts = await storeVisitService.getMemberPoints(currentUser.id)
           setPointsData(pts)
@@ -133,9 +133,7 @@ export const StoreCheckIn: React.FC = () => {
             errMsg.includes('expirado')
           ) {
             setResultStatus('invalid_token')
-            setResultMessage(
-              'QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.',
-            )
+            setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja PG PRIME.')
           } else if (
             errCode === 'ALREADY_CHECKED' ||
             errMsg.includes('já fez check-in na loja hoje') ||
@@ -148,7 +146,7 @@ export const StoreCheckIn: React.FC = () => {
           } else if (errCode === 'MEMBER_PENDING' || errMsg.includes('ainda está em aprovação')) {
             setResultStatus('pending')
             setResultMessage(
-              'Seu cadastro ainda está em aprovação pela equipe Euro Motors. O check-in presencial é exclusivo para membros com cadastro aprovado.',
+              'Seu cadastro ainda está em aprovação pela equipe PG PRIME. O check-in presencial é exclusivo para membros com cadastro aprovado.',
             )
           } else if (
             errCode === 'MEMBER_INACTIVE' ||
@@ -177,7 +175,7 @@ export const StoreCheckIn: React.FC = () => {
     if (!authLoading && user && resultStatus === 'idle' && !processing) {
       if (!token) {
         setResultStatus('invalid_token')
-        setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.')
+        setResultMessage('QR Code inválido ou expirado. Escaneie o QR Code na loja PG PRIME.')
         storeVisitService
           .getMemberPoints(user.id)
           .then(setPointsData)
@@ -233,7 +231,7 @@ export const StoreCheckIn: React.FC = () => {
     return (
       <div className="min-h-screen bg-[#07090e] flex flex-col items-center justify-center p-4 text-white">
         <Loader2 className="w-8 h-8 text-blue-500 animate-spin mb-4" />
-        <p className="text-sm text-slate-400 font-montserrat">Carregando Euro Motors Club...</p>
+        <p className="text-sm text-slate-400 font-montserrat">Carregando PG PRIME CLUB...</p>
       </div>
     )
   }
@@ -250,7 +248,7 @@ export const StoreCheckIn: React.FC = () => {
             <Link to="/">
               <img
                 src={logoImage}
-                alt="Euro Motors Motorrad Club"
+                alt="PG PRIME CLUB"
                 className="h-16 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
               />
             </Link>
@@ -279,7 +277,7 @@ export const StoreCheckIn: React.FC = () => {
                   QR Code Obrigatório
                 </h3>
                 <p className="text-xs text-red-300 leading-relaxed">
-                  QR Code inválido ou expirado. Escaneie o QR Code na loja Euro Motors.
+                  QR Code inválido ou expirado. Escaneie o QR Code na loja PG PRIME.
                 </p>
                 <p className="text-[11px] text-slate-400">
                   O check-in presencial só pode ser realizado através do QR Code físico localizado
@@ -365,7 +363,7 @@ export const StoreCheckIn: React.FC = () => {
           <Loader2 className="w-12 h-12 text-blue-500 animate-spin mx-auto" />
           <h2 className="text-lg font-bold font-montserrat uppercase">Processando Check-in...</h2>
           <p className="text-xs text-slate-400">
-            Validando sua presença na loja Euro Motors e atualizando sua pontuação...
+            Validando sua presença na loja PG PRIME e atualizando sua pontuação...
           </p>
         </div>
       </div>
@@ -382,7 +380,7 @@ export const StoreCheckIn: React.FC = () => {
           <Link to="/">
             <img
               src={logoImage}
-              alt="Euro Motors Motorrad Club"
+              alt="PG PRIME CLUB"
               className="h-16 w-auto object-contain drop-shadow-[0_4px_12px_rgba(0,0,0,0.8)]"
             />
           </Link>
@@ -414,7 +412,7 @@ export const StoreCheckIn: React.FC = () => {
 
             <div>
               <div className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-slate-400 font-montserrat">
-                <MapPin className="w-3 h-3 text-blue-400" /> Euro Motors Concessionária
+                <MapPin className="w-3 h-3 text-blue-400" /> Concessionária PG PRIME
               </div>
               <h1 className="text-xl sm:text-2xl font-black text-white font-montserrat uppercase tracking-tight mt-1">
                 {resultStatus === 'success' && '✅ Visita Registrada!'}

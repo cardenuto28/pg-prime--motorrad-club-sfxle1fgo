@@ -301,7 +301,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
       <DialogContent className="max-w-xl max-h-[90vh] overflow-y-auto bg-[#0a0d14] text-white border-[#1c2538] p-5 sm:p-6">
         <DialogHeader className="space-y-1">
           <div className="flex items-center gap-2 text-blue-500 font-bold text-xs tracking-wider uppercase">
-            <Bike className="w-4 h-4" /> Euro Motors Motorrad Club
+            <Bike className="w-4 h-4" /> PG PRIME CLUB
           </div>
           <DialogTitle className="text-xl font-bold text-white font-montserrat">
             Inscrição no Passeio: {ride.name}
@@ -684,7 +684,7 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
                   >
                     Termos de Adesão e Participação
                   </a>{' '}
-                  do Euromotors Motorrad Club. <span className="text-red-400 font-bold">*</span>
+                  do PG PRIME CLUB. <span className="text-red-400 font-bold">*</span>
                 </Label>
               </div>
             </div>
@@ -698,8 +698,8 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
                 <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
                 <p className="text-[11px] text-amber-200/95 leading-relaxed font-normal">
                   <strong className="text-amber-300 font-semibold">Importante:</strong> os eventos
-                  do Euromotors Motorrad Club são experiências coletivas e poderão ser fotografados
-                  e filmados. Por esse motivo, a autorização de uso de imagem e voz é requisito para
+                  do PG PRIME CLUB são experiências coletivas e poderão ser fotografados e filmados.
+                  Por esse motivo, a autorização de uso de imagem e voz é requisito para
                   participação no Clube.
                 </p>
               </div>
@@ -719,8 +719,8 @@ export const RideRegistrationModal: React.FC<RideRegistrationModalProps> = ({
                   >
                     Li, compreendi e autorizo o uso da minha imagem e voz exclusivamente em fotos do
                     passeio, fotos do grupo, vídeos do passeio e demais registros vinculados às
-                    atividades do Euromotors Motorrad Club, estando ciente de que essa autorização é
-                    condição para minha participação no Club.{' '}
+                    atividades do PG PRIME CLUB, estando ciente de que essa autorização é condição
+                    para minha participação no Club.{' '}
                     <span className="text-red-400 font-bold">*</span>
                   </Label>
                 </div>

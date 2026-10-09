@@ -30,7 +30,7 @@ interface BenefitsMatrixSectionProps {
 export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
   className = '',
   compact: _compact = false,
-  subtitle = 'Compare todas as categorias Bronze, Prata, Gold e Platinum e veja as vantagens exclusivas do Euro Motors Motorrad Club.',
+  subtitle = 'Compare todas as categorias Bronze, Prata, Gold e Platinum e veja as vantagens exclusivas do PG PRIME CLUB.',
 }) => {
   const [isOpen, setIsOpen] = useState(false)
   const [zoomLevel, setZoomLevel] = useState(1)
@@ -104,7 +104,7 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
               )}
               <img
                 src={BENEFITS_MATRIX_IMAGE_URL}
-                alt="Matriz de Benefícios por Categoria - Euro Motors Motorrad Club"
+                alt="Matriz de Benefícios por Categoria - PG PRIME CLUB"
                 className={`w-full h-auto block transition-all duration-300 ${
                   isLoaded ? 'opacity-100' : 'opacity-0 min-h-[200px]'
                 }`}
@@ -156,7 +156,7 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
                 Matriz de Benefícios por Categoria
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-400 mt-0.5">
-                Euro Motors Motorrad Club — Níveis Bronze, Prata, Gold e Platinum
+                PG PRIME CLUB — Níveis Bronze, Prata, Gold e Platinum
               </DialogDescription>
             </div>
 
@@ -211,7 +211,7 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
             >
               <img
                 src={BENEFITS_MATRIX_IMAGE_URL}
-                alt="Matriz de Benefícios Completa - Euro Motors Motorrad Club"
+                alt="Matriz de Benefícios Completa - PG PRIME CLUB"
                 className="max-w-full h-auto object-contain rounded shadow-2xl select-none"
                 draggable={false}
               />
@@ -265,7 +265,7 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
                 href={BENEFITS_MATRIX_IMAGE_URL}
                 target="_blank"
                 rel="noreferrer"
-                download="matriz-beneficios-euro-motors.png"
+                download="matriz-beneficios-pg-prime.png"
                 className="inline-flex items-center gap-1.5 text-xs text-slate-300 hover:text-white bg-[#141d2d] hover:bg-[#1b263b] border border-[#212f45] px-3 py-1.5 rounded-md transition-colors"
               >
                 <Download className="w-3.5 h-3.5 text-[#0066FF]" />

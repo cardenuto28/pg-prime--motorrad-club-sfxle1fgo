@@ -33,9 +33,8 @@ export default function Termos() {
             </h2>
 
             <p>
-              A participação no{' '}
-              <strong className="text-white font-bold">Euromotors Motorrad Club</strong> envolve
-              passeios, viagens, encontros e experiências coletivas, nos quais poderão ser
+              A participação no <strong className="text-white font-bold">PG PRIME CLUB</strong>{' '}
+              envolve passeios, viagens, encontros e experiências coletivas, nos quais poderão ser
               realizados registros fotográficos e audiovisuais do evento, do grupo e dos
               participantes.
             </p>
@@ -46,7 +45,7 @@ export default function Termos() {
               os eventos,{' '}
               <strong className="text-white font-bold">
                 a autorização de uso de imagem e voz constitui condição para adesão e permanência no
-                Euromotors Motorrad Club
+                PG PRIME CLUB
               </strong>
               .
             </p>
@@ -81,7 +80,7 @@ export default function Termos() {
                 <CheckCircle2 className="w-4 h-4 text-[#0066FF] flex-shrink-0 mt-1" />
                 <span>
                   registros realizados em encontros, viagens, cafés da manhã, eventos e experiências
-                  promovidas pelo Euromotors Motorrad Club.
+                  promovidas pelo PG PRIME CLUB.
                 </span>
               </li>
             </ul>
@@ -92,8 +91,8 @@ export default function Termos() {
             <p>
               Essa autorização destina-se{' '}
               <strong className="text-white font-bold">exclusivamente</strong> à divulgação
-              institucional e promocional das atividades do Euromotors Motorrad Club e da BMW Euro
-              Motors Jundiaí, podendo os registros ser utilizados em:
+              institucional e promocional das atividades do PG PRIME CLUB e da PG PRIME, podendo os
+              registros ser utilizados em:
             </p>
 
             {/* Lista 2 */}
@@ -121,8 +120,7 @@ export default function Termos() {
               <li className="flex items-start gap-3">
                 <Camera className="w-4 h-4 text-[#0066FF] flex-shrink-0 mt-1" />
                 <span>
-                  apresentações e comunicações relacionadas às atividades do Euromotors Motorrad
-                  Club.
+                  apresentações e comunicações relacionadas às atividades do PG PRIME CLUB.
                 </span>
               </li>
             </ul>
@@ -150,7 +148,7 @@ export default function Termos() {
                 O participante declara estar ciente de que, por se tratar de condição necessária
                 para participação nas experiências coletivas do Club, a não concordância com esta
                 autorização inviabiliza sua adesão e permanência no{' '}
-                <strong className="text-[#0066FF] font-bold">Euromotors Motorrad Club</strong>.
+                <strong className="text-[#0066FF] font-bold">PG PRIME CLUB</strong>.
               </p>
             </div>
           </div>

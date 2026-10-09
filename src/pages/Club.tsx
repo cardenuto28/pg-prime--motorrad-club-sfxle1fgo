@@ -63,7 +63,7 @@ export default function Club() {
             <div className="absolute inset-0 z-0">
               <img
                 src={clubHeroBg}
-                alt="Euromotors Motorrad Club"
+                alt="PG PRIME CLUB"
                 className="w-full h-full object-cover object-center saturate-[1.12] contrast-[1.05] group-hover:scale-105 transition-transform duration-700"
               />
               {/* Soft directional gradients preserving vivid background colors while ensuring readability */}
@@ -77,17 +77,17 @@ export default function Club() {
                 <h1 className="text-2xl sm:text-4xl lg:text-[42px] font-black text-white font-montserrat tracking-tight leading-[1.1] uppercase drop-shadow-xl pb-[0px] pt-[32px] pr-[14px] pl-[0px] mt-[32px] mb-[6px] mr-[7px]">
                   FAÇA PARTE DO{' '}
                   <span className="block text-[#0066FF] drop-shadow-[0_0_20px_rgba(0,102,255,0.7)]">
-                    EUROMOTORS
+                    PG PRIME
                   </span>
                   <span className="block text-[#0066FF] drop-shadow-[0_0_20px_rgba(0,102,255,0.7)]">
-                    MOTORRAD CLUB
+                    CLUB
                   </span>
                 </h1>
               </div>
 
               <p className="text-xs sm:text-sm text-slate-200 font-medium leading-relaxed drop-shadow">
-                Para participar do Euromotors Motorrad Club, você precisa ser cliente da{' '}
-                <strong className="text-[#0066FF] font-extrabold">BMW Euro Motors Jundiaí</strong>.
+                Para participar do PG PRIME CLUB, você precisa ser cliente da{' '}
+                <strong className="text-[#0066FF] font-extrabold">PG PRIME</strong>.
               </p>
 
               <div className="flex items-center gap-2.5 pt-1">
@@ -97,7 +97,7 @@ export default function Club() {
                   <span className="w-2 h-0.5 bg-[#0066FF] rounded-full shadow-[0_0_6px_rgba(0,102,255,0.8)]" />
                 </div>
                 <span className="text-[11px] sm:text-xs text-slate-300 font-medium leading-snug">
-                  Venha ser nosso cliente e participe deste ecossistema de experiência Euro Motors.
+                  Venha ser nosso cliente e participe deste ecossistema de experiência PG PRIME.
                 </span>
               </div>
 
@@ -118,10 +118,10 @@ export default function Club() {
               O CONCEITO
             </h2>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-3xl">
-              Clube exclusivo para clientes Euromotors – Jundiaí, criado para proporcionar acesso
-              privilegiado às experiências, eventos e benefícios oferecidos pela BMW Euromotors
-              Jundiaí. Um espaço para quem vive a paixão por duas rodas e quer fazer parte de uma
-              comunidade que compartilha da mesma direção.
+              Clube exclusivo para clientes PG PRIME, criado para proporcionar acesso privilegiado
+              às experiências, eventos e benefícios oferecidos pela PG PRIME. Um espaço para quem
+              vive a paixão por duas rodas e quer fazer parte de uma comunidade que compartilha da
+              mesma direção.
             </p>
           </section>
 
@@ -132,8 +132,8 @@ export default function Club() {
                 QUEM PODE PARTICIPAR
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed max-w-3xl">
-                O Euromotors Motorrad Club é destinado a quem já faz parte da família BMW Motorrad
-                Euro Motors Jundiaí. Confira os critérios de elegibilidade:
+                O PG PRIME CLUB é destinado a quem já faz parte da família PG PRIME. Confira os
+                critérios de elegibilidade:
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -204,8 +204,8 @@ export default function Club() {
                 </h3>
                 <p className="text-[12px] text-slate-400 leading-relaxed">
                   Cada participante receberá uma carteirinha exclusiva e numerada, que será sua
-                  identificação como membro do Euromotors Motorrad Club e deverá ser apresentada nas
-                  inscrições para eventos, passeios, viagens, cursos e demais experiências do Clube.
+                  identificação como membro do PG PRIME CLUB e deverá ser apresentada nas inscrições
+                  para eventos, passeios, viagens, cursos e demais experiências do Clube.
                 </p>
               </div>
             </div>
@@ -238,8 +238,8 @@ export default function Club() {
                 FAÇA PARTE DO CLUBE
               </h2>
               <p className="text-sm text-slate-300 leading-relaxed max-w-2xl mx-auto">
-                Cliente BMW Motorrad Euro Motors Jundiaí? Solicite seu cadastro e receba sua
-                carteirinha exclusiva para participar de todas as experiências do Clube.
+                Cliente PG PRIME? Solicite seu cadastro e receba sua carteirinha exclusiva para
+                participar de todas as experiências do Clube.
               </p>
             </div>
             <div className="flex justify-center">

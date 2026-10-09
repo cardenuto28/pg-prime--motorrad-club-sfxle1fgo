@@ -178,7 +178,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
       toast({
         title: 'Cadastro solicitado com sucesso!',
         description:
-          'O Euro Motors Motorrad Club é exclusivo para clientes Euro Motors. Seus dados foram enviados e serão analisados pela nossa equipe.',
+          'O PG PRIME CLUB é exclusivo para clientes PG PRIME. Seus dados foram enviados e serão analisados pela nossa equipe.',
       })
 
       if (onSuccess) onSuccess()
@@ -244,7 +244,7 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
             CADASTRO SOLICITADO!
           </h3>
           <p className="text-xs text-blue-400 font-semibold leading-snug">
-            O Euro Motors Motorrad Club é exclusivo para clientes Euro Motors.
+            O PG PRIME CLUB é exclusivo para clientes PG PRIME.
           </p>
         </div>
         <div className="bg-[#141a26] border border-[#202a3d] rounded p-3 text-xs text-slate-300 leading-relaxed">
@@ -455,10 +455,9 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
         <div className="bg-amber-950/40 border border-amber-500/40 rounded-sm p-3 flex items-start gap-2.5 shadow-sm text-left">
           <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
           <p className="text-[11px] text-amber-200/95 leading-relaxed font-normal">
-            <strong className="text-amber-300 font-semibold">Importante:</strong> os eventos do
-            Euromotors Motorrad Club são experiências coletivas e poderão ser fotografados e
-            filmados. Por esse motivo, a autorização de uso de imagem e voz é requisito para
-            participação no Clube.
+            <strong className="text-amber-300 font-semibold">Importante:</strong> os eventos do PG
+            PRIME CLUB são experiências coletivas e poderão ser fotografados e filmados. Por esse
+            motivo, a autorização de uso de imagem e voz é requisito para participação no Clube.
           </p>
         </div>
 
@@ -487,8 +486,8 @@ export const SidebarSignup: React.FC<SidebarSignupProps> = ({ onSuccess }) => {
             >
               Li, compreendi e autorizo o uso da minha imagem e voz exclusivamente em fotos do
               passeio, fotos do grupo, vídeos do passeio e demais registros vinculados às atividades
-              do Euromotors Motorrad Club, estando ciente de que essa autorização é condição para
-              minha participação no Club. <span className="text-red-400 font-bold">*</span>
+              do PG PRIME CLUB, estando ciente de que essa autorização é condição para minha
+              participação no Club. <span className="text-red-400 font-bold">*</span>
             </Label>
           </div>
           {imageError && (

@@ -64,11 +64,7 @@ export const VerifyMember: React.FC = () => {
       <header className="border-b border-[#182335] bg-[#070a12]/90 backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <img
-              src={memberCardLogo}
-              alt="Euro Motors Motorrad Club"
-              className="h-12 w-auto object-contain"
-            />
+            <img src={memberCardLogo} alt="PG PRIME CLUB" className="h-12 w-auto object-contain" />
           </Link>
           <div className="flex items-center gap-2">
             <span className="text-[10px] uppercase tracking-widest font-extrabold text-blue-400 font-montserrat border border-blue-500/30 bg-blue-950/40 px-2.5 py-1 rounded">
@@ -84,7 +80,7 @@ export const VerifyMember: React.FC = () => {
           <div className="bg-[#0b101a] border border-[#1d293d] rounded-2xl p-8 sm:p-12 text-center space-y-4 shadow-2xl">
             <div className="w-12 h-12 border-3 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto" />
             <p className="text-sm text-slate-400 font-medium font-montserrat">
-              Consultando registro oficial no Euro Motors Club...
+              Consultando registro oficial no PG PRIME CLUB...
             </p>
           </div>
         ) : notFound || !member ? (
@@ -180,7 +176,7 @@ export const VerifyMember: React.FC = () => {
                   <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full pointer-events-none" />
                   <img
                     src={memberCardLogo}
-                    alt="Brasão Euro Motors Motorrad Club"
+                    alt="Brasão PG PRIME CLUB"
                     className="h-28 sm:h-36 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]"
                   />
                 </div>
@@ -270,7 +266,7 @@ export const VerifyMember: React.FC = () => {
               <div className="pt-4 border-t border-[#1c273a] flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-left">
                 <div className="space-y-0.5">
                   <p className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider font-montserrat">
-                    EURO MOTORS MOTORRAD CLUB JUNDIAÍ
+                    PG PRIME CLUB
                   </p>
                   <p className="text-[9px] text-slate-500">
                     Autenticado via Skip Cloud PocketBase Security
@@ -294,7 +290,7 @@ export const VerifyMember: React.FC = () => {
       {/* Footer */}
       <footer className="border-t border-[#182335] bg-[#070a12] py-4 text-center">
         <p className="text-[10px] text-slate-500 uppercase tracking-widest font-montserrat">
-          ESTRADA • LIBERDADE • IRMANDADE — EUROMOTORS MOTORRAD CLUB
+          ESTRADA • LIBERDADE • IRMANDADE — PG PRIME CLUB
         </p>
       </footer>
     </div>

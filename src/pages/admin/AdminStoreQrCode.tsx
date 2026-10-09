@@ -90,8 +90,8 @@ export const AdminStoreQrCode: React.FC = () => {
               QR Code da Loja para Impressão
             </h1>
             <p className="text-xs text-slate-400 mt-1">
-              Placa oficial para balcão/recepção da concessionária Euro Motors. Membros escaneiam
-              para acumular +10 pontos.
+              Placa oficial para balcão/recepção da concessionária PG PRIME. Membros escaneiam para
+              acumular +10 pontos.
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -149,7 +149,7 @@ export const AdminStoreQrCode: React.FC = () => {
       </section>
 
       {/* ========================================================================= */}
-      {/* DISPLAY OFICIAL DE IMPRESSÃO - ESTILO DARK PREMIUM EURO MOTORS */}
+      {/* DISPLAY OFICIAL DE IMPRESSÃO - ESTILO DARK PREMIUM PG PRIME */}
       {/* ========================================================================= */}
       <div className="flex justify-center my-4">
         <div
@@ -172,7 +172,7 @@ export const AdminStoreQrCode: React.FC = () => {
             <div className="flex items-center justify-center gap-3">
               <img
                 src={logoImage}
-                alt="Euro Motors Motorrad Club"
+                alt="PG PRIME CLUB"
                 className="h-14 sm:h-16 w-auto object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]"
               />
             </div>
@@ -186,8 +186,8 @@ export const AdminStoreQrCode: React.FC = () => {
                 Check-in de Visita na Loja
               </h2>
               <p className="text-xs sm:text-sm text-slate-300 font-medium font-montserrat">
-                Ganhe <span className="text-blue-400 font-bold">+10 pontos</span> no ranking do Euro
-                Motors Club
+                Ganhe <span className="text-blue-400 font-bold">+10 pontos</span> no ranking do PG
+                PRIME CLUB
               </p>
             </div>
           </div>
@@ -197,7 +197,7 @@ export const AdminStoreQrCode: React.FC = () => {
             <div className="relative p-5 sm:p-6 bg-white rounded-2xl shadow-[0_0_35px_rgba(0,102,255,0.4)] border-4 border-blue-500/60 transition-transform duration-300 hover:scale-[1.02]">
               <img
                 src={qrCodeImageUrl}
-                alt="QR Code Check-in Loja Euro Motors"
+                alt="QR Code Check-in Loja PG PRIME"
                 className="w-64 h-64 sm:w-72 sm:h-72 object-contain rounded-lg block"
               />
 
@@ -214,7 +214,7 @@ export const AdminStoreQrCode: React.FC = () => {
             </div>
           </div>
 
-          {/* 3. Instruções e Marca Euro Motors */}
+          {/* 3. Instruções e Marca PG PRIME */}
           <div className="relative z-10 space-y-4 pt-1">
             <div className="space-y-1">
               <p className="text-sm sm:text-base font-extrabold text-white font-montserrat uppercase tracking-wider flex items-center justify-center gap-2">

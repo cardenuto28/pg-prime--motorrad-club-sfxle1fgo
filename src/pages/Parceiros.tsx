@@ -76,7 +76,7 @@ const PublicParceiros: React.FC = () => {
             </h1>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
               Hotéis, restaurantes, seguros e muito mais. Conheça os parceiros credenciados que
-              oferecem condições especiais para os membros do Euro Motors Motorrad Club.
+              oferecem condições especiais para os membros do PG PRIME CLUB.
             </p>
           </div>
         </div>
@@ -210,8 +210,8 @@ const PublicParceiros: React.FC = () => {
               Aproveite as vantagens desses parceiros
             </h2>
             <p className="text-xs text-slate-400 mt-2 max-w-xl mx-auto">
-              Faça parte do Euro Motors Motorrad Club e tenha acesso a condições exclusivas em toda
-              a nossa rede credenciada.
+              Faça parte do PG PRIME CLUB e tenha acesso a condições exclusivas em toda a nossa rede
+              credenciada.
             </p>
             <Button
               onClick={() => navigate('/#cadastro-form')}

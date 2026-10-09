@@ -411,9 +411,7 @@ const AdminDashboard: React.FC = () => {
             <h1 className="text-xl sm:text-2xl font-extrabold text-white font-montserrat tracking-tight mt-1">
               Dashboard
             </h1>
-            <p className="text-xs text-slate-400 mt-1">
-              Visão geral e métricas do Euro Motors Motorrad Club
-            </p>
+            <p className="text-xs text-slate-400 mt-1">Visão geral e métricas do PG PRIME CLUB</p>
           </div>
           <div className="flex flex-wrap items-center gap-2.5">
             <Button
@@ -480,7 +478,7 @@ const AdminDashboard: React.FC = () => {
         />
       </section>
 
-      {/* Indicadores de Categorias Euro Motors Club */}
+      {/* Indicadores de Categorias PG PRIME CLUB */}
       <section className="bg-[#0e131d] border border-[#1c2538] rounded-md p-5 sm:p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -1382,7 +1380,7 @@ const CategoryBikeCard: React.FC<CategoryBikeCardProps> = ({
                       </p>
                       <p className="text-[10px] text-slate-500 truncate">
                         {buyer.city ? `${buyer.city} · ` : ''}
-                        {buyer.bikeModel || 'Moto Euro Motors'}
+                        {buyer.bikeModel || 'Moto PG PRIME'}
                       </p>
                     </div>
                   </div>
