@@ -7,12 +7,14 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import { useToast } from '@/hooks/use-toast'
-import { Phone, Mail, MapPin, Globe, Send, ChevronRight } from 'lucide-react'
+import { Phone, Mail, MapPin, Globe, Send, ChevronRight, MessageCircle } from 'lucide-react'
 import { settingsService, SiteSettings } from '@/services/settings'
+import { DEALERSHIP_UNITS } from '@/lib/dealerships'
 
 export default function Contato() {
   const { toast } = useToast()
   const [settings, setSettings] = useState<SiteSettings | null>(null)
+  const [activeUnitId, setActiveUnitId] = useState<string>(DEALERSHIP_UNITS[0].id)
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -31,14 +33,14 @@ export default function Contato() {
     }
   }
 
-  const address =
-    settings?.address || 'Av. Pref. Luis Latorre, 4501 - Loja A - Retiro, Jundiaí - SP, 13209-430'
-  const phone = settings?.phone || '(11) 4839-1010'
-  const contactEmail = settings?.contact_email || 'contato@euromotorsmotorrad.com.br'
+  const contactEmail = settings?.contact_email || 'motorradclub@euromotors.com.br'
   const websiteUrl = settings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
   const websiteDisplay = websiteUrl.replace(/^https?:\/\//, '')
-  const phoneHref = `tel:${phone.replace(/\D/g, '')}`
-  const mapQuery = encodeURIComponent(address)
+
+  const currentUnit = DEALERSHIP_UNITS.find((u) => u.id === activeUnitId) || DEALERSHIP_UNITS[0]
+  const currentMapQuery = encodeURIComponent(
+    `${currentUnit.name}, ${currentUnit.address}, ${currentUnit.cityState}`,
+  )
 
   const validate = () => {
     const e: Record<string, string> = {}
@@ -110,21 +112,98 @@ export default function Contato() {
           <div className="bg-[#060a14] border border-[#121c2e] rounded-xl p-6 sm:p-8 space-y-6">
             <div>
               <h2 className="text-sm font-extrabold text-slate-400 tracking-widest uppercase font-montserrat">
-                INFORMAÇÕES
+                NOSSAS CONCESSIONÁRIAS
               </h2>
               <p className="text-xs text-slate-500 mt-1">
-                Visite-nos ou entre em contato pelos canais abaixo.
+                Visite nossas concessionárias ou fale diretamente com a equipe de cada unidade.
               </p>
             </div>
 
-            <div className="space-y-5">
-              <ContactItem icon={<MapPin className="w-4 h-4" />} label="Endereço" value={address} />
-              <ContactItem
-                icon={<Phone className="w-4 h-4" />}
-                label="Telefone"
-                value={phone}
-                href={phoneHref}
-              />
+            {/* Cards das duas unidades */}
+            <div className="space-y-4">
+              {DEALERSHIP_UNITS.map((unit) => {
+                const isSelected = unit.id === activeUnitId
+                return (
+                  <div
+                    key={unit.id}
+                    className={`rounded-xl border p-5 transition-all ${
+                      isSelected
+                        ? 'border-[#0066FF] bg-[#071124] ring-1 ring-[#0066FF]/40'
+                        : 'border-[#172236] bg-[#080d19] hover:border-[#1f304f]'
+                    }`}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+                      <div>
+                        <h3 className="text-sm font-black text-white uppercase font-montserrat tracking-wide">
+                          {unit.name}
+                        </h3>
+                        <p className="text-[11px] text-[#0066FF] font-semibold mt-0.5">
+                          {unit.cityState}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setActiveUnitId(unit.id)}
+                        className={`text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded transition-colors ${
+                          isSelected
+                            ? 'bg-[#0066FF] text-white'
+                            : 'bg-[#121c2e] text-slate-400 hover:text-white hover:bg-[#1a273f]'
+                        }`}
+                      >
+                        {isSelected ? 'Mapa Ativo' : 'Ver no Mapa'}
+                      </button>
+                    </div>
+
+                    <div className="space-y-2 text-xs text-slate-300">
+                      <div className="flex items-start gap-2.5">
+                        <MapPin className="w-4 h-4 text-[#0066FF] flex-shrink-0 mt-0.5" />
+                        <div>
+                          <p className="text-slate-200">{unit.address}</p>
+                          <p className="text-[11px] text-slate-400">{unit.cityState}</p>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-2 border-t border-[#141e30]">
+                        <div className="flex items-center gap-2">
+                          <Phone className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-slate-500 uppercase block font-medium">
+                              Contato
+                            </span>
+                            <a
+                              href={unit.phoneHref}
+                              className="text-xs font-semibold text-white hover:text-[#0066FF] hover:underline transition-colors"
+                            >
+                              {unit.phone}
+                            </a>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                          <div className="min-w-0">
+                            <span className="text-[10px] text-slate-500 uppercase block font-medium">
+                              WhatsApp
+                            </span>
+                            <a
+                              href={unit.whatsappHref}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-semibold text-emerald-400 hover:text-emerald-300 hover:underline transition-colors"
+                            >
+                              {unit.whatsapp}
+                            </a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Canais gerais */}
+            <div className="pt-2 border-t border-[#121c2e] space-y-4">
               <ContactItem
                 icon={<Mail className="w-4 h-4" />}
                 label="E-mail"
@@ -140,15 +219,18 @@ export default function Contato() {
               />
             </div>
 
-            {/* Mapa */}
+            {/* Mapa da concessionária selecionada */}
             <div className="pt-2">
-              <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest font-montserrat mb-2">
-                COMO CHEGAR
-              </h3>
+              <div className="flex items-center justify-between mb-2">
+                <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-widest font-montserrat">
+                  COMO CHEGAR — {currentUnit.name.toUpperCase()}
+                </h3>
+                <span className="text-[10px] text-slate-500">{currentUnit.shortName}</span>
+              </div>
               <div className="rounded-lg overflow-hidden border border-[#1c2538] h-64">
                 <iframe
-                  title="Mapa PG PRIME"
-                  src={`https://www.google.com/maps?q=${mapQuery}&output=embed`}
+                  title={`Mapa ${currentUnit.name}`}
+                  src={`https://www.google.com/maps?q=${currentMapQuery}&output=embed`}
                   width="100%"
                   height="100%"
                   style={{ border: 0, filter: 'grayscale(0.3) invert(0.9) hue-rotate(180deg)' }}

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { Phone, MapPin, Instagram, Facebook, Youtube, Globe } from 'lucide-react'
+import { Phone, MapPin, Instagram, Facebook, Youtube, Globe, MessageCircle } from 'lucide-react'
 import logoImage from '@/assets/logo-e67e1.jpeg'
 import { settingsService, SiteSettings } from '@/services/settings'
+import { DEALERSHIP_UNITS } from '@/lib/dealerships'
 
 export const Footer: React.FC = () => {
   const [settings, setSettings] = useState<SiteSettings | null>(null)
@@ -16,9 +17,6 @@ export const Footer: React.FC = () => {
       .catch(() => {})
   }, [])
 
-  const address =
-    settings?.address || 'Av. Pref. Luis Latorre, 4501 - Loja A - Retiro, Jundiaí - SP, 13209-430'
-  const phone = settings?.phone || '(11) 4839-1010'
   const websiteUrl = settings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
   const websiteDisplay = websiteUrl.replace(/^https?:\/\//, '')
   const instagramUrl = settings?.instagram_url || 'https://instagram.com/euromotorsmotorrad'
@@ -89,31 +87,76 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Linha de contato / endereço */}
-        <div className="mt-8 pt-6 border-t border-[#121c2e] grid grid-cols-1 sm:grid-cols-3 gap-4 text-[11px]">
-          <div className="flex items-start gap-2 justify-center sm:justify-start">
-            <MapPin className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0 mt-0.5" />
-            <span className="text-slate-400 leading-relaxed whitespace-pre-line">{address}</span>
+        {/* Cards das duas unidades oficiais PG PRIME */}
+        <div className="mt-8 pt-6 border-t border-[#121c2e]">
+          <div className="mb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <span className="text-[11px] font-extrabold text-slate-300 uppercase tracking-widest font-montserrat">
+              NOSSAS CONCESSIONÁRIAS
+            </span>
+            <div className="flex items-center gap-2 text-[11px]">
+              <Globe className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
+              <a
+                href={websiteUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-slate-400 hover:text-white transition-colors truncate"
+              >
+                {websiteDisplay}
+              </a>
+            </div>
           </div>
-          <div className="flex items-center gap-2 justify-center">
-            <Phone className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
-            <a
-              href={`tel:${phone.replace(/\D/g, '')}`}
-              className="text-slate-400 hover:text-white transition-colors"
-            >
-              {phone}
-            </a>
-          </div>
-          <div className="flex items-center gap-2 justify-center sm:justify-end">
-            <Globe className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
-            <a
-              href={websiteUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-slate-400 hover:text-white transition-colors truncate"
-            >
-              {websiteDisplay}
-            </a>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[12px]">
+            {DEALERSHIP_UNITS.map((unit) => (
+              <div
+                key={unit.id}
+                className="rounded-lg border border-[#1a2436] bg-[#070b14]/80 p-4 hover:border-[#0066FF]/40 transition-colors"
+              >
+                <div className="flex items-center justify-between gap-2 mb-2 pb-2 border-b border-[#141d2e]">
+                  <span className="font-bold text-white font-montserrat tracking-wide">
+                    {unit.name}
+                  </span>
+                  <span className="text-[10px] uppercase font-semibold text-[#0066FF] bg-[#0066FF]/10 px-2 py-0.5 rounded border border-[#0066FF]/20">
+                    {unit.cityState}
+                  </span>
+                </div>
+
+                <div className="space-y-2 text-slate-400">
+                  <div className="flex items-start gap-2">
+                    <MapPin className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0 mt-0.5" />
+                    <span className="leading-relaxed">
+                      {unit.address} — {unit.cityState}
+                    </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-x-5 gap-y-1.5 pt-1 text-[11px]">
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5 text-[#0066FF] flex-shrink-0" />
+                      <span className="text-slate-500 font-medium">Tel:</span>
+                      <a
+                        href={unit.phoneHref}
+                        className="text-slate-200 hover:text-white hover:underline transition-colors font-medium"
+                      >
+                        {unit.phone}
+                      </a>
+                    </div>
+
+                    <div className="flex items-center gap-1.5">
+                      <MessageCircle className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                      <span className="text-slate-500 font-medium">WhatsApp:</span>
+                      <a
+                        href={unit.whatsappHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-emerald-400 hover:text-emerald-300 hover:underline transition-colors font-medium"
+                      >
+                        {unit.whatsapp}
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>

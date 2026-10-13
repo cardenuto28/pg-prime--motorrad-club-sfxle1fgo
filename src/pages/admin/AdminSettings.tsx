@@ -316,7 +316,7 @@ const AdminSettings: React.FC = () => {
               <Input
                 value={form.address}
                 onChange={(e) => set('address', e.target.value)}
-                placeholder="Av. Pref. Luis Latorre, 4501 - Lj A - Retiro, Jundiaí - SP, 13209-430"
+                placeholder="BMW João Pessoa / BMW Natal..."
                 className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
               />
             </Field>
@@ -325,10 +325,10 @@ const AdminSettings: React.FC = () => {
             <Input
               value={form.phone}
               onChange={(e) => set('phone', e.target.value)}
-              placeholder="(11) 4839-1010"
+              placeholder="(83) 3194-1800"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
-          </Field>
+          </Field>{' '}
           <Field label="E-mail de contato">
             <Input
               type="email"
@@ -396,10 +396,10 @@ const AdminSettings: React.FC = () => {
             <Input
               value={form.whatsapp_number}
               onChange={(e) => set('whatsapp_number', e.target.value)}
-              placeholder="551148391010"
+              placeholder="558330228726"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
-          </Field>
+          </Field>{' '}
         </div>
       </section>
 
