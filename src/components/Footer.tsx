@@ -70,7 +70,7 @@ export const Footer: React.FC = () => {
           {/* Centro: Logo */}
           <div className="flex items-center justify-center order-1 md:order-2">
             <img
-              src={logoImage}
+              src="/visual-edits/whatsapp-image-2026-10-13-at-17-22-31-6eb67bad.jpg"
               alt="PG PRIME CLUB"
               className="h-14 sm:h-16 w-auto object-contain"
             />
