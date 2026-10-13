@@ -78,7 +78,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             <img
               src="/visual-edits/whatsapp-image-2026-10-13-at-17-22-31-d27bd5dd.jpg"
               alt="PG PRIME CLUB"
-              className="h-[3.08rem] sm:h-[3.64rem] w-auto object-contain transition-opacity group-hover:opacity-90"
+              className="h-[4.2rem] sm:h-[5rem] w-auto object-contain transition-opacity group-hover:opacity-90"
             />
           </Link>
 

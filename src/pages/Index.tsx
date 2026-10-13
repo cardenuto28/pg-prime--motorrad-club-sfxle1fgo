@@ -825,7 +825,7 @@ export default function Index() {
             {/* Centro: Logo PG PRIME */}
             <div className="flex items-center justify-center">
               <img
-                src={logoImage}
+                src="/visual-edits/whatsapp-image-2026-10-13-at-17-22-31-c768921c.jpg"
                 alt="PG PRIME CLUB"
                 className="h-12 sm:h-[3.6rem] w-auto object-contain opacity-95 hover:opacity-100 transition-opacity"
               />
