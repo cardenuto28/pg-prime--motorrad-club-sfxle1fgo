@@ -4,6 +4,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { RideRegistrationModal } from '@/components/RideRegistrationModal'
 import { SidebarSignup } from '@/components/SidebarSignup'
+import { BenefitsMatrixSection } from '@/components/BenefitsMatrixSection'
 import {
   Dialog,
   DialogContent,
@@ -716,6 +717,11 @@ export default function Index() {
                   Ações e promoções exclusivas na barbearia.
                 </p>
               </div>
+            </div>
+
+            {/* Matriz de Benefícios por Categoria (Bronze, Prata, Gold, Platinum) */}
+            <div className="pt-6">
+              <BenefitsMatrixSection subtitle="Compare todas as categorias Bronze, Prata, Gold e Platinum e veja as vantagens progressivas do PG PRIME MOTORRAD CLUB." />
             </div>
           </div>
 

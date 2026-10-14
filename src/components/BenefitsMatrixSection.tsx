@@ -18,8 +18,9 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 
-export const BENEFITS_MATRIX_IMAGE_URL =
-  'https://dagtlwojkqyivnjgveda.supabase.co/storage/v1/object/public/message-attachments/47f4aab8-ad14-4e9a-b932-05898c0f9f44/matrizdebeneficioseuromotorsmotorradclub-33fde.png'
+import { BENEFITS_MATRIX_URL } from '@/lib/branding'
+
+export const BENEFITS_MATRIX_IMAGE_URL = BENEFITS_MATRIX_URL
 
 interface BenefitsMatrixSectionProps {
   className?: string
@@ -104,7 +105,7 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
               )}
               <img
                 src={BENEFITS_MATRIX_IMAGE_URL}
-                alt="Matriz de Benefícios por Categoria - PG PRIME CLUB"
+                alt="Matriz de Benefícios por Categoria — PG PRIME Motorrad Club"
                 className={`w-full h-auto block transition-all duration-300 ${
                   isLoaded ? 'opacity-100' : 'opacity-0 min-h-[200px]'
                 }`}
@@ -211,7 +212,7 @@ export const BenefitsMatrixSection: React.FC<BenefitsMatrixSectionProps> = ({
             >
               <img
                 src={BENEFITS_MATRIX_IMAGE_URL}
-                alt="Matriz de Benefícios Completa - PG PRIME CLUB"
+                alt="Matriz de Benefícios por Categoria — PG PRIME Motorrad Club"
                 className="max-w-full h-auto object-contain rounded shadow-2xl select-none"
                 draggable={false}
               />
