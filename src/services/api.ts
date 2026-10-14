@@ -607,50 +607,179 @@ export const registrationService = {
 
   async checkInMember(
     rideId: string,
-    userId: string,
+    identifier: string,
   ): Promise<{
     success: boolean
     message: string
+    alreadyCheckedIn?: boolean
     registration?: Registration
     memberName?: string
+    bikeInfo?: string
+    checkedInAt?: string
   }> {
     try {
-      // Find registration for this user and ride
-      const records = await pb.collection('registrations').getFullList({
-        filter: `ride='${rideId}' && user='${userId}'`,
-        expand: 'user',
-      })
-
-      if (!records || records.length === 0) {
+      const cleanInput = (identifier || '').trim()
+      if (!cleanInput) {
         return {
           success: false,
-          message: 'Membro não inscrito neste passeio',
+          message: 'Informe o código do membro ou ID da inscrição.',
         }
       }
 
-      const reg = records[0] as unknown as Registration
-      const memberName = reg.expand?.user?.name || 'Membro'
+      // 1) Busca direta por registration id
+      let targetReg: Registration | null = null
+      try {
+        const directReg = await pb.collection('registrations').getOne(cleanInput, {
+          expand: 'user',
+        })
+        if (directReg && (directReg as any).ride === rideId) {
+          targetReg = directReg as unknown as Registration
+        }
+      } catch {
+        // Ignora erro se não for um registration id
+      }
 
-      if (reg.checked_in) {
+      // 2) Busca por user id direto na lista de inscrições do passeio
+      if (!targetReg) {
+        try {
+          const byUser = await pb.collection('registrations').getFullList({
+            filter: `ride='${rideId}' && user='${cleanInput}'`,
+            expand: 'user',
+          })
+          if (byUser && byUser.length > 0) {
+            targetReg = byUser[0] as unknown as Registration
+          }
+        } catch {
+          // ignora
+        }
+      }
+
+      // 3) Se o identificador for um código formatado (ex: PGP-12345), buscar o usuário correspondente
+      if (!targetReg) {
+        const upper = cleanInput.toUpperCase()
+        const cleanDigits = cleanInput.replace(/\D/g, '')
+
+        // Tentar encontrar o usuário na tabela users por member_id, cpf ou email
+        const userConditions: string[] = []
+        if (upper.startsWith('PGP-') || upper.startsWith('EMC-')) {
+          const rawSuffix = upper.replace(/^(PGP|EMC)-/, '')
+          userConditions.push(`member_id='${upper}'`)
+          userConditions.push(`member_id='${rawSuffix}'`)
+          userConditions.push(`member_id='PGP-${rawSuffix}'`)
+          userConditions.push(`member_id='EMC-${rawSuffix}'`)
+        } else {
+          userConditions.push(`member_id='${upper}'`)
+          userConditions.push(`member_id='PGP-${upper}'`)
+        }
+
+        if (cleanDigits.length === 11) {
+          userConditions.push(`cpf ~ '${cleanDigits}'`)
+        }
+        if (cleanInput.includes('@')) {
+          userConditions.push(`email='${cleanInput.toLowerCase()}'`)
+        }
+
+        let matchedUserId: string | null = null
+        if (userConditions.length > 0) {
+          try {
+            const userFilter = userConditions.join(' || ')
+            const usersFound = await pb.collection('users').getFullList({
+              filter: userFilter,
+              limit: 5,
+            })
+            if (usersFound && usersFound.length > 0) {
+              matchedUserId = usersFound[0].id
+            }
+          } catch {
+            // fallback
+          }
+        }
+
+        // Se encontramos o userId pelo member_id / CPF / email, busca a inscrição dele no passeio
+        if (matchedUserId) {
+          try {
+            const regs = await pb.collection('registrations').getFullList({
+              filter: `ride='${rideId}' && user='${matchedUserId}'`,
+              expand: 'user',
+            })
+            if (regs && regs.length > 0) {
+              targetReg = regs[0] as unknown as Registration
+            }
+          } catch {
+            // ignora
+          }
+        }
+      }
+
+      // 4) Se ainda não achou, inspecionar todas as inscrições do passeio buscando por nome, guest_name, etc
+      if (!targetReg) {
+        try {
+          const allRideRegs = await pb.collection('registrations').getFullList({
+            filter: `ride='${rideId}'`,
+            expand: 'user',
+          })
+          const normInput = cleanInput.toLowerCase().replace(/[^a-z0-9]/g, '')
+          const found = allRideRegs.find((r: any) => {
+            const u = r.expand?.user
+            if (!u) return false
+            const uId = (u.id || '').toLowerCase()
+            const mId = (u.member_id || '').toLowerCase().replace(/[^a-z0-9]/g, '')
+            const cpf = (u.cpf || '').replace(/\D/g, '')
+            const gCpf = (r.guest_cpf || '').replace(/\D/g, '')
+            return (
+              uId === normInput ||
+              (mId && mId === normInput) ||
+              (cpf && cpf === normInput) ||
+              (gCpf && gCpf === normInput)
+            )
+          })
+          if (found) {
+            targetReg = found as unknown as Registration
+          }
+        } catch {
+          // ignora
+        }
+      }
+
+      if (!targetReg) {
+        return {
+          success: false,
+          message: 'Membro ou código não localizado nas inscrições deste passeio.',
+        }
+      }
+
+      const memberName = targetReg.expand?.user?.name || targetReg.guest_name || 'Membro'
+
+      const bikeModel = targetReg.expand?.user?.bike_model || targetReg.guest_bike_model || ''
+      const bikeBrand = targetReg.expand?.user?.bike_brand || targetReg.guest_bike_brand || ''
+      const bikeInfo = [bikeBrand, bikeModel].filter(Boolean).join(' ') || undefined
+
+      if (targetReg.checked_in) {
         return {
           success: true,
+          alreadyCheckedIn: true,
           message: `${memberName} — Check-in já havia sido realizado!`,
-          registration: reg,
+          registration: targetReg,
           memberName,
+          bikeInfo,
+          checkedInAt: targetReg.checked_in_at,
         }
       }
 
       const nowIso = new Date().toISOString()
-      const updated = await pb.collection('registrations').update(reg.id, {
+      const updated = await pb.collection('registrations').update(targetReg.id, {
         checked_in: true,
         checked_in_at: nowIso,
       })
 
       return {
         success: true,
+        alreadyCheckedIn: false,
         message: `${memberName} — PRESENÇA CONFIRMADA`,
-        registration: { ...reg, ...updated, expand: reg.expand },
+        registration: { ...targetReg, ...updated, expand: targetReg.expand },
         memberName,
+        bikeInfo,
+        checkedInAt: nowIso,
       }
     } catch (err: any) {
       return {
@@ -927,7 +1056,7 @@ export const storeVisitService = {
     visitId: string
     message: string
   }> {
-    const res = await pb.send('/api/club/store-checkin', {
+    const res = await pb.send('/backend/v1/club/store-checkin', {
       method: 'POST',
       body: { token },
     })

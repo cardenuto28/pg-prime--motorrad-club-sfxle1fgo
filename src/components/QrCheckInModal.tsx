@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useCallback } from 'react'
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode'
 import {
   Camera,
@@ -10,8 +10,16 @@ import {
   X,
   Volume2,
   VolumeX,
+  Keyboard,
+  Search,
+  Check,
+  Bike,
+  Clock,
+  Sparkles,
+  UserCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
 import { registrationService, Registration } from '@/services/api'
 import { formatMemberId } from '@/lib/member'
 
@@ -28,7 +36,11 @@ interface ScanFeedback {
   type: 'success' | 'error' | 'warning'
   title: string
   subtitle?: string
+  memberName?: string
+  bikeInfo?: string
   timestamp: string
+  memberIdFormatted?: string
+  isAlreadyCheckedIn?: boolean
 }
 
 export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
@@ -42,13 +54,23 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
   const [scannerStarted, setScannerStarted] = useState(false)
   const [cameraError, setCameraError] = useState<string | null>(null)
   const [feedback, setFeedback] = useState<ScanFeedback | null>(null)
+  const [manualCode, setManualCode] = useState('')
+  const [isManualModeOpen, setIsManualModeOpen] = useState(false)
   const [recentCheckIns, setRecentCheckIns] = useState<
-    { id: string; name: string; time: string; success: boolean }[]
+    {
+      id: string
+      name: string
+      bike?: string
+      time: string
+      success: boolean
+      alreadyCheckedIn?: boolean
+    }[]
   >([])
   const [processing, setProcessing] = useState(false)
   const [soundEnabled, setSoundEnabled] = useState(true)
 
   const scannerRef = useRef<Html5Qrcode | null>(null)
+  const manualInputRef = useRef<HTMLInputElement | null>(null)
   const processingRef = useRef(false)
   const lastScannedIdRef = useRef<string | null>(null)
   const lastScanTimeRef = useRef<number>(0)
@@ -92,20 +114,24 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
     }
   }, [])
 
-  // Extract Member ID / User ID from QR Code text
-  const extractUserId = (text: string): string => {
+  // Extract Member ID / User ID / Code from QR Code text or manual input
+  const extractIdentifier = useCallback((text: string): string => {
     const trimmed = text.trim()
     // Check if it's a verification URL: e.g. https://domain.com/verificar/RECORD_ID
     const urlMatch = trimmed.match(/\/verificar\/([a-zA-Z0-9_-]+)/)
     if (urlMatch && urlMatch[1]) {
       return urlMatch[1]
     }
-    // Or if it's a standard URL with ?id= or query params
+    // Or if it has ?id= or ?member= query params
     try {
-      const url = new URL(trimmed)
-      const pathParts = url.pathname.split('/').filter(Boolean)
-      if (pathParts.length > 0) {
-        return pathParts[pathParts.length - 1]
+      if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
+        const url = new URL(trimmed)
+        const idParam = url.searchParams.get('id') || url.searchParams.get('user')
+        if (idParam) return idParam
+        const pathParts = url.pathname.split('/').filter(Boolean)
+        if (pathParts.length > 0) {
+          return pathParts[pathParts.length - 1]
+        }
       }
     } catch {
       /* intentionally ignored */
@@ -113,21 +139,69 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
 
     // Direct ID or custom format
     return trimmed
-  }
+  }, [])
 
-  const handleQrScan = useCallback(
-    async (decodedText: string) => {
+  // In-memory registration quick lookup for suggestions or instant local resolution
+  const findRegistrationLocally = useCallback(
+    (code: string): Registration | undefined => {
+      const trimmed = code.trim()
+      if (!trimmed) return undefined
+      const upper = trimmed.toUpperCase()
+      const cleanDigits = trimmed.replace(/\D/g, '')
+
+      return registrations.find((r) => {
+        // Direct reg id
+        if (r.id === trimmed) return true
+
+        const user = r.expand?.user
+        if (user) {
+          if (user.id === trimmed) return true
+          if (user.member_id && user.member_id.toUpperCase() === upper) return true
+          const formattedId = formatMemberId(user).toUpperCase()
+          if (formattedId === upper) return true
+          if (cleanDigits && user.cpf && user.cpf.replace(/\D/g, '') === cleanDigits) return true
+        }
+
+        // Guest match
+        if (r.is_guest) {
+          if (cleanDigits && r.guest_cpf && r.guest_cpf.replace(/\D/g, '') === cleanDigits)
+            return true
+        }
+
+        return false
+      })
+    },
+    [registrations],
+  )
+
+  // Unified check-in executor for both QR scanner and manual input
+  const processCheckIn = useCallback(
+    async (rawCode: string, origin: 'qr' | 'manual' = 'manual') => {
       if (processingRef.current) return
+      const clean = extractIdentifier(rawCode)
 
-      const now = Date.now()
-      const rawId = extractUserId(decodedText)
-
-      // Throttle exact same scan within 3 seconds
-      if (lastScannedIdRef.current === rawId && now - lastScanTimeRef.current < 3000) {
+      if (!clean) {
+        if (soundEnabled) playBeep(false)
+        setFeedback({
+          type: 'warning',
+          title: 'Código vazio ou inválido',
+          subtitle: 'Digite o código do membro, ID PGP ou selecione uma inscrição.',
+          timestamp: new Date().toLocaleTimeString('pt-BR'),
+        })
         return
       }
 
-      lastScannedIdRef.current = rawId
+      const now = Date.now()
+      // Throttle exact same scan only for camera QR
+      if (
+        origin === 'qr' &&
+        lastScannedIdRef.current === clean &&
+        now - lastScanTimeRef.current < 3000
+      ) {
+        return
+      }
+
+      lastScannedIdRef.current = clean
       lastScanTimeRef.current = now
       processingRef.current = true
       setProcessing(true)
@@ -139,57 +213,95 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
       })
 
       try {
-        if (!rawId || rawId.length < 5) {
-          if (soundEnabled) playBeep(false)
-          setFeedback({
-            type: 'warning',
-            title: 'QR Code não reconhecido',
-            subtitle: 'O conteúdo escaneado não é um ID válido de carteirinha.',
-            timestamp: timeStr,
-          })
-          setRecentCheckIns((prev) => [
-            {
-              id: Math.random().toString(),
-              name: 'QR Code Inválido',
-              time: timeStr,
-              success: false,
-            },
-            ...prev.slice(0, 9),
-          ])
-          return
-        }
-
         // Consult backend via registrationService.checkInMember
-        const result = await registrationService.checkInMember(rideId, rawId)
+        const result = await registrationService.checkInMember(rideId, clean)
+
+        const localReg = result.registration || findRegistrationLocally(clean)
+        const memberUser = localReg?.expand?.user
+        const formattedId = memberUser ? formatMemberId(memberUser) : clean.toUpperCase()
+        const bikeStr =
+          result.bikeInfo ||
+          [
+            memberUser?.bike_brand || localReg?.guest_bike_brand,
+            memberUser?.bike_model || localReg?.guest_bike_model,
+          ]
+            .filter(Boolean)
+            .join(' ') ||
+          'Moto não informada'
 
         if (result.success && result.registration) {
-          if (soundEnabled) playBeep(true)
-          const mName = result.memberName || result.registration.expand?.user?.name || 'Membro'
-          setFeedback({
-            type: 'success',
-            title: `✅ ${mName} — PRESENÇA CONFIRMADA`,
-            subtitle: result.message,
-            timestamp: timeStr,
-          })
-          setRecentCheckIns((prev) => [
-            { id: Math.random().toString(), name: mName, time: timeStr, success: true },
-            ...prev.slice(0, 9),
-          ])
-          if (onCheckInSuccess) {
-            onCheckInSuccess(result.registration)
+          const isAlready = !!result.alreadyCheckedIn
+          const mName =
+            result.memberName || localReg?.expand?.user?.name || localReg?.guest_name || 'Membro'
+
+          if (isAlready) {
+            if (soundEnabled) playBeep(true)
+            setFeedback({
+              type: 'warning',
+              title: `⚠️ ${mName} — JÁ REALIZOU CHECK-IN`,
+              subtitle: `Presença já havia sido confirmada anteriormente para este passeio.`,
+              memberName: mName,
+              bikeInfo: bikeStr,
+              memberIdFormatted: formattedId,
+              isAlreadyCheckedIn: true,
+              timestamp: timeStr,
+            })
+            setRecentCheckIns((prev) => [
+              {
+                id: Math.random().toString(),
+                name: mName,
+                bike: bikeStr,
+                time: timeStr,
+                success: true,
+                alreadyCheckedIn: true,
+              },
+              ...prev.slice(0, 9),
+            ])
+          } else {
+            if (soundEnabled) playBeep(true)
+            setFeedback({
+              type: 'success',
+              title: `✅ ${mName} — PRESENÇA CONFIRMADA`,
+              subtitle: `Check-in realizado com sucesso no passeio!`,
+              memberName: mName,
+              bikeInfo: bikeStr,
+              memberIdFormatted: formattedId,
+              isAlreadyCheckedIn: false,
+              timestamp: timeStr,
+            })
+            setRecentCheckIns((prev) => [
+              {
+                id: Math.random().toString(),
+                name: mName,
+                bike: bikeStr,
+                time: timeStr,
+                success: true,
+                alreadyCheckedIn: false,
+              },
+              ...prev.slice(0, 9),
+            ])
+            if (onCheckInSuccess) {
+              onCheckInSuccess(result.registration)
+            }
+          }
+          // Clear input if manual
+          if (origin === 'manual') {
+            setManualCode('')
           }
         } else {
           if (soundEnabled) playBeep(false)
           setFeedback({
             type: 'error',
-            title: '❌ Membro não inscrito neste passeio',
-            subtitle: result.message || 'Inscrição não localizada para esta carteirinha.',
+            title: '❌ Inscrição não localizada',
+            subtitle:
+              result.message ||
+              'Nenhum membro inscrito encontrado com o código informado neste passeio.',
             timestamp: timeStr,
           })
           setRecentCheckIns((prev) => [
             {
               id: Math.random().toString(),
-              name: `ID: ${rawId.slice(0, 8)}... (Não inscrito)`,
+              name: `Código: ${clean.slice(0, 16)} (Não encontrado)`,
               time: timeStr,
               success: false,
             },
@@ -200,18 +312,25 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
         if (soundEnabled) playBeep(false)
         setFeedback({
           type: 'error',
-          title: 'Erro ao verificar presença',
-          subtitle: err?.message || 'Falha de conexão com o servidor.',
+          title: 'Erro ao processar check-in',
+          subtitle: err?.message || 'Falha de conexão com o servidor. Tente novamente.',
           timestamp: timeStr,
         })
       } finally {
         setTimeout(() => {
           processingRef.current = false
           setProcessing(false)
-        }, 1200)
+        }, 800)
       }
     },
-    [rideId, soundEnabled, playBeep, onCheckInSuccess],
+    [rideId, soundEnabled, playBeep, extractIdentifier, onCheckInSuccess, findRegistrationLocally],
+  )
+
+  const handleQrScan = useCallback(
+    (decodedText: string) => {
+      processCheckIn(decodedText, 'qr')
+    },
+    [processCheckIn],
   )
 
   const stopScanner = useCallback(async () => {
@@ -269,6 +388,7 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
         err?.message || 'Não foi possível acessar a câmera. Verifique as permissões do navegador.',
       )
       setScannerStarted(false)
+      setIsManualModeOpen(true)
     }
   }, [handleQrScan, stopScanner])
 
@@ -277,15 +397,39 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
       // Small timeout to allow modal DOM node to mount
       const timer = setTimeout(() => {
         startScanner()
-      }, 300)
+      }, 250)
       return () => {
         clearTimeout(timer)
         stopScanner()
       }
     } else {
       stopScanner()
+      setFeedback(null)
+      setCameraError(null)
+      setManualCode('')
     }
   }, [isOpen, startScanner, stopScanner])
+
+  // Focus manual input when camera error occurs or manual mode opens
+  useEffect(() => {
+    if (cameraError || isManualModeOpen) {
+      const t = setTimeout(() => {
+        manualInputRef.current?.focus()
+      }, 150)
+      return () => clearTimeout(t)
+    }
+  }, [cameraError, isManualModeOpen])
+
+  // Pending registrations that have not checked in yet (for quick selection)
+  const pendingAttendees = useMemo(() => {
+    return registrations.filter((r) => r.status === 'confirmada' && !r.checked_in).slice(0, 8)
+  }, [registrations])
+
+  const handleManualSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault()
+    if (!manualCode.trim()) return
+    processCheckIn(manualCode.trim(), 'manual')
+  }
 
   if (!isOpen) return null
 
@@ -312,6 +456,21 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
           </div>
 
           <div className="flex items-center gap-1.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsManualModeOpen((prev) => !prev)}
+              className={`h-8 px-2.5 text-xs font-semibold gap-1.5 border transition-all ${
+                isManualModeOpen || cameraError
+                  ? 'bg-blue-600/20 border-blue-500/50 text-blue-300'
+                  : 'border-[#1e2a3f] text-slate-300 hover:text-white hover:bg-[#141c2c]'
+              }`}
+              title="Alternar para entrada manual"
+            >
+              <Keyboard className="w-3.5 h-3.5 text-blue-400" />
+              <span className="hidden sm:inline">Entrada Manual</span>
+            </Button>
             <Button
               type="button"
               variant="ghost"
@@ -363,91 +522,306 @@ export const QrCheckInModal: React.FC<QrCheckInModalProps> = ({
 
         {/* Modal Body */}
         <div className="p-4 space-y-4 overflow-y-auto flex-1">
-          {/* Camera Viewport */}
-          <div className="relative rounded-lg overflow-hidden bg-black border border-[#22314a] aspect-video max-h-72 flex items-center justify-center">
-            {cameraError ? (
-              <div className="p-6 text-center space-y-3">
-                <CameraOff className="w-10 h-10 text-red-400 mx-auto" />
-                <p className="text-xs text-red-300 font-medium">{cameraError}</p>
-                <Button
-                  onClick={startScanner}
-                  size="sm"
-                  className="bg-blue-600 hover:bg-blue-500 text-white text-xs gap-1.5"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" /> Tentar Novamente
-                </Button>
-              </div>
-            ) : (
-              <div id="qr-reader-region" className="w-full h-full object-cover" />
-            )}
-
-            {processing && (
-              <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center">
-                <div className="bg-[#0f172a] border border-blue-500/50 rounded-lg px-4 py-2 flex items-center gap-2.5 text-blue-400 shadow-xl">
-                  <RefreshCw className="w-4 h-4 animate-spin" />
-                  <span className="text-xs font-bold tracking-wide">Validando Inscrição...</span>
+          {/* CAMERA ERROR BANNER & PROMINENT MANUAL ENTRY WHEN CAMERA FAILS */}
+          {cameraError ? (
+            <div className="space-y-4">
+              {/* Friendly notification banner */}
+              <div className="bg-[#141017] border border-amber-500/40 rounded-xl p-3.5 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0 mt-0.5">
+                  <CameraOff className="w-4 h-4" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between gap-2">
+                    <h3 className="text-xs font-bold text-amber-300 font-montserrat uppercase tracking-wider">
+                      Câmera indisponível no dispositivo
+                    </h3>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={startScanner}
+                      className="text-[11px] h-7 px-2 text-slate-400 hover:text-white hover:bg-slate-800 gap-1"
+                    >
+                      <RefreshCw className="w-3 h-3" /> Tentar Novamente
+                    </Button>
+                  </div>
+                  <p className="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Câmera indisponível. Digite o código do membro abaixo para fazer o check-in
+                    manualmente.
+                  </p>
                 </div>
               </div>
-            )}
-          </div>
 
-          {/* Feedback Visual Box */}
+              {/* Main highlighted manual check-in form */}
+              <div className="bg-gradient-to-b from-[#101726] to-[#0c121e] border-2 border-blue-500/60 rounded-xl p-4 sm:p-5 shadow-[0_0_30px_rgba(0,102,255,0.15)] space-y-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-7 h-7 rounded-md bg-blue-600/30 border border-blue-500/50 flex items-center justify-center text-blue-400">
+                    <Keyboard className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-black tracking-widest text-blue-400 uppercase font-montserrat block">
+                      CHECK-IN MANUAL PRINCIPAL
+                    </span>
+                    <h3 className="text-sm font-extrabold text-white font-montserrat">
+                      Digite o Código ou ID do Membro
+                    </h3>
+                  </div>
+                </div>
+
+                <form onSubmit={handleManualSubmit} className="space-y-3">
+                  <div className="space-y-1.5">
+                    <label className="text-[11px] font-bold uppercase tracking-wider text-slate-300 flex items-center justify-between font-montserrat">
+                      <span>Código do QR ou ID Oficial (PGP-XXXXX)</span>
+                      <span className="text-[10px] text-blue-400 font-normal">
+                        Aceita PGP-XXXXX, CPF, ID ou link do QR
+                      </span>
+                    </label>
+                    <div className="relative">
+                      <Input
+                        ref={manualInputRef}
+                        value={manualCode}
+                        onChange={(e) => setManualCode(e.target.value)}
+                        placeholder="Ex: PGP-02458, CPF ou cole o link do QR..."
+                        disabled={processing}
+                        className="bg-[#090d14] border-2 border-blue-500/50 text-white placeholder:text-slate-500 text-sm h-12 pl-3.5 pr-24 font-mono font-bold focus-visible:border-blue-400 focus-visible:ring-2 focus-visible:ring-blue-500/30"
+                      />
+                      {manualCode && (
+                        <button
+                          type="button"
+                          onClick={() => setManualCode('')}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white p-1 rounded-md"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <Button
+                    type="submit"
+                    disabled={processing || !manualCode.trim()}
+                    className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-black text-sm h-12 uppercase tracking-wider font-montserrat gap-2 shadow-lg shadow-blue-600/30 transition-all active:scale-[0.99]"
+                  >
+                    {processing ? (
+                      <>
+                        <RefreshCw className="w-4 h-4 animate-spin" />
+                        VALIDANDO INSCRIÇÃO...
+                      </>
+                    ) : (
+                      <>
+                        <Check className="w-5 h-5 stroke-[3]" />
+                        VERIFICAR E FAZER CHECK-IN
+                      </>
+                    )}
+                  </Button>
+                </form>
+
+                {/* Quick select from registered members waiting for check-in */}
+                {pendingAttendees.length > 0 && (
+                  <div className="pt-2 border-t border-[#1a2436] space-y-2">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest font-montserrat block">
+                      Ou selecione rapidamente um inscrito que ainda não fez check-in:
+                    </span>
+                    <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto pr-1">
+                      {pendingAttendees.map((reg) => {
+                        const name = reg.expand?.user?.name || reg.guest_name || 'Inscrito'
+                        const idDisplay = reg.expand?.user
+                          ? formatMemberId(reg.expand.user)
+                          : reg.id.slice(0, 7)
+                        return (
+                          <button
+                            key={reg.id}
+                            type="button"
+                            disabled={processing}
+                            onClick={() => {
+                              const codeToUse = reg.expand?.user?.id || reg.id
+                              setManualCode(idDisplay)
+                              processCheckIn(codeToUse, 'manual')
+                            }}
+                            className="text-left text-xs bg-[#0b101a] hover:bg-blue-600/20 hover:border-blue-500/60 border border-[#1e2a3e] rounded-md px-2.5 py-1.5 text-slate-300 hover:text-white transition-all flex items-center gap-1.5 font-medium group"
+                          >
+                            <span className="w-1.5 h-1.5 rounded-full bg-blue-400 group-hover:scale-125 transition-transform" />
+                            <span className="truncate max-w-[140px] sm:max-w-[180px]">{name}</span>
+                            <span className="text-[10px] text-blue-400 font-mono font-bold">
+                              ({idDisplay})
+                            </span>
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ) : (
+            /* CAMERA ACTIVE VIEWPORT */
+            <div className="space-y-4">
+              <div className="relative rounded-lg overflow-hidden bg-black border border-[#22314a] aspect-video max-h-72 flex items-center justify-center shadow-lg">
+                <div id="qr-reader-region" className="w-full h-full object-cover" />
+
+                {processing && (
+                  <div className="absolute inset-0 bg-black/75 backdrop-blur-xs flex items-center justify-center z-10">
+                    <div className="bg-[#0f172a] border border-blue-500/50 rounded-lg px-4 py-2.5 flex items-center gap-2.5 text-blue-400 shadow-xl">
+                      <RefreshCw className="w-4 h-4 animate-spin text-blue-400" />
+                      <span className="text-xs font-bold tracking-wide">
+                        Validando Inscrição...
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* MANUAL INPUT ACCORDION / TOGGLE WHEN CAMERA IS ACTIVE */}
+              <div className="bg-[#0e1422] border border-[#1d293d] rounded-lg p-3 space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs font-bold text-slate-300 font-montserrat">
+                    <Keyboard className="w-4 h-4 text-blue-400" />
+                    <span>CHECK-IN MANUAL ALTERNATIVO</span>
+                  </div>
+                  <span className="text-[10px] text-slate-400">Útil se a câmera não focar</span>
+                </div>
+
+                <form onSubmit={handleManualSubmit} className="flex gap-2">
+                  <Input
+                    ref={manualInputRef}
+                    value={manualCode}
+                    onChange={(e) => setManualCode(e.target.value)}
+                    placeholder="Código PGP-XXXXX, ID ou link..."
+                    disabled={processing}
+                    className="bg-[#090d14] border-[#22314a] text-white text-xs h-9 font-mono"
+                  />
+                  <Button
+                    type="submit"
+                    disabled={processing || !manualCode.trim()}
+                    className="bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs uppercase px-3 h-9 flex-shrink-0"
+                  >
+                    {processing ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : 'VERIFICAR'}
+                  </Button>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* Detailed Feedback Visual Box */}
           {feedback && (
             <div
-              className={`p-3.5 rounded-lg border flex items-start gap-3 transition-all ${
+              className={`p-4 rounded-xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3.5 transition-all shadow-xl animate-in fade-in slide-in-from-top-2 duration-200 ${
                 feedback.type === 'success'
-                  ? 'bg-emerald-950/60 border-emerald-500/60 text-emerald-200'
+                  ? 'bg-emerald-950/70 border-emerald-500/70 text-emerald-200'
                   : feedback.type === 'error'
-                    ? 'bg-red-950/60 border-red-500/60 text-red-200'
-                    : 'bg-amber-950/60 border-amber-500/60 text-amber-200'
+                    ? 'bg-red-950/70 border-red-500/70 text-red-200'
+                    : 'bg-amber-950/70 border-amber-500/70 text-amber-200'
               }`}
             >
-              {feedback.type === 'success' ? (
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" />
-              ) : feedback.type === 'error' ? (
-                <XCircle className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" />
-              ) : (
-                <AlertTriangle className="w-5 h-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="text-xs sm:text-sm font-extrabold font-montserrat uppercase tracking-wide">
-                  {feedback.title}
-                </p>
-                {feedback.subtitle && (
-                  <p className="text-[11px] opacity-80 mt-0.5">{feedback.subtitle}</p>
-                )}
-                <span className="text-[9px] opacity-60 block mt-1 font-mono">
-                  {feedback.timestamp}
-                </span>
+              <div className="flex items-start gap-3 min-w-0">
+                <div
+                  className={`w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 border mt-0.5 ${
+                    feedback.type === 'success'
+                      ? 'bg-emerald-900/60 border-emerald-400/50 text-emerald-300'
+                      : feedback.type === 'error'
+                        ? 'bg-red-900/60 border-red-400/50 text-red-300'
+                        : 'bg-amber-900/60 border-amber-400/50 text-amber-300'
+                  }`}
+                >
+                  {feedback.type === 'success' ? (
+                    <CheckCircle2 className="w-6 h-6 stroke-[2.5]" />
+                  ) : feedback.type === 'error' ? (
+                    <XCircle className="w-6 h-6 stroke-[2.5]" />
+                  ) : (
+                    <AlertTriangle className="w-6 h-6 stroke-[2.5]" />
+                  )}
+                </div>
+
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-black tracking-widest uppercase font-montserrat px-2 py-0.5 rounded bg-black/40 border border-current/30">
+                      {feedback.type === 'success'
+                        ? 'PRESENÇA CONFIRMADA'
+                        : feedback.type === 'warning'
+                          ? feedback.isAlreadyCheckedIn
+                            ? 'CHECK-IN JÁ REGISTRADO'
+                            : 'ATENÇÃO'
+                          : 'INSCRIÇÃO NÃO LOCALIZADA'}
+                    </span>
+                    <span className="text-[10px] opacity-75 font-mono flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {feedback.timestamp}
+                    </span>
+                  </div>
+
+                  <p className="text-sm sm:text-base font-extrabold font-montserrat uppercase tracking-tight text-white mt-1">
+                    {feedback.memberName ? feedback.memberName : feedback.title}
+                  </p>
+
+                  {feedback.subtitle && (
+                    <p className="text-xs opacity-90 mt-0.5 font-medium leading-relaxed">
+                      {feedback.subtitle}
+                    </p>
+                  )}
+
+                  {/* Informações detalhadas do membro e moto se disponíveis */}
+                  {(feedback.memberIdFormatted || feedback.bikeInfo) && (
+                    <div className="flex flex-wrap items-center gap-2.5 mt-2 pt-2 border-t border-current/20 text-xs">
+                      {feedback.memberIdFormatted && (
+                        <span className="inline-flex items-center gap-1 font-mono font-bold bg-black/40 px-2 py-0.5 rounded">
+                          <UserCheck className="w-3.5 h-3.5" />
+                          {feedback.memberIdFormatted}
+                        </span>
+                      )}
+                      {feedback.bikeInfo && (
+                        <span className="inline-flex items-center gap-1 font-semibold bg-black/40 px-2 py-0.5 rounded">
+                          <Bike className="w-3.5 h-3.5" />
+                          {feedback.bikeInfo}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
 
           {/* Últimos Check-ins */}
           <div className="space-y-2">
-            <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-montserrat">
-              Últimas Leituras
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[11px] font-bold text-slate-400 uppercase tracking-wider font-montserrat">
+                Últimos Check-ins Realizados
+              </h3>
+              <span className="text-[10px] text-slate-500 font-mono">
+                {recentCheckIns.length} registro(s)
+              </span>
+            </div>
             {recentCheckIns.length === 0 ? (
               <p className="text-xs text-slate-500 italic bg-[#0f1422] p-3 rounded border border-[#1a2436] text-center">
-                Aponte a câmera para o QR Code da carteirinha digital do membro.
+                Aguardando leituras ou entrada manual do código do membro.
               </p>
             ) : (
               <div className="space-y-1.5 max-h-36 overflow-y-auto pr-1">
                 {recentCheckIns.map((item) => (
                   <div
                     key={item.id}
-                    className="flex items-center justify-between text-xs p-2 rounded bg-[#0f1422] border border-[#1a2436]"
+                    className="flex items-center justify-between text-xs p-2.5 rounded bg-[#0f1422] border border-[#1a2436] hover:border-[#22314a] transition-colors"
                   >
                     <div className="flex items-center gap-2 truncate">
                       {item.success ? (
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                        item.alreadyCheckedIn ? (
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 flex-shrink-0" />
+                        ) : (
+                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 flex-shrink-0" />
+                        )
                       ) : (
                         <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0" />
                       )}
-                      <span className="font-medium text-white truncate">{item.name}</span>
+                      <div className="truncate">
+                        <span className="font-semibold text-white truncate block">{item.name}</span>
+                        {item.bike && (
+                          <span className="text-[10px] text-slate-400 truncate block">
+                            {item.bike}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                    <span className="text-[10px] text-slate-500 font-mono flex-shrink-0">
+                    <span className="text-[10px] text-slate-400 font-mono flex-shrink-0 ml-2">
                       {item.time}
                     </span>
                   </div>
