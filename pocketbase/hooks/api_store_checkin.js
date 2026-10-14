@@ -23,7 +23,7 @@ routerAdd(
     }
 
     // 1. Busca segredo da coleção settings
-    let secret = 'EUROMOTORS2026'
+    let secret = $os.getenv('PGPRIME_STORE_TOKEN_SECRET') || 'PGPRIME2026'
     try {
       const settingsRec = $app.findFirstRecordByData('settings', 'key', 'site')
       if (settingsRec && settingsRec.getString('daily_token_secret')) {

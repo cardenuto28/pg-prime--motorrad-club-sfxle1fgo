@@ -54,7 +54,7 @@ const EMPTY_SETTINGS: SiteSettings = {
   whatsapp_number: '',
   eligibility_criteria: '',
   admin_email: '',
-  daily_token_secret: 'EUROMOTORS2026',
+  daily_token_secret: 'PGPRIME2026',
 }
 
 const AdminSettings: React.FC = () => {
@@ -102,7 +102,7 @@ const AdminSettings: React.FC = () => {
             whatsapp_number: rec?.whatsapp_number || '',
             eligibility_criteria: rec?.eligibility_criteria || '',
             admin_email: rec?.admin_email || '',
-            daily_token_secret: rec?.daily_token_secret || 'EUROMOTORS2026',
+            daily_token_secret: rec?.daily_token_secret || 'PGPRIME2026',
           }
         }
       }
@@ -135,7 +135,7 @@ const AdminSettings: React.FC = () => {
         whatsapp_number: form.whatsapp_number || '',
         eligibility_criteria: form.eligibility_criteria || '',
         admin_email: form.admin_email || '',
-        daily_token_secret: form.daily_token_secret || 'EUROMOTORS2026',
+        daily_token_secret: form.daily_token_secret || 'PGPRIME2026',
       }
 
       let ok = false
@@ -299,7 +299,7 @@ const AdminSettings: React.FC = () => {
             <Input
               value={form.club_name}
               onChange={(e) => set('club_name', e.target.value)}
-              placeholder="Euro Motors Motorrad Club"
+              placeholder="PG PRIME Club"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
@@ -334,7 +334,7 @@ const AdminSettings: React.FC = () => {
               type="email"
               value={form.contact_email}
               onChange={(e) => set('contact_email', e.target.value)}
-              placeholder="motorradclub@euromotors.com.br"
+              placeholder="contato@pgprime.club"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
@@ -343,7 +343,7 @@ const AdminSettings: React.FC = () => {
               <Input
                 value={form.website_url}
                 onChange={(e) => set('website_url', e.target.value)}
-                placeholder="https://jundiai.bmwmotorrad.euromotors.com.br"
+                placeholder="https://pgprime.club"
                 className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
               />
             </Field>
@@ -451,7 +451,7 @@ const AdminSettings: React.FC = () => {
             type="email"
             value={form.admin_email}
             onChange={(e) => set('admin_email', e.target.value)}
-            placeholder="motorradclub@euromotors.com.br"
+            placeholder="contato@pgprime.club"
             className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
           />
         </Field>
@@ -478,7 +478,7 @@ const AdminSettings: React.FC = () => {
             type="text"
             value={form.daily_token_secret}
             onChange={(e) => set('daily_token_secret', e.target.value)}
-            placeholder="EUROMOTORS2026"
+            placeholder="PGPRIME2026"
             className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9 font-mono"
           />
         </Field>

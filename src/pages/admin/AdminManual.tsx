@@ -93,7 +93,7 @@ export const AdminManual: React.FC = () => {
         exportAdminManualPdf()
         toast({
           title: 'Manual Baixado com Sucesso',
-          description: 'O arquivo Manual_Admin_EuroMotors_Club.pdf foi gerado e salvo.',
+          description: 'O arquivo Manual_Admin_PGPRIME_Club.pdf foi gerado e salvo.',
         })
       } catch (e: any) {
         console.error('Erro ao gerar PDF do manual:', e)
@@ -139,7 +139,7 @@ export const AdminManual: React.FC = () => {
               inteligência pós-vendas, 14 etapas da importação em massa (com fallback por CPF e
               anti-rate-limit), pop-ups automáticos de comunicados, carteirinha digital dinâmica e
               exportações em tempo real do{' '}
-              <strong className="text-slate-200 font-semibold">Euro Motors Motorrad Club</strong>.
+              <strong className="text-slate-200 font-semibold">PG PRIME Club</strong>.
             </p>
           </div>
 
@@ -221,12 +221,12 @@ export const AdminManual: React.FC = () => {
               <li>
                 Acesse o endereço seguro:{' '}
                 <a
-                  href="https://euromotorsclub.goskip.app"
+                  href="https://pgprime.club"
                   target="_blank"
                   rel="noreferrer"
                   className="text-blue-400 hover:text-blue-300 underline inline-flex items-center gap-1 font-mono text-xs"
                 >
-                  https://euromotorsclub.goskip.app <ExternalLink className="w-3 h-3" />
+                  https://pgprime.club <ExternalLink className="w-3 h-3" />
                 </a>
               </li>
               <li>Faça login com seu e-mail e senha de administrador autorizado.</li>
@@ -250,16 +250,12 @@ export const AdminManual: React.FC = () => {
                   </thead>
                   <tbody className="divide-y divide-[#1c2538]">
                     <tr className="hover:bg-[#141b27]/60">
-                      <td className="p-3 font-semibold text-white">Ricardo Euro Motors</td>
-                      <td className="p-3 font-mono text-slate-300">
-                        ricardo@grupoeuromotors.com.br
-                      </td>
+                      <td className="p-3 font-semibold text-white">Ricardo PG PRIME</td>
+                      <td className="p-3 font-mono text-slate-300">ricardo@pgprime.club</td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-semibold text-white">ADAUTO SAMPAIO</td>
-                      <td className="p-3 font-mono text-slate-300">
-                        eventos@grupoeuromotors.com.br
-                      </td>
+                      <td className="p-3 font-mono text-slate-300">eventos@pgprime.club</td>
                     </tr>
                   </tbody>
                 </table>
@@ -536,7 +532,7 @@ export const AdminManual: React.FC = () => {
                     </strong>{' '}
                     e gera automaticamente um e-mail único baseado no documento normalizado (ex:{' '}
                     <code className="bg-slate-900 text-cyan-300 px-1.5 py-0.5 rounded font-mono text-[11px]">
-                      02336018802@euromotors.club
+                      02336018802@pgprime.club
                     </code>
                     ).
                   </p>
@@ -632,7 +628,7 @@ export const AdminManual: React.FC = () => {
             <div>
               <p className="text-[10px] text-blue-400 font-bold uppercase tracking-widest font-montserrat flex items-center gap-1.5">
                 <Sparkles className="w-3 h-3 text-blue-400" />
-                Inteligência Pós-Vendas Euro Motors
+                Inteligência Pós-Vendas PG PRIME
               </p>
               <h2 className="text-lg sm:text-xl font-extrabold text-white font-montserrat tracking-tight">
                 3. Score de Oficina (0 a 100 pontos) &amp; Inteligência de Relacionamento
@@ -1032,10 +1028,9 @@ export const AdminManual: React.FC = () => {
 
           <div className="space-y-4 text-sm text-slate-300">
             <p className="text-xs text-slate-400 leading-relaxed">
-              O motor de inteligência do Euro Motors Club analisa continuamente as métricas de
-              compra, oficina e comportamento para gerar{' '}
-              <strong>Tags Inteligentes automáticas</strong> e direcionar a{' '}
-              <strong>Próxima Melhor Ação</strong> de relacionamento para o time.
+              O motor de inteligência do PG PRIME Club analisa continuamente as métricas de compra,
+              oficina e comportamento para gerar <strong>Tags Inteligentes automáticas</strong> e
+              direcionar a <strong>Próxima Melhor Ação</strong> de relacionamento para o time.
             </p>
 
             {/* Tabela de Tags Inteligentes */}
@@ -1303,7 +1298,7 @@ export const AdminManual: React.FC = () => {
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-semibold text-white">Ponto de encontro / Destino</td>
-                      <td className="p-3">Local de partida (ex: Euro Motors) e ponto final</td>
+                      <td className="p-3">Local de partida (ex: PG PRIME) e ponto final</td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
                       <td className="p-3 font-semibold text-white">Percurso / Rota</td>
@@ -1508,7 +1503,7 @@ export const AdminManual: React.FC = () => {
               <li>
                 Cada registro na tabela e nas exportações inclui o campo{' '}
                 <strong className="text-white">"KM Atual da Moto"</strong>, permitindo rastrear o
-                uso real das motocicletas da frota de clientes Euro Motors.
+                uso real das motocicletas da frota de clientes PG PRIME.
               </li>
             </ul>
           </div>
@@ -1612,7 +1607,7 @@ export const AdminManual: React.FC = () => {
                       <td className="p-3 text-slate-300">1x por dia (anti-fraude)</td>
                     </tr>
                     <tr className="hover:bg-[#141b27]/60">
-                      <td className="p-3 font-medium text-white">Compra de moto na Euro Motors</td>
+                      <td className="p-3 font-medium text-white">Compra de moto na PG PRIME</td>
                       <td className="p-3 font-bold text-emerald-400">200 pontos</td>
                       <td className="p-3 text-slate-300">Por moto adquirida</td>
                     </tr>
@@ -1662,7 +1657,7 @@ export const AdminManual: React.FC = () => {
                 <ChevronRight className="w-4 h-4 text-blue-400" /> 8.1 Como Funciona
               </h3>
               <ul className="list-disc list-inside space-y-1 text-slate-300 text-xs pl-2">
-                <li>Um QR Code oficial fica exposto no balcão de atendimento da Euro Motors.</li>
+                <li>Um QR Code oficial fica exposto no balcão de atendimento da PG PRIME.</li>
                 <li>
                   O cliente escaneia com a câmera do celular → faz check-in de visita →{' '}
                   <strong className="text-emerald-400">ganha 10 pontos</strong>.
@@ -2291,9 +2286,9 @@ export const AdminManual: React.FC = () => {
                   <FileText className="w-3.5 h-3.5" /> Padrão Visual dos Arquivos PDF
                 </span>
                 <p className="text-[11px] text-slate-300 leading-relaxed">
-                  Cabeçalho oficial Euro Motors Motorrad Club em azul #0066FF com fundo dark
-                  #0A1120, carimbo de data/hora de geração, numeração automática de páginas, tabelas
-                  zebradas autoTable com colunas destacadas e rodapé institucional.
+                  Cabeçalho oficial PG PRIME Club em azul #0066FF com fundo dark #0A1120, carimbo de
+                  data/hora de geração, numeração automática de páginas, tabelas zebradas autoTable
+                  com colunas destacadas e rodapé institucional.
                 </p>
               </div>
 
@@ -2362,11 +2357,13 @@ export const AdminManual: React.FC = () => {
                   </tr>
                   <tr className="hover:bg-[#141b27]/60">
                     <td className="p-3 font-semibold text-white">Telefone e E-mail de contato</td>
-                    <td className="p-3">Canais de suporte oficiais da Euro Motors Motorrad</td>
+                    <td className="p-3">Canais de suporte oficiais da PG PRIME</td>
                   </tr>
                   <tr className="hover:bg-[#141b27]/60">
                     <td className="p-3 font-semibold text-white">Endereço da Concessionária</td>
-                    <td className="p-3">Endereço físico em São José do Rio Preto - SP</td>
+                    <td className="p-3">
+                      Endereços oficiais das concessionárias BMW (João Pessoa / Natal)
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -2402,7 +2399,7 @@ export const AdminManual: React.FC = () => {
                 Admin faz upload da planilha (XLSX/CSV) → Sistema processa as 14 etapas com barra de
                 progresso em tempo real e proteção anti-rate-limit → Novos cadastros recebem
                 fallback de e-mail por CPF (
-                <code className="text-cyan-300 font-mono">CPF@euromotors.club</code>) e entram como{' '}
+                <code className="text-cyan-300 font-mono">CPF@pgprime.club</code>) e entram como{' '}
                 <strong className="text-amber-400">"Pré-cadastrado"</strong> → Registros existentes
                 são atualizados preservando campos protegidos e gerando snapshots em{' '}
                 <code className="text-slate-300 font-mono">historico_metricas_membro</code> (sem
@@ -2486,8 +2483,8 @@ export const AdminManual: React.FC = () => {
               </h3>
               <ul className="list-disc list-inside space-y-1.5 text-xs text-slate-300 pl-2">
                 <li>
-                  Exibe: Nome completo do membro, categoria com badge oficial, ID exclusivo Euro
-                  Motors Club, modelo da moto cadastrada e QR Code dinâmico de autenticação.
+                  Exibe: Nome completo do membro, categoria com badge oficial, ID exclusivo PG PRIME
+                  Club, modelo da moto cadastrada e QR Code dinâmico de autenticação.
                 </li>
                 <li>
                   Ao ser escaneado por parceiros ou staff, abre a página de validação pública com
@@ -2530,7 +2527,7 @@ export const AdminManual: React.FC = () => {
                     GOLD
                   </span>
                   <span className="text-[11px] font-mono text-amber-300">#f59e0b</span>
-                  <span className="text-[10px] text-slate-400 block">Dourado Euro</span>
+                  <span className="text-[10px] text-slate-400 block">Dourado Premium</span>
                 </div>
                 <div className="p-3 rounded-lg bg-slate-900 border border-slate-600/40 text-center space-y-1">
                   <span className="font-bold text-slate-300 text-xs block font-montserrat">
@@ -2669,7 +2666,7 @@ export const AdminManual: React.FC = () => {
               </h4>
               <p className="text-slate-300 leading-relaxed">
                 <strong className="text-blue-400">R:</strong> Para fins de segurança, planejamento
-                de revisões e acompanhamento de pós-vendas da concessionária Euro Motors. O campo é
+                de revisões e acompanhamento de pós-vendas da concessionária PG PRIME. O campo é
                 obrigatório (valor &gt; 0) com máscara numérica e alimenta a ficha 360º do membro,
                 relatórios em PDF e planilhas em Excel.
               </p>

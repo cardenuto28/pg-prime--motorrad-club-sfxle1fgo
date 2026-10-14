@@ -33,8 +33,8 @@ export default function Contato() {
     }
   }
 
-  const contactEmail = settings?.contact_email || 'motorradclub@euromotors.com.br'
-  const websiteUrl = settings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
+  const contactEmail = settings?.contact_email || 'contato@pgprime.club'
+  const websiteUrl = settings?.website_url || 'https://pgprime.club'
   const websiteDisplay = websiteUrl.replace(/^https?:\/\//, '')
 
   const currentUnit = DEALERSHIP_UNITS.find((u) => u.id === activeUnitId) || DEALERSHIP_UNITS[0]

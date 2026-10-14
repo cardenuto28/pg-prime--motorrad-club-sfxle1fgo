@@ -25,7 +25,7 @@ export const CATEGORY_THEMES: Record<MemberCategory, CategoryTheme> = {
     hexColor: '#1a365d',
     cardBgGradient: 'from-slate-950 via-slate-900 to-blue-950',
     icon: <Diamond className="w-3.5 h-3.5" />,
-    description: 'Nível máximo de reconhecimento do Euro Motors Club (5+ motocicletas).',
+    description: 'Nível máximo de reconhecimento do PG PRIME Club (5+ motocicletas).',
   },
   GOLD: {
     name: 'GOLD',
@@ -36,7 +36,7 @@ export const CATEGORY_THEMES: Record<MemberCategory, CategoryTheme> = {
     hexColor: '#b7791f',
     cardBgGradient: 'from-slate-950 via-amber-950/30 to-slate-900',
     icon: <Crown className="w-3.5 h-3.5" />,
-    description: '3 ou 4 motocicletas adquiridas na Euro Motors.',
+    description: '3 ou 4 motocicletas adquiridas na PG PRIME.',
   },
   SILVER: {
     name: 'SILVER',
@@ -47,7 +47,7 @@ export const CATEGORY_THEMES: Record<MemberCategory, CategoryTheme> = {
     hexColor: '#6b7280',
     cardBgGradient: 'from-slate-950 via-slate-900 to-slate-800/40',
     icon: <Star className="w-3.5 h-3.5" />,
-    description: '1 ou 2 motocicletas adquiridas na Euro Motors.',
+    description: '1 ou 2 motocicletas adquiridas na PG PRIME.',
   },
   BRONZE: {
     name: 'BRONZE',
@@ -115,7 +115,7 @@ export function getCategoryMessage(params: {
     return {
       title: 'PLATINUM MEMBER',
       message:
-        'Você atingiu o nível máximo de reconhecimento do Euromotors Motorrad Club. 5+ motocicletas adquiridas conosco.',
+        'Você atingiu o nível máximo de reconhecimento do PG PRIME Club. 5+ motocicletas adquiridas conosco.',
       type: 'success',
     }
   }
@@ -124,7 +124,7 @@ export function getCategoryMessage(params: {
     if (motos === 4) {
       return {
         title: 'Você é membro GOLD',
-        message: 'Mais uma motocicleta e você alcança o nível máximo do Euromotors Motorrad Club.',
+        message: 'Mais uma motocicleta e você alcança o nível máximo do PG PRIME Club.',
         type: 'info',
       }
     }
@@ -160,14 +160,14 @@ export function getCategoryMessage(params: {
       return {
         title: 'Renovação Bronze Necessária',
         message:
-          'Sua condição de membro Bronze está próxima da renovação. Mantenha seu relacionamento com a BMW Euro Motors Jundiaí para continuar aproveitando os benefícios do Club.',
+          'Sua condição de membro Bronze está próxima da renovação. Mantenha seu relacionamento com a PG PRIME para continuar aproveitando os benefícios do Club.',
         type: 'warning',
       }
     }
     return {
       title: 'Você é membro BRONZE',
       message:
-        'Mantenha seu relacionamento com a BMW Euro Motors Jundiaí realizando suas revisões periódicas para continuar aproveitando os benefícios do Club.',
+        'Mantenha seu relacionamento com a PG PRIME realizando suas revisões periódicas para continuar aproveitando os benefícios do Club.',
       type: 'info',
     }
   }
@@ -175,7 +175,7 @@ export function getCategoryMessage(params: {
   return {
     title: 'Membro Inativo',
     message:
-      'Realize uma passagem na oficina ou adquira uma nova motocicleta na BMW Euro Motors Jundiaí para reativar seu acesso.',
+      'Realize uma passagem na oficina ou adquira uma nova motocicleta na PG PRIME para reativar seu acesso.',
     type: 'warning',
   }
 }

@@ -194,7 +194,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
         '(11) 98765-4321',
         'carlos.silva@exemplo.com.br',
         '123.456.789-00',
-        'Jundiaí - SP',
+        'Cabedelo - PB',
         'BMW Motorrad',
         'R 1300 GS',
         2024,
@@ -245,7 +245,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
     const ws = XLSX.utils.aoa_to_sheet(templateData)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, 'Membros')
-    XLSX.writeFile(wb, 'modelo_importacao_membros_euromotors.xlsx')
+    XLSX.writeFile(wb, 'modelo_importacao_membros_pgprime.xlsx')
   }
 
   // Processar arquivo Excel / CSV

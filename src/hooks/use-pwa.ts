@@ -49,7 +49,7 @@ export function usePWA() {
                     installingWorker.state === 'installed' &&
                     navigator.serviceWorker.controller
                   ) {
-                    console.log('[PWA] Nova versão disponível do Euro Motors Club')
+                    console.log('[PWA] Nova versão disponível do PG PRIME Club')
                   }
                 }
               }

@@ -129,15 +129,15 @@ export function normalizeDocumento(docRaw: string | number | undefined | null): 
 /**
  * Gera email de fallback exclusivo baseado no CPF/CNPJ normalizado.
  * Exemplo:
- * - CPF: "02336018802@euromotors.club"
- * - CNPJ: "08060202000130@euromotors.club"
+ * - CPF: "02336018802@pgprime.club"
+ * - CNPJ: "08060202000130@pgprime.club"
  */
 export function generateFallbackEmail(docClean: string | undefined | null): string {
   const clean = normalizeDocumento(docClean)
   if (clean) {
-    return `${clean}@euromotors.club`
+    return `${clean}@pgprime.club`
   }
-  return `membro.${Math.random().toString(36).slice(2, 9)}@euromotors.club`
+  return `membro.${Math.random().toString(36).slice(2, 9)}@pgprime.club`
 }
 
 /** Alias antigo (compatibilidade) — agora normaliza CPF e CNPJ. */
@@ -287,11 +287,11 @@ function toISODate(d: Date | null): string {
 }
 
 /**
- * Função central de cálculo de categoria e status do Euro Motors Club (PARTE 1).
+ * Função central de cálculo de categoria e status do PG PRIME Club (PARTE 1).
  *
  * Regra de veículos elegíveis:
- * - Elegível: motocicleta OU automóvel adquirido na Euro Motors.
- * - Condição obrigatória: cliente precisa ter >= 1 MOTOCICLETA BMW comprada na Euro Motors Jundiaí.
+ * - Elegível: motocicleta OU automóvel adquirido na PG PRIME.
+ * - Condição obrigatória: cliente precisa ter >= 1 MOTOCICLETA BMW comprada na PG PRIME.
  * - Sem essa condição, carros NÃO geram evolução de categoria.
  *
  * tem_moto_comprada = SIM quando bike_brand contém "BMW" e (quantidade_motos_compradas >= 1 ou bike_model preenchido).

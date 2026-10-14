@@ -775,7 +775,7 @@ export default function Index() {
               <div className="flex items-center gap-2">
                 {(siteSettings?.instagram_url || !siteSettings) && (
                   <a
-                    href={siteSettings?.instagram_url || 'https://instagram.com/euromotorsmotorrad'}
+                    href={siteSettings?.instagram_url || 'https://instagram.com/pgprime'}
                     target="_blank"
                     rel="noreferrer"
                     className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
@@ -786,7 +786,7 @@ export default function Index() {
                 )}
                 {(siteSettings?.facebook_url || !siteSettings) && (
                   <a
-                    href={siteSettings?.facebook_url || 'https://facebook.com/euromotorsmotorrad'}
+                    href={siteSettings?.facebook_url || 'https://facebook.com/pgprime'}
                     target="_blank"
                     rel="noreferrer"
                     className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
@@ -797,7 +797,7 @@ export default function Index() {
                 )}
                 {(siteSettings?.youtube_url || !siteSettings) && (
                   <a
-                    href={siteSettings?.youtube_url || 'https://youtube.com/@euromotorsmotorrad'}
+                    href={siteSettings?.youtube_url || 'https://youtube.com/@pgprime'}
                     target="_blank"
                     rel="noreferrer"
                     className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"
@@ -808,9 +808,7 @@ export default function Index() {
                 )}
                 {(siteSettings?.website_url || !siteSettings) && (
                   <a
-                    href={
-                      siteSettings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
-                    }
+                    href={siteSettings?.website_url || 'https://pgprime.club'}
                     target="_blank"
                     rel="noreferrer"
                     className="w-8 h-8 rounded-md bg-[#0a1222] border border-[#172642] flex items-center justify-center text-slate-400 hover:text-white hover:border-[#0066FF] transition-all"

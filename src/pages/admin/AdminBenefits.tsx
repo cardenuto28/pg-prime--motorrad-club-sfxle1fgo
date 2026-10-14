@@ -554,7 +554,7 @@ const BenefitFormModal: React.FC<{
             <Input
               value={form.partner}
               onChange={(e) => set('partner', e.target.value)}
-              placeholder="Ex.: Boutique Euro Motors"
+              placeholder="Ex.: Boutique PG PRIME"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>

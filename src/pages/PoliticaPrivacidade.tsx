@@ -344,10 +344,10 @@ export default function PoliticaPrivacidade() {
                 <span>
                   <strong>E-mail:</strong>{' '}
                   <a
-                    href="mailto:eventos@grupoeuromotors.com.br"
+                    href="mailto:privacidade@pgprime.club"
                     className="text-[#0066FF] hover:underline"
                   >
-                    eventos@grupoeuromotors.com.br
+                    privacidade@pgprime.club
                   </a>
                 </span>
               </div>
@@ -385,10 +385,10 @@ export default function PoliticaPrivacidade() {
                 <span>
                   <strong>E-mail:</strong>{' '}
                   <a
-                    href="mailto:eventos@grupoeuromotors.com.br"
+                    href="mailto:privacidade@pgprime.club"
                     className="text-[#0066FF] hover:underline"
                   >
-                    eventos@grupoeuromotors.com.br
+                    privacidade@pgprime.club
                   </a>
                 </span>
               </div>

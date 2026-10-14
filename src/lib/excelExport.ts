@@ -61,7 +61,7 @@ export function exportToExcel(options: {
 /**
  * Export members list to Excel (.xlsx)
  */
-export function exportMembersExcel(members: any[], fileNamePrefix = 'euro-motors-membros') {
+export function exportMembersExcel(members: any[], fileNamePrefix = 'pgprime-membros') {
   const dateStr = new Date().toISOString().slice(0, 10)
   const wb = XLSX.utils.book_new()
 
@@ -343,7 +343,7 @@ export function exportDashboardExcel(
     XLSX.utils.book_append_sheet(wb, wsRanking, 'Top Membros Pontos')
   }
 
-  XLSX.writeFile(wb, `euro-motors-dashboard-${dateStr}.xlsx`)
+  XLSX.writeFile(wb, `pgprime-dashboard-${dateStr}.xlsx`)
 }
 
 /**

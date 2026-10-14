@@ -1,7 +1,7 @@
 // Hook endpoint para obter o QR Code / Token Diário da Loja (Apenas Administradores)
 routerAdd(
   'GET',
-  '/api/club/store-daily-token',
+  '/backend/v1/club/store-daily-token',
   (e) => {
     const authRecord = e.auth
     if (!authRecord) {
@@ -14,7 +14,7 @@ routerAdd(
     }
 
     // 1. Busca segredo da coleção settings
-    let secret = 'EUROMOTORS2026'
+    let secret = $os.getenv('PGPRIME_STORE_TOKEN_SECRET') || 'PGPRIME2026'
     try {
       const settingsRec = $app.findFirstRecordByData('settings', 'key', 'site')
       if (settingsRec && settingsRec.getString('daily_token_secret')) {
@@ -35,7 +35,7 @@ routerAdd(
     const fullHash = $security.hs256(dateStr, secret)
     const token = fullHash.substring(0, 12).toUpperCase()
 
-    const targetUrl = `https://euromotorsclub.goskip.app/checkin-loja?token=${token}`
+    const targetUrl = `https://pgprime.club/checkin-loja?token=${token}`
 
     return e.json(200, {
       date: dateStr,

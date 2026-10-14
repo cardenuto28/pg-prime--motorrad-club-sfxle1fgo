@@ -175,7 +175,7 @@ export const MemberCard: React.FC = () => {
     if (typeof window !== 'undefined' && user?.id) {
       return `${window.location.origin}/verificar/${user.id}`
     }
-    return `https://euromotorsmc.com.br/verificar/${user?.id || 'demo'}`
+    return `https://pgprime.club/verificar/${user?.id || 'demo'}`
   }, [user])
 
   // QR Code URL via serviço estável e rápido de geração de QR Code
@@ -538,7 +538,7 @@ export const MemberCard: React.FC = () => {
                       BMW MOTORRAD
                     </span>
                     <span className="block text-[7.5px] font-extrabold tracking-widest text-blue-400 uppercase font-montserrat">
-                      JUNDIAÍ
+                      PG PRIME
                     </span>
                   </div>
                 </div>

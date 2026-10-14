@@ -26,7 +26,7 @@ export const AdminStoreQrCode: React.FC = () => {
   }>({
     date: new Date().toISOString().split('T')[0],
     token: '',
-    targetUrl: 'https://euromotorsclub.goskip.app/checkin-loja',
+    targetUrl: 'https://pgprime.club/checkin-loja',
   })
 
   const loadDailyToken = useCallback(async () => {
@@ -53,7 +53,7 @@ export const AdminStoreQrCode: React.FC = () => {
   }, [loadDailyToken])
 
   const targetUrl =
-    dailyData.targetUrl || `https://euromotorsclub.goskip.app/checkin-loja?token=${dailyData.token}`
+    dailyData.targetUrl || `https://pgprime.club/checkin-loja?token=${dailyData.token}`
 
   // Geração do QR Code em alta resolução
   const qrCodeImageUrl = useMemo(() => {

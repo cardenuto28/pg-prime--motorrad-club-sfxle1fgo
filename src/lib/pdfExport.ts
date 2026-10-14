@@ -9,7 +9,7 @@ interface PdfHeaderOptions {
 }
 
 /**
- * Creates and formats a standard Euro Motors Motorrad Club PDF with brand colors,
+ * Creates and formats a standard PG PRIME Club PDF with brand colors,
  * header, generated date and footer.
  */
 export function createEuroMotorsPdf(options: PdfHeaderOptions): jsPDF {
@@ -35,13 +35,13 @@ export function drawClubHeader(doc: jsPDF, title: string, subtitle?: string) {
   doc.setFont('helvetica', 'bold')
   doc.setFontSize(14)
   doc.setTextColor(255, 255, 255)
-  doc.text('EURO MOTORS MOTORRAD CLUB', 14, 12)
+  doc.text('PG PRIME CLUB', 14, 12)
 
   // Subtitle / Brand slogan
   doc.setFont('helvetica', 'normal')
   doc.setFontSize(8)
   doc.setTextColor(148, 163, 184)
-  doc.text('OFICIAL MOTORRAD COMMUNITY · SÃO JOSÉ DO RIO PRETO', 14, 18)
+  doc.text('OFICIAL MOTORRAD COMMUNITY · PG PRIME', 14, 18)
 
   // Date on top right
   const now = new Date()
@@ -95,7 +95,7 @@ export function drawClubFooter(doc: jsPDF) {
       doc.setFont('helvetica', 'normal')
       doc.setFontSize(8)
       doc.setTextColor(148, 163, 184)
-      doc.text('Euro Motors Motorrad Club — Documento Oficial', 14, pageHeight - 9)
+      doc.text('PG PRIME Club — Documento Oficial', 14, pageHeight - 9)
 
       doc.text(`Página ${i} de ${pageCount}`, pageWidth - 14, pageHeight - 9, {
         align: 'right',
@@ -137,7 +137,7 @@ export function exportAdminManualPdf() {
       targetDoc.setFont('helvetica', 'bold')
       targetDoc.setFontSize(11)
       targetDoc.setTextColor(255, 255, 255)
-      targetDoc.text('EUROMOTORS MOTORRAD CLUB', 14, 11)
+      targetDoc.text('PG PRIME CLUB', 14, 11)
 
       targetDoc.setFont('helvetica', 'normal')
       targetDoc.setFontSize(8)
@@ -162,7 +162,7 @@ export function exportAdminManualPdf() {
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(13)
     doc.setTextColor(255, 255, 255)
-    doc.text('EUROMOTORS MOTORRAD CLUB', 14, 12)
+    doc.text('PG PRIME CLUB', 14, 12)
 
     doc.setFont('helvetica', 'bold')
     doc.setFontSize(10)
@@ -342,15 +342,15 @@ export function exportAdminManualPdf() {
 
   // Manual sections
   addSectionTitle('1. ACESSO AO PAINEL ADMINISTRATIVO')
-  addParagraph('1. Acesse: https://euromotorsclub.goskip.app')
+  addParagraph('1. Acesse: https://pgprime.club')
   addParagraph('2. Faça login com seu e-mail e senha de administrador.')
   addParagraph('3. No menu superior ou lateral, clique em Admin -> Dashboard.')
   addParagraph('Perfis de administrador cadastrados no sistema:')
   addTable(
     [['Nome', 'E-mail']],
     [
-      ['Ricardo Euro Motors', 'ricardo@grupoeuromotors.com.br'],
-      ['ADAUTO SAMPAIO', 'eventos@grupoeuromotors.com.br'],
+      ['Ricardo PG PRIME', 'ricardo@pgprime.club'],
+      ['ADAUTO SAMPAIO', 'eventos@pgprime.club'],
     ],
     undefined,
     'Perfis de Admin',
@@ -375,7 +375,7 @@ export function exportAdminManualPdf() {
 
   try {
     drawClubFooter(doc)
-    doc.save('Manual_Admin_EuroMotors_Club.pdf')
+    doc.save('Manual_Admin_PGPRIME_Club.pdf')
   } catch (saveErr) {
     console.error('[exportAdminManualPdf] Erro ao salvar:', saveErr)
   }
@@ -590,7 +590,7 @@ export function exportMembersPdf(members: any[]) {
 
   drawClubFooter(doc)
   const now = new Date()
-  doc.save(`euro-motors-membros-distribuicao-${now.toISOString().slice(0, 10)}.pdf`)
+  doc.save(`pgprime-membros-distribuicao-${now.toISOString().slice(0, 10)}.pdf`)
 }
 
 /**
@@ -828,7 +828,7 @@ export function exportDashboardPdf(
 
   drawClubFooter(doc)
   const now = new Date()
-  doc.save(`euro-motors-dashboard-${now.toISOString().slice(0, 10)}.pdf`)
+  doc.save(`pgprime-dashboard-${now.toISOString().slice(0, 10)}.pdf`)
 }
 
 /**

@@ -915,7 +915,7 @@ export const storeVisitService = {
   async recordStoreVisit(userId: string, notes?: string): Promise<StoreVisit> {
     const record = await pb.collection('store_visits').create({
       user: userId,
-      notes: notes || 'Check-in presencial na loja Euro Motors',
+      notes: notes || 'Check-in presencial na loja PG PRIME',
       created_at: new Date().toISOString(),
     })
     return record as unknown as StoreVisit
@@ -939,7 +939,7 @@ export const storeVisitService = {
     token: string
     targetUrl: string
   }> {
-    const res = await pb.send('/api/club/store-daily-token', {
+    const res = await pb.send('/backend/v1/club/store-daily-token', {
       method: 'GET',
     })
     return res

@@ -17,11 +17,11 @@ export const Footer: React.FC = () => {
       .catch(() => {})
   }, [])
 
-  const websiteUrl = settings?.website_url || 'https://jundiai.bmwmotorrad.euromotors.com.br'
+  const websiteUrl = settings?.website_url || 'https://pgprime.club'
   const websiteDisplay = websiteUrl.replace(/^https?:\/\//, '')
-  const instagramUrl = settings?.instagram_url || 'https://instagram.com/euromotorsmotorrad'
-  const facebookUrl = settings?.facebook_url || 'https://facebook.com/euromotorsmotorrad'
-  const youtubeUrl = settings?.youtube_url || 'https://youtube.com/@euromotorsmotorrad'
+  const instagramUrl = settings?.instagram_url || 'https://instagram.com/pgprime'
+  const facebookUrl = settings?.facebook_url || 'https://facebook.com/pgprime'
+  const youtubeUrl = settings?.youtube_url || 'https://youtube.com/@pgprime'
   const slogan = settings?.slogan || 'Mais que um clube. Uma tribo.'
 
   return (
