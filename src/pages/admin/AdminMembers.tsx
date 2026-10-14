@@ -1795,7 +1795,7 @@ const EditMemberModal: React.FC<{
             <Input
               value={(form.member_id as string) || ''}
               onChange={(e) => set('member_id', e.target.value)}
-              placeholder="Ex.: EMC-02458 (deixe em branco para auto)"
+              placeholder="Ex.: PGP-02458 (deixe em branco para auto)"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>

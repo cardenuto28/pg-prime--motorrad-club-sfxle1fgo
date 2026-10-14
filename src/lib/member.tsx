@@ -166,13 +166,16 @@ export function statusLabel(status: UserProfile['status']): string {
   return (STATUS_META[status] || STATUS_META.pendente).label
 }
 
-/** Formats a member's visual ID, e.g. "EMC-02458" */
+/** Formats a member's visual ID, e.g. "PGP-02458" */
 export function formatMemberId(user?: UserProfile | null): string {
-  if (!user) return 'EMC-00000'
+  if (!user) return 'PGP-00000'
   if (user.member_id && user.member_id.trim()) {
-    return user.member_id.toUpperCase().startsWith('EMC-')
-      ? user.member_id.toUpperCase()
-      : `EMC-${user.member_id.toUpperCase()}`
+    const raw = user.member_id.trim().toUpperCase()
+    // Se ainda tiver o prefixo legado EMC-, converte para PGP-
+    if (raw.startsWith('EMC-')) {
+      return `PGP-${raw.slice(4)}`
+    }
+    return raw.startsWith('PGP-') ? raw : `PGP-${raw}`
   }
   // Deterministic numeric ID generated from PocketBase user id
   let hash = 0
@@ -181,7 +184,7 @@ export function formatMemberId(user?: UserProfile | null): string {
     hash = (hash * 31 + idStr.charCodeAt(i)) >>> 0
   }
   const numericCode = String((hash % 90000) + 10000).padStart(5, '0')
-  return `EMC-${numericCode}`
+  return `PGP-${numericCode}`
 }
 
 /** Returns the member category name with fallback */

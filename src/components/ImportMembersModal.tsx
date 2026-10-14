@@ -653,7 +653,7 @@ export const ImportMembersModal: React.FC<ImportMembersModalProps> = ({
             const emailToUse = generateFallbackEmail(row.cpfClean)
 
             // Senha temporária aleatória segura (membro definirá no /validar-cadastro)
-            const randomPassword = 'EMC@' + Math.random().toString(36).slice(2, 10) + '2025'
+            const randomPassword = 'PGP@' + Math.random().toString(36).slice(2, 10) + '2025'
 
             const createdUser = await pb.collection('users').create({
               name: row.nome,
