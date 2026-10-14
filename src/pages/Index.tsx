@@ -174,7 +174,7 @@ export default function Index() {
     // ride.date vem no formato ISO "2026-04-18"; se for outro formato, tratamos com fallback.
     let day = '--'
     let month = '---'
-    const dateStr = (ride.date || '').trim()
+    const dateStr = typeof ride.date === 'string' ? ride.date.trim() : ''
     if (dateStr) {
       const parts = dateStr.split('-')
       if (parts.length === 3) {
@@ -480,7 +480,7 @@ export default function Index() {
                       <span className="text-[9px] text-slate-300 font-medium uppercase tracking-wider block leading-tight truncate">
                         BEM-VINDO,{' '}
                         <strong className="text-white font-bold">
-                          {user.name.split(' ')[0].toUpperCase()}
+                          {(user.name || user.email || 'Membro').split(' ')[0].toUpperCase()}
                         </strong>
                       </span>
                     </div>

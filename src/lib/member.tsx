@@ -169,7 +169,7 @@ export function statusLabel(status: UserProfile['status']): string {
 /** Formats a member's visual ID, e.g. "PGP-02458" */
 export function formatMemberId(user?: UserProfile | null): string {
   if (!user) return 'PGP-00000'
-  if (user.member_id && user.member_id.trim()) {
+  if (typeof user.member_id === 'string' && user.member_id.trim()) {
     const raw = user.member_id.trim().toUpperCase()
     // Se ainda tiver o prefixo legado EMC-, converte para PGP-
     if (raw.startsWith('EMC-')) {
@@ -179,7 +179,7 @@ export function formatMemberId(user?: UserProfile | null): string {
   }
   // Deterministic numeric ID generated from PocketBase user id
   let hash = 0
-  const idStr = user.id || '0000'
+  const idStr = typeof user.id === 'string' ? user.id : '0000'
   for (let i = 0; i < idStr.length; i++) {
     hash = (hash * 31 + idStr.charCodeAt(i)) >>> 0
   }
@@ -299,7 +299,7 @@ export function formatDate(value?: string): string {
 
 /** Returns true when a ride date (text) is in the past. */
 export function isRidePast(date?: string): boolean {
-  if (!date) return false
+  if (!date || typeof date !== 'string') return false
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
     const [d, m, y] = date.split('/').map(Number)
     return new Date(y, m - 1, d).getTime() < Date.now()

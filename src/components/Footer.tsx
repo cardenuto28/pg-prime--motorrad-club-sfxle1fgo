@@ -23,6 +23,7 @@ export const Footer: React.FC = () => {
   const facebookUrl = settings?.facebook_url || 'https://facebook.com/pgprime'
   const youtubeUrl = settings?.youtube_url || 'https://youtube.com/@pgprime'
   const slogan = settings?.slogan || 'Mais que um clube. Uma tribo.'
+  const safeSlogan = typeof slogan === 'string' && slogan ? slogan : 'Mais que um clube. Uma tribo.'
 
   return (
     <footer id="contato" className="bg-[#05070d] border-t border-[#121c2e] text-slate-400">
@@ -77,11 +78,11 @@ export const Footer: React.FC = () => {
           {/* Direita: Slogan */}
           <div className="flex flex-col items-center md:items-end gap-1 order-3">
             <span className="text-[11px] font-bold text-slate-500 uppercase tracking-widest font-montserrat">
-              {slogan.includes('.') ? slogan.split('.')[0] + '.' : slogan}
+              {safeSlogan.includes('.') ? safeSlogan.split('.')[0] + '.' : safeSlogan}
             </span>
             <span className="text-sm font-black text-white uppercase tracking-tight font-montserrat">
-              {slogan.includes('.')
-                ? slogan.split('.').slice(1).join('.').trim() || 'UMA TRIBO.'
+              {safeSlogan.includes('.')
+                ? safeSlogan.split('.').slice(1).join('.').trim() || 'UMA TRIBO.'
                 : 'UMA TRIBO.'}
             </span>
           </div>

@@ -67,7 +67,10 @@ export const SidebarMemberWidget: React.FC = () => {
           </div>
           <div>
             <span className="text-[10px] text-slate-400 uppercase tracking-wider block leading-tight">
-              BEM-VINDO, <strong className="text-white">{user.name.split(' ')[0]}</strong>
+              BEM-VINDO,{' '}
+              <strong className="text-white">
+                {(user.name || user.email || 'Membro').split(' ')[0]}
+              </strong>
             </span>
           </div>
         </div>
