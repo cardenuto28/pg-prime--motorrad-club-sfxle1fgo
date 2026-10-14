@@ -283,7 +283,7 @@ export const PartnerCategoryBadge: React.FC<{ category?: string }> = ({ category
 
 /** Formats a ride.date which is stored as text (e.g. "07/06/2025" or ISO). */
 export function formatDate(value?: string): string {
-  if (!value) return 'A definir'
+  if (!value || typeof value !== 'string') return 'A definir'
   // already DD/MM/YYYY
   if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) return value
   const d = new Date(value)

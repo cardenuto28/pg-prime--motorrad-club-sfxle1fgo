@@ -22,8 +22,10 @@ export const Footer: React.FC = () => {
   const instagramUrl = settings?.instagram_url || 'https://instagram.com/pgprime'
   const facebookUrl = settings?.facebook_url || 'https://facebook.com/pgprime'
   const youtubeUrl = settings?.youtube_url || 'https://youtube.com/@pgprime'
-  const slogan = settings?.slogan || 'Mais que um clube. Uma tribo.'
-  const safeSlogan = typeof slogan === 'string' && slogan ? slogan : 'Mais que um clube. Uma tribo.'
+  const safeSlogan =
+    typeof settings?.slogan === 'string' && settings?.slogan
+      ? String(settings.slogan)
+      : 'Mais que um clube. Uma tribo.'
 
   return (
     <footer id="contato" className="bg-[#05070d] border-t border-[#121c2e] text-slate-400">

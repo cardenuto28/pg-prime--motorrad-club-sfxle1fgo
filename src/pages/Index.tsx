@@ -480,7 +480,9 @@ export default function Index() {
                       <span className="text-[9px] text-slate-300 font-medium uppercase tracking-wider block leading-tight truncate">
                         BEM-VINDO,{' '}
                         <strong className="text-white font-bold">
-                          {(user.name || user.email || 'Membro').split(' ')[0].toUpperCase()}
+                          {String(user?.name || user?.email || 'Membro')
+                            .split(' ')[0]
+                            .toUpperCase()}
                         </strong>
                       </span>
                     </div>
