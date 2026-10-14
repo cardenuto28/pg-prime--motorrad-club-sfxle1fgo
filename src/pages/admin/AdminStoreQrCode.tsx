@@ -13,7 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { storeVisitService } from '@/services/api'
-import { PG_PRIME_LOGO_URL } from '@/lib/branding'
+import { PG_PRIME_LOGO_URL, CLUB_OFFICIAL_BADGE_URL } from '@/lib/branding'
 
 export const AdminStoreQrCode: React.FC = () => {
   const { toast } = useToast()
@@ -169,11 +169,11 @@ export const AdminStoreQrCode: React.FC = () => {
           {/* 1. Header do Display com Logotipo */}
           <div className="relative z-10 flex flex-col items-center space-y-3">
             <div className="flex items-center justify-center">
-              <div className="bg-white/95 px-5 py-2.5 rounded-2xl shadow-xl border border-slate-200/20 inline-flex items-center">
+              <div className="bg-white/95 p-3 rounded-2xl shadow-xl border-2 border-blue-400/40 inline-flex items-center">
                 <img
-                  src={PG_PRIME_LOGO_URL}
-                  alt="PG PRIME CLUB"
-                  className="h-12 sm:h-14 w-auto object-contain"
+                  src={CLUB_OFFICIAL_BADGE_URL}
+                  alt="Escudo Oficial PG PRIME MOTORRAD CLUB"
+                  className="h-16 sm:h-20 w-auto object-contain drop-shadow"
                 />
               </div>
             </div>
@@ -206,7 +206,7 @@ export const AdminStoreQrCode: React.FC = () => {
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                 <div className="w-12 h-12 rounded-xl bg-white border-2 border-blue-500 shadow-2xl flex items-center justify-center p-1">
                   <img
-                    src={PG_PRIME_LOGO_URL}
+                    src={CLUB_OFFICIAL_BADGE_URL}
                     alt="Logo PG PRIME"
                     className="w-full h-full object-contain"
                   />

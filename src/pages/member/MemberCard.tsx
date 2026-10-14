@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext'
 import { formatMemberId, getMemberCategory, statusLabel } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import { PG_PRIME_LOGO_URL } from '@/lib/branding'
+import { CLUB_OFFICIAL_BADGE_URL } from '@/lib/branding'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { normalizeCategory } from '@/lib/membership'
 import { MemberCategory } from '@/services/api'
@@ -354,11 +354,11 @@ export const MemberCard: React.FC = () => {
                       className={`absolute inset-0 ${cardTheme.logoGlow} blur-xl rounded-full pointer-events-none transition-colors duration-500`}
                     />
                     {/* Shield Logo Image in light chip for clean contrast */}
-                    <div className="relative bg-white/95 px-5 py-4 rounded-2xl border-2 border-blue-400/40 shadow-[0_12px_28px_rgba(0,0,0,0.85)] inline-flex items-center justify-center max-w-[200px]">
+                    <div className="relative bg-white/95 p-3 rounded-2xl border-2 border-blue-400/50 shadow-[0_14px_32px_rgba(0,0,0,0.85)] inline-flex items-center justify-center max-w-[210px]">
                       <img
-                        src={PG_PRIME_LOGO_URL}
-                        alt="PG PRIME CLUB"
-                        className="w-full h-auto max-h-24 sm:max-h-28 object-contain"
+                        src={CLUB_OFFICIAL_BADGE_URL}
+                        alt="Escudo Oficial PG PRIME MOTORRAD CLUB"
+                        className="w-full h-auto max-h-24 sm:max-h-28 object-contain drop-shadow"
                       />
                     </div>
                   </div>
@@ -491,7 +491,7 @@ export const MemberCard: React.FC = () => {
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                       <div className="w-6 h-6 rounded bg-white border border-blue-500/80 overflow-hidden flex items-center justify-center shadow-lg p-0.5">
                         <img
-                          src={PG_PRIME_LOGO_URL}
+                          src={CLUB_OFFICIAL_BADGE_URL}
                           alt="Logo"
                           className="w-full h-full object-contain"
                         />

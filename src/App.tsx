@@ -1,6 +1,6 @@
 /* Main App Component - Handles routing (using react-router-dom), query client and other providers - use this file to add all routes */
 import React from 'react'
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -75,7 +75,34 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+            {/* Validação de cadastro pública - PG PRIME */}
             <Route path="/validar-cadastro" element={<ValidarCadastro />} />
+            <Route path="/validar-pgprime" element={<ValidarCadastro />} />
+            <Route path="/validar-pgprime/*" element={<ValidarCadastro />} />
+            {/* Redirects seguros de rotas antigas com "euromotors" para não quebrar links impressos */}
+            <Route
+              path="/validar-euromotors"
+              element={<Navigate to="/validar-pgprime" replace />}
+            />
+            <Route
+              path="/validar-euromotors/*"
+              element={<Navigate to="/validar-pgprime" replace />}
+            />
+            <Route
+              path="/validar-cadastro-euromotors"
+              element={<Navigate to="/validar-cadastro" replace />}
+            />
+            <Route
+              path="/validar-cadastro-euromotors/*"
+              element={<Navigate to="/validar-cadastro" replace />}
+            />
+            <Route path="/euromotors" element={<Navigate to="/" replace />} />
+            <Route path="/euromotors/*" element={<Navigate to="/" replace />} />
+            <Route
+              path="/verificar-euromotors/:id"
+              element={<Navigate to="/verificar/:id" replace />}
+            />
+
             <Route path="/verificar/:id" element={<VerifyMember />} />
             <Route path="/checkin-loja" element={<StoreCheckIn />} />
           </Route>

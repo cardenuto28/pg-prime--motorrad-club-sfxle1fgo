@@ -16,7 +16,7 @@ import { UserProfile, userService } from '@/services/api'
 import { formatMemberId, getMemberCategory } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import { CategoryBadge } from '@/components/CategoryBadge'
-import { PG_PRIME_LOGO_URL } from '@/lib/branding'
+import { PG_PRIME_LOGO_URL, CLUB_OFFICIAL_BADGE_URL } from '@/lib/branding'
 
 export const VerifyMember: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -175,15 +175,15 @@ export const VerifyMember: React.FC = () => {
 
             {/* Member Card Details */}
             <div className="p-6 sm:p-8 space-y-5">
-              {/* Carteirinha Preview compacta / Logo oficial */}
+              {/* Carteirinha Preview compacta / Escudo oficial */}
               <div className="flex justify-center pb-1">
                 <div className="relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full pointer-events-none" />
-                  <div className="relative bg-white/95 px-6 py-4 rounded-2xl border border-blue-500/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] inline-flex items-center">
+                  <div className="relative bg-white/95 p-3 rounded-2xl border-2 border-blue-500/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] inline-flex items-center">
                     <img
-                      src={PG_PRIME_LOGO_URL}
-                      alt="Brasão PG PRIME CLUB"
-                      className="h-20 sm:h-24 w-auto object-contain"
+                      src={CLUB_OFFICIAL_BADGE_URL}
+                      alt="Escudo Oficial PG PRIME MOTORRAD CLUB"
+                      className="h-20 sm:h-24 w-auto object-contain drop-shadow"
                     />
                   </div>
                 </div>

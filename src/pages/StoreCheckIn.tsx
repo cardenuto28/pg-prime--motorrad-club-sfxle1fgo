@@ -22,7 +22,7 @@ import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
 import { getMemberCategory } from '@/lib/member'
 import { CategoryBadge } from '@/components/CategoryBadge'
-import { PG_PRIME_LOGO_URL } from '@/lib/branding'
+import { CLUB_OFFICIAL_BADGE_URL } from '@/lib/branding'
 
 export const StoreCheckIn: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -246,11 +246,11 @@ export const StoreCheckIn: React.FC = () => {
         <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10">
           <div className="flex justify-center mb-6">
             <Link to="/">
-              <div className="bg-white/95 px-4 py-2 rounded-xl shadow-lg border border-slate-200/20 inline-flex items-center">
+              <div className="bg-white/95 p-3 rounded-2xl shadow-xl border-2 border-blue-400/50 inline-flex items-center">
                 <img
-                  src={PG_PRIME_LOGO_URL}
-                  alt="PG PRIME CLUB"
-                  className="h-14 sm:h-16 w-auto object-contain"
+                  src={CLUB_OFFICIAL_BADGE_URL}
+                  alt="PG PRIME MOTORRAD CLUB"
+                  className="h-16 sm:h-20 w-auto object-contain drop-shadow"
                 />
               </div>
             </Link>
@@ -380,11 +380,11 @@ export const StoreCheckIn: React.FC = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-lg relative z-10">
         <div className="flex justify-center mb-6">
           <Link to="/">
-            <div className="bg-white/95 px-4 py-2 rounded-xl shadow-lg border border-slate-200/20 inline-flex items-center">
+            <div className="bg-white/95 p-3 rounded-2xl shadow-xl border-2 border-blue-400/50 inline-flex items-center">
               <img
-                src={PG_PRIME_LOGO_URL}
-                alt="PG PRIME CLUB"
-                className="h-14 sm:h-16 w-auto object-contain"
+                src={CLUB_OFFICIAL_BADGE_URL}
+                alt="PG PRIME MOTORRAD CLUB"
+                className="h-16 sm:h-20 w-auto object-contain drop-shadow"
               />
             </div>
           </Link>

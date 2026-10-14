@@ -26,6 +26,7 @@ import { userService } from '@/services/api'
 import pb from '@/lib/pocketbase/client'
 import { formatCPF } from '@/lib/membership'
 import { useToast } from '@/hooks/use-toast'
+import { CLUB_OFFICIAL_BADGE_URL } from '@/lib/branding'
 
 export const ValidarCadastro: React.FC = () => {
   const navigate = useNavigate()
@@ -159,8 +160,14 @@ export const ValidarCadastro: React.FC = () => {
       <div className="absolute -top-32 right-10 w-80 h-80 bg-blue-500/15 rounded-full blur-[100px] pointer-events-none" />
 
       <div className="sm:mx-auto sm:w-full sm:max-w-xl text-center relative z-10">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-600/20 border border-blue-500/30 text-blue-400 mb-4 shadow-lg shadow-blue-600/20">
-          <ShieldCheck className="w-9 h-9" />
+        <div className="flex justify-center mb-4">
+          <div className="relative bg-white/95 p-3 rounded-2xl border-2 border-blue-400/50 shadow-[0_12px_28px_rgba(0,0,0,0.85)] inline-flex items-center justify-center">
+            <img
+              src={CLUB_OFFICIAL_BADGE_URL}
+              alt="PG PRIME MOTORRAD CLUB"
+              className="h-20 sm:h-24 w-auto object-contain"
+            />
+          </div>
         </div>
         <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
           Ativar Meu Cadastro
