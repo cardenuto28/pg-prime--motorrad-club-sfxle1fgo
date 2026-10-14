@@ -85,8 +85,8 @@ const GaleriaPage: React.FC = () => {
             Galeria de Momentos
           </h1>
           <p className="text-sm text-slate-400 max-w-2xl leading-relaxed">
-            Reviva os melhores momentos dos nossos passeios, viagens, eventos e encontros da Euro
-            Motors Motorrad Club.
+            Reviva os melhores momentos dos nossos passeios, viagens, eventos e encontros do PG
+            PRIME CLUB.
           </p>
         </div>
 

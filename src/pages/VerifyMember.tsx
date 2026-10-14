@@ -16,8 +16,7 @@ import { UserProfile, userService } from '@/services/api'
 import { formatMemberId, getMemberCategory } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import { CategoryBadge } from '@/components/CategoryBadge'
-import logoImage from '@/assets/logo-e67e1.jpeg'
-import memberCardLogo from '@/assets/image-ae9a6.png'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 
 export const VerifyMember: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -64,7 +63,13 @@ export const VerifyMember: React.FC = () => {
       <header className="border-b border-[#182335] bg-[#070a12]/90 backdrop-blur">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3">
-            <img src={memberCardLogo} alt="PG PRIME CLUB" className="h-12 w-auto object-contain" />
+            <div className="bg-white/95 px-3 py-1.5 rounded-lg border border-slate-200/20 inline-flex items-center shadow-md">
+              <img
+                src={PG_PRIME_LOGO_URL}
+                alt="PG PRIME CLUB"
+                className="h-8 sm:h-9 w-auto object-contain"
+              />
+            </div>
           </Link>
           <div className="flex items-center gap-2">
             <span className="text-[10px] uppercase tracking-widest font-extrabold text-blue-400 font-montserrat border border-blue-500/30 bg-blue-950/40 px-2.5 py-1 rounded">
@@ -174,11 +179,13 @@ export const VerifyMember: React.FC = () => {
               <div className="flex justify-center pb-1">
                 <div className="relative flex items-center justify-center">
                   <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full pointer-events-none" />
-                  <img
-                    src={memberCardLogo}
-                    alt="Brasão PG PRIME CLUB"
-                    className="h-28 sm:h-36 w-auto object-contain drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)]"
-                  />
+                  <div className="relative bg-white/95 px-6 py-4 rounded-2xl border border-blue-500/40 shadow-[0_10px_30px_rgba(0,0,0,0.8)] inline-flex items-center">
+                    <img
+                      src={PG_PRIME_LOGO_URL}
+                      alt="Brasão PG PRIME CLUB"
+                      className="h-20 sm:h-24 w-auto object-contain"
+                    />
+                  </div>
                 </div>
               </div>
 

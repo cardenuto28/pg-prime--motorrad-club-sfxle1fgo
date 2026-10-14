@@ -13,8 +13,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import { storeVisitService } from '@/services/api'
-import logoImage from '@/assets/logo-e67e1.jpeg'
-import memberCardLogo from '@/assets/image-ae9a6.png'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 
 export const AdminStoreQrCode: React.FC = () => {
   const { toast } = useToast()
@@ -169,12 +168,14 @@ export const AdminStoreQrCode: React.FC = () => {
 
           {/* 1. Header do Display com Logotipo */}
           <div className="relative z-10 flex flex-col items-center space-y-3">
-            <div className="flex items-center justify-center gap-3">
-              <img
-                src={logoImage}
-                alt="PG PRIME CLUB"
-                className="h-14 sm:h-16 w-auto object-contain drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)]"
-              />
+            <div className="flex items-center justify-center">
+              <div className="bg-white/95 px-5 py-2.5 rounded-2xl shadow-xl border border-slate-200/20 inline-flex items-center">
+                <img
+                  src={PG_PRIME_LOGO_URL}
+                  alt="PG PRIME CLUB"
+                  className="h-12 sm:h-14 w-auto object-contain"
+                />
+              </div>
             </div>
 
             <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-blue-950/80 border border-blue-600/50 text-blue-300 text-[10px] sm:text-[11px] font-black uppercase tracking-[0.2em] font-montserrat shadow-md shadow-blue-950/50">
@@ -203,10 +204,10 @@ export const AdminStoreQrCode: React.FC = () => {
 
               {/* Mini badge central no QR Code */}
               <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <div className="w-12 h-12 rounded-xl bg-[#090d15] border-2 border-blue-500 shadow-2xl flex items-center justify-center p-1.5">
+                <div className="w-12 h-12 rounded-xl bg-white border-2 border-blue-500 shadow-2xl flex items-center justify-center p-1">
                   <img
-                    src={memberCardLogo}
-                    alt="Logo Motorrad"
+                    src={PG_PRIME_LOGO_URL}
+                    alt="Logo PG PRIME"
                     className="w-full h-full object-contain"
                   />
                 </div>

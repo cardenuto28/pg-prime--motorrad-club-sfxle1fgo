@@ -12,7 +12,7 @@ interface PdfHeaderOptions {
  * Creates and formats a standard PG PRIME Club PDF with brand colors,
  * header, generated date and footer.
  */
-export function createEuroMotorsPdf(options: PdfHeaderOptions): jsPDF {
+export function createPgPrimePdf(options: PdfHeaderOptions): jsPDF {
   const doc = new jsPDF({
     orientation: options.orientation || 'portrait',
     unit: 'mm',
@@ -20,6 +20,11 @@ export function createEuroMotorsPdf(options: PdfHeaderOptions): jsPDF {
   })
   return doc
 }
+
+/**
+ * Alias de compatibilidade com chamadas anteriores.
+ */
+export const createEuroMotorsPdf = createPgPrimePdf
 
 export function drawClubHeader(doc: jsPDF, title: string, subtitle?: string) {
   const pageWidth = doc.internal.pageSize.getWidth()

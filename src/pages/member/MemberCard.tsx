@@ -18,7 +18,7 @@ import { useAuth } from '@/context/AuthContext'
 import { formatMemberId, getMemberCategory, statusLabel } from '@/lib/member'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
-import memberCardLogo from '@/assets/image-ae9a6.png'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { normalizeCategory } from '@/lib/membership'
 import { MemberCategory } from '@/services/api'
@@ -353,12 +353,14 @@ export const MemberCard: React.FC = () => {
                     <div
                       className={`absolute inset-0 ${cardTheme.logoGlow} blur-xl rounded-full pointer-events-none transition-colors duration-500`}
                     />
-                    {/* Shield Logo Image */}
-                    <img
-                      src={memberCardLogo}
-                      alt="PG PRIME CLUB"
-                      className="relative w-36 sm:w-44 h-auto max-h-52 object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)]"
-                    />
+                    {/* Shield Logo Image in light chip for clean contrast */}
+                    <div className="relative bg-white/95 px-5 py-4 rounded-2xl border-2 border-blue-400/40 shadow-[0_12px_28px_rgba(0,0,0,0.85)] inline-flex items-center justify-center max-w-[200px]">
+                      <img
+                        src={PG_PRIME_LOGO_URL}
+                        alt="PG PRIME CLUB"
+                        className="w-full h-auto max-h-24 sm:max-h-28 object-contain"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -487,9 +489,9 @@ export const MemberCard: React.FC = () => {
                     />
                     {/* Mini overlay logo inside QR */}
                     <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                      <div className="w-6 h-6 rounded bg-[#090d15] border border-blue-500/80 overflow-hidden flex items-center justify-center shadow-lg p-0.5">
+                      <div className="w-6 h-6 rounded bg-white border border-blue-500/80 overflow-hidden flex items-center justify-center shadow-lg p-0.5">
                         <img
-                          src={memberCardLogo}
+                          src={PG_PRIME_LOGO_URL}
                           alt="Logo"
                           className="w-full h-full object-contain"
                         />

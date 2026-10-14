@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Download, Share, X, Smartphone, WifiOff, CheckCircle2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { usePWA } from '@/hooks/use-pwa'
-import appIcon from '@/assets/image-dadb6.png'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 
 export const PWAInstallBanner: React.FC = () => {
   const { isInstallable, isInstalled, isIOS, isOnline, promptInstall } = usePWA()
@@ -59,11 +59,13 @@ export const PWAInstallBanner: React.FC = () => {
           <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-[#0066FF] to-transparent" />
 
           {/* App Icon */}
-          <img
-            src={appIcon}
-            alt="PG PRIME CLUB"
-            className="w-12 h-12 rounded-xl object-contain bg-black border border-[#1e2638] shadow-md shrink-0 p-1"
-          />
+          <div className="w-12 h-12 rounded-xl bg-white border border-[#1e2638] shadow-md shrink-0 p-1 flex items-center justify-center">
+            <img
+              src={PG_PRIME_LOGO_URL}
+              alt="PG PRIME CLUB"
+              className="w-full h-full object-contain"
+            />
+          </div>
 
           {/* Text Info */}
           <div className="flex-1 min-w-0 pr-6">
