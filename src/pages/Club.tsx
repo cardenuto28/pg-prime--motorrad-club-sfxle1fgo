@@ -15,7 +15,7 @@ import {
   MessageCircle,
   Bike,
 } from 'lucide-react'
-import clubHeroBg from '@/assets/chatgpt-image-17-de-ago.de-2026-085401-36fe8.png'
+import clubHeroBg from '@/assets/chatgpt-image-14-de-out.de-2026-005024-7ba4d.png'
 
 const beneficios = [
   {
@@ -58,16 +58,16 @@ export default function Club() {
       <main className="max-w-[1400px] mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <div className="max-w-5xl mx-auto space-y-14 lg:space-y-20">
           {/* HERO BANNER - Exact match with reference visual */}
-          <section className="relative rounded-xl overflow-hidden min-h-[380px] sm:min-h-[460px] flex flex-col justify-center p-6 sm:p-10 md:p-12 border border-[#1a2336] shadow-2xl group">
-            {/* Background Image - Vibrant & Vivid without heavy opaque filters */}
+          <section className="relative rounded-xl overflow-hidden min-h-[380px] sm:min-h-[460px] lg:min-h-[500px] flex flex-col justify-center p-6 sm:p-10 md:p-12 border border-[#1a2336] shadow-2xl group">
+            {/* Background Image - Wide dark premium banner */}
             <div className="absolute inset-0 z-0">
               <img
                 src={clubHeroBg}
                 alt="PG PRIME CLUB"
-                className="w-full h-full object-cover object-center saturate-[1.12] contrast-[1.05] group-hover:scale-105 transition-transform duration-700"
+                className="w-full h-full object-cover object-[center_right] sm:object-center saturate-[1.08] contrast-[1.05] group-hover:scale-[1.02] transition-transform duration-700"
               />
               {/* Soft directional gradients preserving vivid background colors while ensuring readability */}
-              <div className="absolute inset-0 bg-gradient-to-r from-[#07090e]/90 via-[#07090e]/50 to-transparent max-w-2xl" />
+              <div className="absolute inset-0 bg-gradient-to-r from-[#07090e]/95 via-[#07090e]/75 sm:via-[#07090e]/50 to-transparent max-w-2xl" />
               <div className="absolute inset-0 bg-gradient-to-t from-[#07090e]/80 via-transparent to-black/20" />
             </div>
 
