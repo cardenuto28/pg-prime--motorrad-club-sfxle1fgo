@@ -1,4 +1,4 @@
-const CACHE_NAME = 'em-club-v1'
+const CACHE_NAME = 'pg-prime-club-v2'
 const PRECACHE_ASSETS = [
   '/',
   '/index.html',
