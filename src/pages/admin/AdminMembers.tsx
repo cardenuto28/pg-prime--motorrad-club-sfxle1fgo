@@ -29,6 +29,7 @@ import {
 import { exportMembersPdf } from '@/lib/pdfExport'
 import { exportMembersExcel } from '@/lib/excelExport'
 import { UserProfile, Registration, userService, registrationService } from '@/services/api'
+import { useAuth } from '@/context/AuthContext'
 import { FileSpreadsheet } from 'lucide-react'
 import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
@@ -78,6 +79,7 @@ type Status = UserProfile['status']
 const AdminMembers: React.FC = () => {
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { user: currentAuthUser } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const [users, setUsers] = useState<UserProfile[]>([])
   const [loading, setLoading] = useState(true)
@@ -403,20 +405,32 @@ const AdminMembers: React.FC = () => {
 
   const handleDeleteMember = async () => {
     if (!deleteTarget) return
+    if (currentAuthUser?.id === deleteTarget.id) {
+      toast({
+        title: 'Ação não permitida',
+        description: 'Você não pode excluir seu próprio perfil de administrador por esta lista.',
+        variant: 'destructive',
+      })
+      setDeleteTarget(null)
+      return
+    }
     setDeleting(true)
     try {
       await userService.deleteUser(deleteTarget.id)
       setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
       toast({
         title: 'Membro excluído',
-        description: 'Membro excluído com sucesso.',
+        description: `O cadastro de ${deleteTarget.name || 'membro'} foi excluído permanentemente com sucesso.`,
       })
       setDeleteTarget(null)
-    } catch (e) {
+    } catch (e: any) {
       console.error('Erro ao deletar membro:', e)
+      const errorMsg = e?.message || 'Não foi possível excluir o membro.'
       toast({
-        title: 'Erro ao excluir',
-        description: 'Não foi possível excluir o membro.',
+        title: 'Erro ao excluir membro',
+        description: errorMsg.includes('Failed to authenticate')
+          ? 'Sessão expirada. Faça login novamente como administrador.'
+          : errorMsg,
         variant: 'destructive',
       })
     } finally {
@@ -902,12 +916,22 @@ const AdminMembers: React.FC = () => {
                           </ActionBtn>
                         )}
                         <ActionBtn
-                          title="Deletar membro"
+                          title={
+                            currentAuthUser?.id === u.id
+                              ? 'Você não pode excluir seu próprio perfil'
+                              : 'Excluir membro permanentemente'
+                          }
                           disabled={
-                            actionLoading === u.id || (deleting && deleteTarget?.id === u.id)
+                            actionLoading === u.id ||
+                            (deleting && deleteTarget?.id === u.id) ||
+                            currentAuthUser?.id === u.id
                           }
                           onClick={() => setDeleteTarget(u)}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950/50"
+                          className={
+                            currentAuthUser?.id === u.id
+                              ? 'text-slate-600 cursor-not-allowed opacity-30'
+                              : 'text-red-400 hover:text-red-300 hover:bg-red-950/50'
+                          }
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </ActionBtn>

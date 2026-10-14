@@ -17,9 +17,21 @@ import {
   Phone,
   Mail,
   MapPin,
+  Trash2,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/context/AuthContext'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import {
   UserProfile,
   Registration,
@@ -80,10 +92,13 @@ const AdminMemberDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { user: currentAuthUser } = useAuth()
   const [user, setUser] = useState<UserProfile | null>(null)
   const [metricas, setMetricas] = useState<HistoricoMetricaMembro[]>([])
   const [ridesHistory, setRidesHistory] = useState<Registration[]>([])
   const [loading, setLoading] = useState(true)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const load = useCallback(async () => {
     if (!id) return
@@ -113,6 +128,40 @@ const AdminMemberDetail: React.FC = () => {
   useEffect(() => {
     load()
   }, [load])
+
+  const handleDeleteMember = async () => {
+    if (!user) return
+    if (currentAuthUser?.id === user.id) {
+      toast({
+        title: 'Ação não permitida',
+        description: 'Você não pode excluir seu próprio perfil de administrador.',
+        variant: 'destructive',
+      })
+      setConfirmDeleteOpen(false)
+      return
+    }
+    setDeleting(true)
+    try {
+      await userService.deleteUser(user.id)
+      toast({
+        title: 'Membro excluído',
+        description: `O cadastro de ${user.name || 'membro'} foi excluído permanentemente com sucesso.`,
+      })
+      navigate('/admin/membros')
+    } catch (e: any) {
+      console.error('Erro ao excluir membro:', e)
+      const errorMsg = e?.message || 'Não foi possível excluir o membro.'
+      toast({
+        title: 'Erro ao excluir membro',
+        description: errorMsg.includes('Failed to authenticate')
+          ? 'Sessão expirada. Faça login novamente como administrador.'
+          : errorMsg,
+        variant: 'destructive',
+      })
+      setDeleting(false)
+      setConfirmDeleteOpen(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -196,6 +245,16 @@ const AdminMemberDetail: React.FC = () => {
             <CreditCard className="w-3.5 h-3.5" /> VER CARTEIRINHA{' '}
             <ChevronRight className="w-3.5 h-3.5" />
           </Link>
+          {currentAuthUser?.id !== user.id && (
+            <Button
+              onClick={() => setConfirmDeleteOpen(true)}
+              variant="outline"
+              size="sm"
+              className="border-red-900/60 bg-red-950/30 text-red-400 hover:text-white hover:bg-red-950/70 text-xs gap-1.5 h-8"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" /> EXCLUIR MEMBRO
+            </Button>
+          )}
         </div>
       </div>
 
@@ -559,6 +618,43 @@ const AdminMemberDetail: React.FC = () => {
           </div>
         )}
       </section>
+      {/* Modal de Confirmação de Exclusão Permanente */}
+      <AlertDialog
+        open={confirmDeleteOpen}
+        onOpenChange={(o) => !o && !deleting && setConfirmDeleteOpen(false)}
+      >
+        <AlertDialogContent className="bg-[#0f141d] border-[#1e2738] text-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-base font-bold tracking-wide text-white flex items-center gap-2">
+              <Trash2 className="w-4 h-4 text-red-500" />
+              Excluir Membro Permanentemente
+            </AlertDialogTitle>
+            <AlertDialogDescription className="text-xs text-slate-400 leading-relaxed">
+              Tem certeza que deseja excluir permanentemente o membro{' '}
+              <span className="text-white font-semibold">{user.name || 'este membro'}</span>? Todos
+              os dados vinculados serão excluídos e esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="gap-2 sm:gap-0">
+            <AlertDialogCancel
+              disabled={deleting}
+              className="border-[#222c3f] bg-[#101622] text-slate-300 hover:text-white text-xs"
+            >
+              Cancelar
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault()
+                handleDeleteMember()
+              }}
+              disabled={deleting}
+              className="bg-red-600 hover:bg-red-500 text-white text-xs font-bold"
+            >
+              {deleting ? 'Excluindo...' : 'Sim, Excluir Membro'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
