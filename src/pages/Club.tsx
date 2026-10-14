@@ -74,7 +74,7 @@ export default function Club() {
             {/* Banner Content matching reference image */}
             <div className="relative z-10 space-y-4 max-w-xl">
               <div className="space-y-1">
-                <h1 className="text-2xl sm:text-4xl lg:text-[42px] font-black text-white font-montserrat tracking-tight leading-[1.1] uppercase drop-shadow-xl pb-[0px] pt-[32px] pr-[14px] pl-[0px] mt-[32px] mb-[6px] mr-[7px]">
+                <h1 className="font-black text-white font-montserrat tracking-tight leading-[1.1] uppercase drop-shadow-xl pb-[0px] pt-[32px] pr-[14px] pl-[0px] mt-[32px] mb-[6px] mr-[7px] text-[1.5rem]">
                   FAÇA PARTE DO{' '}
                   <span className="block text-[#0066FF] drop-shadow-[0_0_20px_rgba(0,102,255,0.7)]">
                     PG PRIME
