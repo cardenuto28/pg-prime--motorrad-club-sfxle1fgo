@@ -589,7 +589,7 @@ const PartnerFormModal: React.FC<{
             <Input
               value={form.city}
               onChange={(e) => set('city', e.target.value)}
-              placeholder="Ex.: Itatiba / Serra Negra - SP"
+              placeholder="Ex.: Bananeiras - PB / Tibau do Sul - RN"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>

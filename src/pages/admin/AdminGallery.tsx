@@ -599,7 +599,7 @@ const GalleryFormModal: React.FC<{
               <Input
                 value={form.title}
                 onChange={(e) => set('title', e.target.value)}
-                placeholder="Ex.: Serra do Rio do Rastro 2025"
+                placeholder="Ex.: Costa das Falésias & Tabatinga 2026"
                 className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
               />
             </Field>

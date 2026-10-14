@@ -599,7 +599,7 @@ const RideFormModal: React.FC<{
               <Input
                 value={form.name}
                 onChange={(e) => set('name', e.target.value)}
-                placeholder="Ex: Passeio Serra do Rio do Rastro"
+                placeholder="Ex: Passeio Litoral Sul da Paraíba & Mirantes"
                 className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
               />
             </Field>
@@ -730,7 +730,7 @@ const RideFormModal: React.FC<{
             <Input
               value={form.meeting_point}
               onChange={(e) => set('meeting_point', e.target.value)}
-              placeholder="Ex: Posto Shell - BR-101"
+              placeholder="Ex: BMW João Pessoa (Cabedelo-PB) ou BMW Natal (RN)"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
@@ -738,7 +738,7 @@ const RideFormModal: React.FC<{
             <Input
               value={form.destination}
               onChange={(e) => set('destination', e.target.value)}
-              placeholder="Ex: Serra do Corvo Branco"
+              placeholder="Ex: Bananeiras - PB / Praia da Pipa - RN"
               className="bg-[#141b27] border-[#222c3f] text-white text-xs h-9"
             />
           </Field>
