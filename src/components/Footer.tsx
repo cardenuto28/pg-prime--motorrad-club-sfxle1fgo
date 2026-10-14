@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Phone, MapPin, Instagram, Facebook, Youtube, Globe, MessageCircle } from 'lucide-react'
-import logoImage from '@/assets/logo-e67e1.jpeg'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 import { settingsService, SiteSettings } from '@/services/settings'
 import { DEALERSHIP_UNITS } from '@/lib/dealerships'
 
@@ -68,7 +68,7 @@ export const Footer: React.FC = () => {
           {/* Centro: Logo */}
           <div className="flex items-center justify-center order-1 md:order-2">
             <img
-              src="/visual-edits/whatsapp-image-2026-10-13-at-17-22-31-6eb67bad.jpg"
+              src={PG_PRIME_LOGO_URL}
               alt="PG PRIME CLUB"
               className="h-14 sm:h-16 w-auto object-contain"
             />

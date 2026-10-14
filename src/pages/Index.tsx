@@ -50,7 +50,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/hooks/use-toast'
 import heroBg from '@/assets/chatgpt-image-14-de-ago.de-2026-140658-cc4d6.png'
-import logoImage from '@/assets/logo-e67e1.jpeg'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 
 export default function Index() {
   const { user } = useAuth()
@@ -823,7 +823,7 @@ export default function Index() {
             {/* Centro: Logo PG PRIME */}
             <div className="flex items-center justify-center">
               <img
-                src="/visual-edits/whatsapp-image-2026-10-13-at-17-22-31-c768921c.jpg"
+                src={PG_PRIME_LOGO_URL}
                 alt="PG PRIME CLUB"
                 className="h-12 sm:h-[3.6rem] w-auto object-contain opacity-95 hover:opacity-100 transition-opacity"
               />

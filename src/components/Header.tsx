@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import logoImage from '@/assets/logo-e67e1.jpeg'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 
 interface HeaderProps {
   onOpenAuthModal?: () => void
@@ -76,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           {/* Logo */}
           <Link to="/" className="flex items-center group shrink-0">
             <img
-              src="/visual-edits/whatsapp-image-2026-10-13-at-17-22-31-d27bd5dd.jpg"
+              src={PG_PRIME_LOGO_URL}
               alt="PG PRIME CLUB"
               className="h-[4.2rem] sm:h-[5rem] w-auto object-contain transition-opacity group-hover:opacity-90"
             />

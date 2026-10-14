@@ -26,7 +26,7 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { announcementService } from '@/services/api'
 import { ErrorBoundary } from '@/components/ErrorBoundary'
-import logoImage from '@/assets/logo-e67e1.jpeg'
+import { PG_PRIME_LOGO_URL } from '@/lib/branding'
 
 interface NavItem {
   to: string
@@ -95,11 +95,13 @@ export const AdminLayout: React.FC = () => {
               <Menu className="w-6 h-6" />
             </button>
             <Link to="/" className="flex items-center gap-3 group shrink-0">
-              <img
-                src={logoImage}
-                alt="PG PRIME CLUB"
-                className="h-[2.52rem] w-auto object-contain transition-opacity group-hover:opacity-90"
-              />
+              <div className="bg-[#0b101c] px-2 py-1 rounded border border-[#1b253b] flex items-center">
+                <img
+                  src={PG_PRIME_LOGO_URL}
+                  alt="PG PRIME CLUB"
+                  className="h-8 sm:h-9 w-auto object-contain transition-opacity group-hover:opacity-90"
+                />
+              </div>
               <span className="text-[10px] tracking-[0.2em] text-blue-400 font-bold uppercase font-montserrat border-l border-slate-700 pl-3">
                 ADMIN
               </span>
