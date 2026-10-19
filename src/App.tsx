@@ -48,6 +48,7 @@ import Galeria from './pages/Galeria'
 import Contato from './pages/Contato'
 import Termos from './pages/Termos'
 import PoliticaPrivacidade from './pages/PoliticaPrivacidade'
+import RedefinirSenha from './pages/RedefinirSenha'
 import { AuthProvider } from './context/AuthContext'
 import { PWAInstallBanner } from './components/PWAInstallBanner'
 
@@ -75,6 +76,9 @@ const App = () => (
             <Route path="/termos" element={<Termos />} />
             <Route path="/politica-de-privacidade" element={<PoliticaPrivacidade />} />
             <Route path="/politica-privacidade" element={<PoliticaPrivacidade />} />
+            {/* Redefinição de senha via link de e-mail */}
+            <Route path="/redefinir-senha" element={<RedefinirSenha />} />
+            <Route path="/reset-password" element={<RedefinirSenha />} />
             {/* Validação de cadastro pública - PG PRIME */}
             <Route path="/validar-cadastro" element={<ValidarCadastro />} />
             <Route path="/validar-pgprime" element={<ValidarCadastro />} />

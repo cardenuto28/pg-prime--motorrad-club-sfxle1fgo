@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
-import { User, LogOut, Menu, X, Bike, ShieldCheck } from 'lucide-react'
+import { User, LogOut, Menu, X, Bike, ShieldCheck, KeyRound } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog'
 import {
   Dialog,
   DialogContent,
@@ -25,6 +26,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
   const navigate = useNavigate()
 
   const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [forgotModalOpen, setForgotModalOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -318,7 +320,19 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginModalOpen(false)
+                    setForgotModalOpen(true)
+                  }}
+                  className="text-[11px] text-[#0066FF] hover:text-blue-300 font-medium transition-colors hover:underline flex items-center gap-1"
+                >
+                  <KeyRound className="w-3 h-3" /> Esqueci minha senha
+                </button>
+              </div>
               <Input
                 type="password"
                 required
@@ -332,7 +346,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             <Button
               type="submit"
               disabled={loading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wider h-10 mt-2"
+              className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider h-10 mt-2 rounded-sm uppercase font-montserrat"
             >
               {loading ? 'ENTRANDO...' : 'ENTRAR NA ÁREA DO MEMBRO'}
             </Button>
@@ -355,6 +369,14 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Esqueci a Senha */}
+      <ForgotPasswordDialog
+        open={forgotModalOpen}
+        onOpenChange={setForgotModalOpen}
+        defaultEmail={email}
+        onBackToLogin={() => setLoginModalOpen(true)}
+      />
     </>
   )
 }

@@ -4,6 +4,7 @@ import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { RideRegistrationModal } from '@/components/RideRegistrationModal'
 import { SidebarSignup } from '@/components/SidebarSignup'
+import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog'
 import { BenefitsMatrixSection } from '@/components/BenefitsMatrixSection'
 import {
   Dialog,
@@ -70,6 +71,7 @@ export default function Index() {
   // Modais de Cadastro e Login na Home
   const [signupModalOpen, setSignupModalOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [forgotModalOpen, setForgotModalOpen] = useState(false)
   const [loginEmail, setLoginEmail] = useState('')
   const [loginPassword, setLoginPassword] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
@@ -904,7 +906,19 @@ export default function Index() {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginModalOpen(false)
+                    setForgotModalOpen(true)
+                  }}
+                  className="text-[11px] text-[#0066FF] hover:text-blue-300 font-medium transition-colors hover:underline"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <Input
                 type="password"
                 required
@@ -918,7 +932,7 @@ export default function Index() {
             <Button
               type="submit"
               disabled={loginLoading}
-              className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider h-10 mt-2 rounded-sm uppercase"
+              className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider h-10 mt-2 rounded-sm uppercase font-montserrat shadow-lg shadow-blue-950/50"
             >
               {loginLoading ? 'ENTRANDO...' : 'ENTRAR NA ÁREA DO MEMBRO'}
             </Button>
@@ -939,6 +953,14 @@ export default function Index() {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Esqueci a Senha na Home */}
+      <ForgotPasswordDialog
+        open={forgotModalOpen}
+        onOpenChange={setForgotModalOpen}
+        defaultEmail={loginEmail}
+        onBackToLogin={() => setLoginModalOpen(true)}
+      />
     </div>
   )
 }

@@ -23,6 +23,7 @@ import { useToast } from '@/hooks/use-toast'
 import { getMemberCategory } from '@/lib/member'
 import { CategoryBadge } from '@/components/CategoryBadge'
 import { CLUB_OFFICIAL_BADGE_URL } from '@/lib/branding'
+import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog'
 
 export const StoreCheckIn: React.FC = () => {
   const [searchParams] = useSearchParams()
@@ -35,6 +36,7 @@ export const StoreCheckIn: React.FC = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginSubmitting, setLoginSubmitting] = useState(false)
+  const [forgotModalOpen, setForgotModalOpen] = useState(false)
 
   // Check-in processing state
   const [processing, setProcessing] = useState(false)
@@ -306,9 +308,18 @@ export const StoreCheckIn: React.FC = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-montserrat">
-                    Senha
-                  </Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-[11px] font-bold text-slate-300 uppercase tracking-wider font-montserrat">
+                      Senha
+                    </Label>
+                    <button
+                      type="button"
+                      onClick={() => setForgotModalOpen(true)}
+                      className="text-[11px] text-[#0066FF] hover:text-blue-300 font-medium transition-colors hover:underline"
+                    >
+                      Esqueci minha senha
+                    </button>
+                  </div>
                   <div className="relative">
                     <Input
                       type="password"
@@ -337,6 +348,12 @@ export const StoreCheckIn: React.FC = () => {
                 </Button>
               </form>
             )}
+
+            <ForgotPasswordDialog
+              open={forgotModalOpen}
+              onOpenChange={setForgotModalOpen}
+              defaultEmail={email}
+            />
 
             <div className="pt-4 border-t border-[#1c2538] text-center space-y-2 text-xs text-slate-400">
               <p>

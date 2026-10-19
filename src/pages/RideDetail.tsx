@@ -26,6 +26,7 @@ import {
 import { Header } from '@/components/Header'
 import { Footer } from '@/components/Footer'
 import { RideRegistrationModal } from '@/components/RideRegistrationModal'
+import { ForgotPasswordDialog } from '@/components/ForgotPasswordDialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -67,6 +68,7 @@ const RideDetail: React.FC = () => {
 
   const [regModalOpen, setRegModalOpen] = useState(false)
   const [loginModalOpen, setLoginModalOpen] = useState(false)
+  const [forgotModalOpen, setForgotModalOpen] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loginLoading, setLoginLoading] = useState(false)
@@ -577,7 +579,19 @@ const RideDetail: React.FC = () => {
               />
             </div>
             <div className="space-y-1.5">
-              <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+              <div className="flex items-center justify-between">
+                <Label className="text-xs text-slate-300 font-medium">Senha</Label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setLoginModalOpen(false)
+                    setForgotModalOpen(true)
+                  }}
+                  className="text-[11px] text-[#0066FF] hover:text-blue-300 font-medium transition-colors hover:underline"
+                >
+                  Esqueci minha senha
+                </button>
+              </div>
               <Input
                 type="password"
                 required
@@ -591,7 +605,7 @@ const RideDetail: React.FC = () => {
             <Button
               type="submit"
               disabled={loginLoading}
-              className="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs tracking-wider h-10 mt-2"
+              className="w-full bg-[#0066FF] hover:bg-blue-600 text-white font-bold text-xs tracking-wider h-10 mt-2 rounded-sm uppercase font-montserrat shadow-lg shadow-blue-950/50"
             >
               {loginLoading ? 'ENTRANDO...' : 'ENTRAR E ME INSCREVER'}
             </Button>
@@ -609,6 +623,14 @@ const RideDetail: React.FC = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Modal de Esqueci a Senha */}
+      <ForgotPasswordDialog
+        open={forgotModalOpen}
+        onOpenChange={setForgotModalOpen}
+        defaultEmail={email}
+        onBackToLogin={() => setLoginModalOpen(true)}
+      />
 
       {/* Modal de Inscrição */}
       <RideRegistrationModal

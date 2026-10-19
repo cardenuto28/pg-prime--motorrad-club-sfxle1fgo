@@ -9,6 +9,8 @@ interface AuthContextType {
   logout: () => void
   refreshUser: () => Promise<void>
   isAdmin: boolean
+  requestPasswordReset: (email: string) => Promise<{ error: any }>
+  confirmPasswordReset: (token: string, password: string) => Promise<{ error: any }>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -57,10 +59,41 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null)
   }
 
+  const requestPasswordReset = async (email: string) => {
+    try {
+      await pb.collection('users').requestPasswordReset(email.trim().toLowerCase())
+      return { error: null }
+    } catch (error: any) {
+      console.error('Password reset request error:', error)
+      return { error }
+    }
+  }
+
+  const confirmPasswordReset = async (token: string, password: string) => {
+    try {
+      await pb.collection('users').confirmPasswordReset(token.trim(), password, password)
+      return { error: null }
+    } catch (error: any) {
+      console.error('Password reset confirmation error:', error)
+      return { error }
+    }
+  }
+
   const isAdmin = user?.role === 'admin'
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout, refreshUser, isAdmin }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        login,
+        logout,
+        refreshUser,
+        isAdmin,
+        requestPasswordReset,
+        confirmPasswordReset,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   )
