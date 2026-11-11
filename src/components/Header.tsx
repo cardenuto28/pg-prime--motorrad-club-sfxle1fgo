@@ -76,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
       <header className="sticky top-0 z-50 bg-[#050810]/95 backdrop-blur-md border-b border-[#121c2e]">
         <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center group shrink-0">
+          <Link to="/" className="flex items-center group shrink-0 mr-4 lg:mr-8 xl:mr-12">
             <img
               src={PG_PRIME_LOGO_URL}
               alt="Matriz de Benefícios por Categoria — PG PRIME Motorrad Club"
@@ -85,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             <img
               src={PG_PRIME_WORDMARK_URL}
               alt="PG Prime"
-              className="h-[1.8rem] sm:h-[2.1rem] w-auto object-contain ml-3 sm:ml-4 self-center mix-blend-screen transition-opacity group-hover:opacity-90"
+              className="h-[1.45rem] sm:h-[1.7rem] w-auto object-contain ml-4 sm:ml-5 self-center mix-blend-screen transition-opacity group-hover:opacity-90"
             />
           </Link>
 
