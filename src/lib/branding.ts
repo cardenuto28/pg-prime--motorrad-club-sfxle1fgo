@@ -1,5 +1,6 @@
 import badgeImg from '@/assets/img0215-02b5c.png'
 import benefitsMatrixImg from '@/assets/chatgpt-image-14-de-out.de-2026-002525-51b8b.png'
+import pgPrimeWordmarkImg from '@/assets/image-358aa.png'
 
 /**
  * Configurações e caminhos oficiais de identidade visual da marca PG PRIME CLUB.
@@ -32,3 +33,10 @@ export const OFFICIAL_CLUB_LOGO = CLUB_OFFICIAL_BADGE_URL
  * (Tabela com colunas BRONZE / PRATA / GOLD / PLATINUM e regras do clube).
  */
 export const BENEFITS_MATRIX_URL = benefitsMatrixImg
+
+/**
+ * Logotipo "PGPrime" (texto branco arredondado sobre fundo preto), enviado pelo usuário.
+ * Exibido no cabeçalho do site, ao lado do escudo oficial. O fundo preto da imagem é
+ * tratado com mix-blend-screen para fundir com o fundo escuro do header (sem retângulo preto).
+ */
+export const PG_PRIME_WORDMARK_URL = pgPrimeWordmarkImg

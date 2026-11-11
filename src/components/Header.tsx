@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/hooks/use-toast'
-import { PG_PRIME_LOGO_URL } from '@/lib/branding'
+import { PG_PRIME_LOGO_URL, PG_PRIME_WORDMARK_URL } from '@/lib/branding'
 
 interface HeaderProps {
   onOpenAuthModal?: () => void
@@ -81,6 +81,11 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
               src={PG_PRIME_LOGO_URL}
               alt="Matriz de Benefícios por Categoria — PG PRIME Motorrad Club"
               className="h-[4.2rem] sm:h-[5rem] w-auto object-contain transition-opacity group-hover:opacity-90"
+            />
+            <img
+              src={PG_PRIME_WORDMARK_URL}
+              alt="PG Prime"
+              className="h-[3.2rem] sm:h-[3.8rem] w-auto object-contain ml-3 sm:ml-4 self-center mix-blend-screen transition-opacity group-hover:opacity-90"
             />
           </Link>
 
