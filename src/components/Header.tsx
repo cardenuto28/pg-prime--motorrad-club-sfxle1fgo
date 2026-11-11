@@ -85,7 +85,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenAuthModal }) => {
             <img
               src={PG_PRIME_WORDMARK_URL}
               alt="PG Prime"
-              className="h-[2.25rem] sm:h-[2.65rem] w-auto object-contain ml-3 sm:ml-4 self-center mix-blend-screen transition-opacity group-hover:opacity-90"
+              className="h-[1.8rem] sm:h-[2.1rem] w-auto object-contain ml-3 sm:ml-4 self-center mix-blend-screen transition-opacity group-hover:opacity-90"
             />
           </Link>
 
